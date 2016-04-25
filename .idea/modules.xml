@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/VertecXML_REST_API.iml" filepath="$PROJECT_DIR$/.idea/modules/VertecXML_REST_API.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/VertecXML_REST_API_main.iml" filepath="$PROJECT_DIR$/.idea/modules/VertecXML_REST_API_main.iml" group="VertecXML_REST_API" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/VertecXML_REST_API_test.iml" filepath="$PROJECT_DIR$/.idea/modules/VertecXML_REST_API_test.iml" group="VertecXML_REST_API" />
+    </modules>
+  </component>
+</project>
