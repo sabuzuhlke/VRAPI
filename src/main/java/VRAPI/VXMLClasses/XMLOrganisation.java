@@ -14,8 +14,18 @@ public class XMLOrganisation {
     private String standardPLZ;
     private XMLObjRef betreuer;
     private XMLObjRef creator;
+    private XMLContact contacts;
 
     public XMLOrganisation() {
+    }
+
+    @XmlElement(name = "kontakte")
+    public XMLContact getContacts() {
+        return contacts;
+    }
+
+    public void setContacts(XMLContact contacts) {
+        this.contacts = contacts;
     }
 
     @XmlElement(name = "objid")

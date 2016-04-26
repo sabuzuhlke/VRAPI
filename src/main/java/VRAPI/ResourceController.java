@@ -95,7 +95,7 @@ public class ResourceController {
                 "        <member>StandardLand</member>\n" +         //Country of Organisation
                 "        <member>Betreuer</member>\n" +             //Objref to Zuhlke user who is responsible for the Organisation (Owner)
                 "        <member>Creator</member>\n" +              //Objref to Zuhlke user who Created the Organisation Entry
-                //"        <member>Kontakte</member>\n" +             // List of Objrefs of contacts from the organisation
+                "        <member>Kontakte</member>\n" +             // List of Objrefs of contacts from the organisation
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +
@@ -104,7 +104,7 @@ public class ResourceController {
 
             req = new RequestEntity<>(xml, HttpMethod.POST,new URI("http://" + VipAddress + ":" + VportNr + "/xml"));
             res = xRestTemplate.exchange(req, XMLEnvelope.class);
-            //System.out.println(res.toString());
+            System.out.println(res.toString());
         }
         catch (Exception e){
             System.out.println("Exception: " + e);
