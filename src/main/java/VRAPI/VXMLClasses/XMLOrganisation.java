@@ -14,17 +14,17 @@ public class XMLOrganisation {
     private String standardPLZ;
     private XMLObjRef betreuer;
     private XMLObjRef creator;
-    private XMLContact contacts;
+    private XMLContactObjrefList contacts;
 
     public XMLOrganisation() {
     }
 
     @XmlElement(name = "kontakte")
-    public XMLContact getContacts() {
+    public XMLContactObjrefList getContacts() {
         return contacts;
     }
 
-    public void setContacts(XMLContact contacts) {
+    public void setContacts(XMLContactObjrefList contacts) {
         this.contacts = contacts;
     }
 

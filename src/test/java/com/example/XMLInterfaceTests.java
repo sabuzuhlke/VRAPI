@@ -1,6 +1,7 @@
 package com.example;
 import VRAPI.Application;
 import VRAPI.ResourceController;
+import VRAPI.VXMLClasses.XMLContact;
 import VRAPI.VXMLClasses.XMLEnvelope;
 import VRAPI.VXMLClasses.XMLObjRef;
 import VRAPI.VXMLClasses.XMLOrganisation;
@@ -39,58 +40,73 @@ public class XMLInterfaceTests {
 
     }
 
-    @Test
-    public void apiIsUP(){
-        RestTemplate rt = new RestTemplate();
-        String url = "http://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/ping";
-        RequestEntity<String> req = null;
-        ResponseEntity<String> res;
-        try{
-
-            req = new RequestEntity<String>( HttpMethod.GET,new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create Request");
-        }
-        assertTrue(req != null);
-
-        res = rt.exchange(req,String.class);
-
-        assertTrue(res != null);
-        assertTrue(res.getStatusCode() == HttpStatus.OK);
-        assertTrue(res.getBody() != null);
-        assertTrue(res.getBody().equals("blah"));
-
-
-    }
-
-    @Test
-    public void canGetLondonOrgs(){
-        RestTemplate rt = new RestTemplate();
-        String url = "http://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/London/";
-        RequestEntity<String> req = null;
-        ResponseEntity<XMLEnvelope> res;
-        List<XMLOrganisation> Orgs = new ArrayList<>();
-        try{
-
-            req = new RequestEntity<>( HttpMethod.GET,new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create Request");
-        }
-        assertTrue(req != null);
-
-        res = rt.exchange(req,XMLEnvelope.class);
-        assertTrue(res.getStatusCode() == HttpStatus.OK);
-        assertTrue(res.getBody() != null);
-
-        Orgs = res.getBody().getBody().getQueryResponse().getOrgs();
-
-        for(XMLOrganisation org : Orgs){
-            assertTrue(org.getStandardOrt().equals("London"));
-        }
-
-        System.out.println("Checked " + Orgs.size() + " organisations");
-    }
+//    @Test
+//    public void apiIsUP(){
+//        RestTemplate rt = new RestTemplate();
+//        String url = "http://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/ping";
+//        RequestEntity<String> req = null;
+//        ResponseEntity<String> res;
+//        try{
+//
+//            req = new RequestEntity<String>( HttpMethod.GET,new URI(url));
+//        }
+//        catch(Exception e){
+//            System.out.println("Could not create Request");
+//        }
+//        assertTrue(req != null);
+//
+//        res = rt.exchange(req,String.class);
+//
+//        assertTrue(res != null);
+//        assertTrue(res.getStatusCode() == HttpStatus.OK);
+//        assertTrue(res.getBody() != null);
+//        assertTrue(res.getBody().equals("ping"));
+//
+//
+//    }
+//
+//    @Test
+//    public void canGetLondonOrgs(){
+//        RestTemplate rt = new RestTemplate();
+//        String url = "http://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/London/";
+//        RequestEntity<String> req = null;
+//        ResponseEntity<XMLEnvelope> res;
+//        List<XMLOrganisation> Orgs = new ArrayList<>();
+//        try{
+//
+//            req = new RequestEntity<>( HttpMethod.GET,new URI(url));
+//        }
+//        catch(Exception e){
+//            System.out.println("Could not create Request");
+//        }
+//        assertTrue(req != null);
+//
+//        res = rt.exchange(req,XMLEnvelope.class);
+//        assertTrue(res.getStatusCode() == HttpStatus.OK);
+//        assertTrue(res.getBody() != null);
+//
+//        Orgs = res.getBody().getBody().getQueryResponse().getOrgs();
+//
+//        for(XMLOrganisation org : Orgs){
+//            assertTrue(org.getStandardOrt().equals("London"));
+//        }
+//
+//        System.out.println("Checked " + Orgs.size() + " organisations");
+//    }
+//
+//    @Test
+//    public void gettingContactsDoesntReceivePersonsAmongContacts() {
+//        List<Long> Ids = new ArrayList<Long>();
+//        Ids.add(240238L);
+//        Ids.add(723465L);
+//        Ids.add(751315L);
+//        Ids.add(771935L);
+//        Ids.add(2394423L);
+//        Ids.add(2394981L);
+//        List<XMLContact> cts = rc.getContacts(Ids);
+//
+//        assertEquals(cts.size(), 4);
+//    }
 
 }
+
