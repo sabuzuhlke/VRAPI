@@ -1,23 +1,22 @@
-package VRAPI.ContainerEmployer;
+package VRAPI.ContainerAddresses;
 
 import javax.xml.bind.annotation.XmlElement;
 
 /**
  * Created by gebo on 27/04/2016.
  */
-public class Team {
-    private XMLObjlist list;
+public class Addresses {
+    private Objlist list;
 
-    public Team() {
+    public Addresses() {
     }
 
     @XmlElement(name = "objlist")
-
-    public XMLObjlist getList() {
+    public Objlist getList() {
         return list;
     }
 
-    public void setList(XMLObjlist list) {
+    public void setList(Objlist list) {
         this.list = list;
     }
 }

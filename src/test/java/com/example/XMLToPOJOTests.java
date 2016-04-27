@@ -1,6 +1,6 @@
 package com.example;
 
-import VRAPI.ContainerTeam.XMLEnvelope;
+import VRAPI.ContainerAddresses.Envelope;
 import org.junit.Test;
 
 import javax.xml.bind.JAXBContext;
@@ -16,7 +16,7 @@ import static org.junit.Assert.assertTrue;
 public class XMLToPOJOTests{
 
     @Test public void canParseTeamMembers(){
-        VRAPI.ContainerEmployer.XMLEnvelope env = null;
+        VRAPI.ContainerTeam.Envelope env = null;
 
         String xml = "<Envelope>" +
                 "   <Body>" +
@@ -37,10 +37,10 @@ public class XMLToPOJOTests{
 
         try{
 
-            JAXBContext jc = JAXBContext.newInstance(VRAPI.ContainerEmployer.XMLEnvelope.class);
+            JAXBContext jc = JAXBContext.newInstance(VRAPI.ContainerTeam.Envelope.class);
             Unmarshaller u = jc.createUnmarshaller();
             StringReader reader = new StringReader(xml);
-            env = (VRAPI.ContainerEmployer.XMLEnvelope) u.unmarshal(reader);
+            env = (VRAPI.ContainerTeam.Envelope) u.unmarshal(reader);
 
         }
         catch(Exception e){
@@ -63,7 +63,7 @@ public class XMLToPOJOTests{
     @Test
     public void canParseBetreuteAdressen(){
 
-        VRAPI.ContainerTeam.XMLEnvelope env = null;
+        Envelope env = null;
 
         String xml = "<Envelope>" +
                 "   <Body>" +
@@ -96,10 +96,10 @@ public class XMLToPOJOTests{
 
         try{
 
-            JAXBContext jc = JAXBContext.newInstance(VRAPI.ContainerTeam.XMLEnvelope.class);
+            JAXBContext jc = JAXBContext.newInstance(Envelope.class);
             Unmarshaller u = jc.createUnmarshaller();
             StringReader reader = new StringReader(xml);
-            env = (XMLEnvelope) u.unmarshal(reader);
+            env = (Envelope) u.unmarshal(reader);
 
         }
         catch(Exception e){
@@ -128,27 +128,23 @@ public class XMLToPOJOTests{
     }
 
     @Test
-    public void canGetContactIds() {        //------------------------ Doesn't parse <Person>s
-        VRAPI.ContainerSimpleContact.XMLEnvelope env = null;
+    public void canParseContactIds() {        //------------------------ Doesn't parse <Person>s
+        VRAPI.ContainerSimpleContact.Envelope env = null;
 
         String xml = "<Envelope>" +
                 "   <Body>" +
                 "        <QueryResponse>" +
                 "           <Kontakt>" +
                 "               <objid>5726</objid>" +
-                "               <aktiv>1</aktiv>" +
                 "           </Kontakt>" +
                 "           <Kontakt>" +
                 "               <objid>5728</objid>" +
-                "               <aktiv>0</aktiv>" +
                 "           </Kontakt>" +
                 "           <Person>" +
                 "               <objid>6666</objid>" +
-                "               <aktiv>0</aktiv>" +
                 "           </Person>" +
                 "           <Person>" +
                 "               <objid>6667</objid>" +
-                "               <aktiv>1</aktiv>" +
                 "           </Person>" +
                 "       </QueryResponse>" +
                 "   </Body>" +
@@ -156,10 +152,10 @@ public class XMLToPOJOTests{
 
         try {
 
-            JAXBContext jc = JAXBContext.newInstance(VRAPI.ContainerSimpleContact.XMLEnvelope.class);
+            JAXBContext jc = JAXBContext.newInstance(VRAPI.ContainerSimpleContact.Envelope.class);
             Unmarshaller u = jc.createUnmarshaller();
             StringReader reader = new StringReader(xml);
-            env = (VRAPI.ContainerSimpleContact.XMLEnvelope) u.unmarshal(reader);
+            env = (VRAPI.ContainerSimpleContact.Envelope) u.unmarshal(reader);
         } catch (Exception e) {
             System.out.println("ERROR in Unmarshall Addresses test: " + e);
         }
@@ -173,8 +169,6 @@ public class XMLToPOJOTests{
         assertTrue(env.getBody().getQueryResponse().getContacts().get(1) != null);
         assertTrue(env.getBody().getQueryResponse().getContacts().get(0).getObjid() == 5726);
         assertTrue(env.getBody().getQueryResponse().getContacts().get(1).getObjid() == 5728);
-        assertTrue(env.getBody().getQueryResponse().getContacts().get(0).getAktiv());
-        assertTrue( ! env.getBody().getQueryResponse().getContacts().get(1).getAktiv());
     }
 
 
@@ -201,6 +195,7 @@ public class XMLToPOJOTests{
         assertTrue(env.getBody().getQueryResponse().getContactList().get(0).getModified().equals("2016-02-02T12:38:59"));
         assertTrue(env.getBody().getQueryResponse().getContactList().get(0).getOrganisation().getObjref() == 37358L);
         assertTrue(env.getBody().getQueryResponse().getContactList().get(0).getObjId() == 240238L);
+        assertTrue(env.getBody().getQueryResponse().getContactList().get(0).getPersonResponsible().getObjref() == 5726L);
 
     }
 
@@ -293,6 +288,9 @@ public class XMLToPOJOTests{
                 "        <firma>\n" +
                 "          <objref>37358</objref>\n" +
                 "        </firma>\n" +
+                "        <betreuer>\n" +
+                "          <objref>5726</objref>\n" +
+                "        </betreuer>\n" +
                 "        <modifiedDateTime>2016-02-02T12:38:59</modifiedDateTime>\n" +
                 "        <name>Hueneke</name>\n" +
                 "        <standardEMail>immo.huneke@zuhlke.com</standardEMail>\n" +

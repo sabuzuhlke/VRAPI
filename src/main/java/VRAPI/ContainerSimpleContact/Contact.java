@@ -8,7 +8,6 @@ import javax.xml.bind.annotation.XmlElement;
 public class Contact {
 
     private Long objid;
-    private Boolean aktiv;
 
     public Contact() {
     }
@@ -19,13 +18,5 @@ public class Contact {
 
     public void setObjid(Long objid) {
         this.objid = objid;
-    }
-    @XmlElement(name = "aktiv")
-    public Boolean getAktiv() {
-        return aktiv;
-    }
-
-    public void setAktiv(Boolean aktiv) {
-        this.aktiv = aktiv;
     }
 }

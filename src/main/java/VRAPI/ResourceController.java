@@ -1,8 +1,7 @@
 package VRAPI;
-import java.beans.XMLEncoder;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -22,36 +21,155 @@ public class ResourceController {
     private String VipAddress;
     private String VportNr;
     private String OwnIpAddress;
-    private String OwnPortNr;
-    private RestTemplate xRestTemplate; //To be used for querying Vertec --XML Marshaller
+    private String OwnPortNr; //To be used for querying Vertec --XML Marshaller
     private String username;
     private String password;
-
+    private RestTemplate rest;
 
     public ResourceController() {
         //IpAddress:portNum of VertecServer
         this.VipAddress = "172.18.10.54";
         this.VportNr = "8095";
 
-        this.OwnIpAddress = "172.18.10.85";
+        this.OwnIpAddress = "localhost";
         this.OwnPortNr = "9999";
 
-        this.xRestTemplate = new RestTemplate();
-
+        //set resttemplate message converters
+        this.rest = new RestTemplate();
         List<HttpMessageConverter<?>> converters = new ArrayList<>();
-
         Jaxb2RootElementHttpMessageConverter jaxbMC = new Jaxb2RootElementHttpMessageConverter();
-
         List<MediaType> mediaTypes = new ArrayList<>();
         mediaTypes.add(MediaType.TEXT_XML);
         jaxbMC.setSupportedMediaTypes(mediaTypes);
-
         converters.add(jaxbMC);
-
-
         converters.add(new FormHttpMessageConverter());
         converters.add(new StringHttpMessageConverter());
-        xRestTemplate.setMessageConverters(converters);
+        rest.setMessageConverters(converters);
+
+        //TODO: replace with proper authenitcation
+        MyCredentials creds = new MyCredentials();
+
+        this.username = creds.getUserName();
+        this.password = creds.getPass();
+    }
+
+    //TODO: make xml access methods private, adjust tests: http://stackoverflow.com/questions/34571/how-to-test-a-class-that-has-private-methods-fields-or-inner-classes
+    public List<Long> getZUKTeamMemberIds() {
+        RequestEntity<String> req;
+        List<Long> ids = new ArrayList<>();
+        try {
+
+            String xmlQuery = getXMLQuery_LeadersTeam();
+            String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
+            ResponseEntity<VRAPI.ContainerTeam.Envelope> res = this.rest.exchange(req, VRAPI.ContainerTeam.Envelope.class);
+
+            ids = res.getBody().getBody().getQueryResponse().getWorkers().get(0).getTeam().getList().getObjects();
+
+        } catch (Exception e) {
+            System.out.println("ERROR IN GETTING ZUK TEAM MEMBERS" + e);
+        }
+
+        return ids;
+    }
+
+    public List<Long> getSupervisedAddresses(List<Long> supervisorIds){
+        RequestEntity<String> req;
+        List<Long> ids = new ArrayList<>();
+        Set<Long> uniqueIds = new HashSet<>();
+        try {
+
+            String xmlQuery = getXMLQuery_SupervisedAddresses(supervisorIds);
+            String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
+            ResponseEntity<VRAPI.ContainerAddresses.Envelope> res = this.rest.exchange(req, VRAPI.ContainerAddresses.Envelope.class);
+            VRAPI.ContainerAddresses.Envelope env = res.getBody();
+
+            for(VRAPI.ContainerAddresses.ProjectWorker w : env.getBody().getQueryResponse().getWorkers()){
+                if (w.getObjid() == 8619482L) {
+                    System.out.println("Justin has " + w.getAddresses().getList().getObjects().size() + " contacts, very very impressive");
+                }
+                if (w.getObjid() == 5295L) {
+                    System.out.println("Wolfgang has " + w.getAddresses().getList().getObjects().size() + " contacts, very very impressive");
+                }
+                if (w.getActive()) {
+                    ids.addAll(w.getAddresses().getList().getObjects());
+                }
+            }
+
+            System.out.println("LIST: " + ids.size());
+
+            uniqueIds.addAll(ids);
+
+            System.out.println("SET: " + ids.size());
+
+        } catch (Exception e) {
+            System.out.println("ERROR IN GETTING Supervised Addresses" + e);
+        }
+
+        ids.clear();
+        ids.addAll(uniqueIds);
+
+        System.out.println(ids);
+
+        return ids;
+    }
+
+    public List<Long> getSimpleContacts(List<Long> contactIds) {
+        RequestEntity<String> req;
+        //no need for set as well as list as objids queried from set
+        List<Long> ids = new ArrayList<>();
+        try {
+
+            String xmlQuery = getXMLQuery_GetContacts(contactIds);
+            String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
+            ResponseEntity<VRAPI.ContainerSimpleContact.Envelope> res = this.rest.exchange(req, VRAPI.ContainerSimpleContact.Envelope.class);
+            VRAPI.ContainerSimpleContact.Envelope env = res.getBody();
+
+            for(VRAPI.ContainerSimpleContact.Contact c : env.getBody().getQueryResponse().getContacts()) {
+                ids.add(c.getObjid());
+            }
+
+        } catch (Exception e){
+            System.out.println("ERROR IN GETTING SIMPLE CONTACTS: " + e);
+        }
+
+        return ids;
+    }
+
+    public List<VRAPI.ContainerDetailedContact.Contact> getDetailedContacts(List<Long> ids) {
+        RequestEntity<String> req;
+        List<VRAPI.ContainerDetailedContact.Contact> contacts = new ArrayList<>();
+        try {
+            String xmlQuery = getXMLQuery_GetContactDetails(ids);
+            String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
+            ResponseEntity<VRAPI.ContainerDetailedContact.Envelope> res = this.rest.exchange(req, VRAPI.ContainerDetailedContact.Envelope.class);
+
+            contacts = res.getBody().getBody().getQueryResponse().getContactList();
+
+        } catch ( Exception e){
+            System.out.println("Exception in getDetailedContacts: " + e);
+        }
+        return contacts;
+    }
+
+    public List<VRAPI.ContainerDetailedOrganisation.Organisation> getOrganisations(List<Long> ids) {
+        RequestEntity<String> req;
+        List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs = new ArrayList<>();
+        try {
+            String xmlQuery = getXMLQuery_GetOrganisationDetails(ids);
+            String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
+            ResponseEntity<VRAPI.ContainerDetailedOrganisation.Envelope> res = this.rest.exchange(req, VRAPI.ContainerDetailedOrganisation.Envelope.class);
+
+            orgs = res.getBody().getBody().getQueryResponse().getOrganisationList();
+
+        } catch ( Exception e){
+            System.out.println("Exception in getDetailed Organisations: " + e);
+        }
+        return orgs;
     }
 
     @RequestMapping(value = "/ping", method = RequestMethod.GET)
@@ -59,171 +177,12 @@ public class ResourceController {
         return "ping";
     }
 
-    //===================================================================================================================Organisations
-//    @RequestMapping(value="/organisations/London/",method=RequestMethod.GET)//          ----------------------London
-//    //TODO: refactor so that contacts and betreuers are returned properly as well(Names etc. instead of objrefs)
-//    public String getLondonOrganisations() {                                 //Returns Id, Address, Creator
-//        String xml;
-//        RequestEntity<String> req;
-//        ResponseEntity<XMLEnvelope> res = null;
-//        MyCredentials creds  = new MyCredentials();
-//
-//        System.out.println("Received REQ to /organisations/London/");
-//
-//        xml = "<Envelope>\n" +
-//                "  <Header>\n" +
-//                "    <BasicAuth>\n" +
-//                "      <Name>" + creds.getUserName() + "</Name>\n" +
-//                "      <Password>" + creds.getPass() + "</Password>\n" +
-//                "      </BasicAuth>\n" +
-//                "  </Header>\n" +
-//                "\n" +
-//                "  <Body>\n" +
-//                "    <Query>\n" +
-//                "      <Selection>\n" +
-//                "        <ocl>firma->select(standardOrt='London')->select(aktiv)</ocl>\n" +
-//                "      </Selection>\n" +
-//                "      <Resultdef>\n" +
-//                "        <member>Name</member>\n" +                 //Name of Organisation
-//                "        <member>StandardAdresse</member>\n" +      //Street Address of Organisation
-//                "        <member>StandardOrt</member>\n" +          //City Organisations is in
-//                "        <member>StandardPLZ</member>\n" +          //ZIP code
-//                "        <member>StandardLand</member>\n" +         //Country of Organisation
-//                "        <member>Betreuer</member>\n" +             //Objref to Zuhlke user who is responsible for the Organisation (Owner)
-//                "        <member>Creator</member>\n" +              //Objref to Zuhlke user who Created the Organisation Entry
-//                "        <member>Kontakte</member>\n" +             // List of Objrefs of contacts from the organisation
-//                "      </Resultdef>\n" +
-//                "    </Query>\n" +
-//                "  </Body>\n" +
-//                "</Envelope>";
-//        try{
-//
-//            req = new RequestEntity<>(xml, HttpMethod.POST,new URI("http://" + VipAddress + ":" + VportNr + "/xml"));
-//            res = xRestTemplate.exchange(req, XMLEnvelope.class);
-//            //System.out.println(res.toString());
-//            //System.out.println(res.getBody().toJSONString() );
-//        }
-//        catch (Exception e){
-//            System.out.println("Exception: " + e);
-//        }
-//        if(res != null){
-//            System.out.println("Responding to REQ on /organisations/London/");
-//            return res.getBody().toString();
-//        }
-//        else{
-//
-//            System.out.println("ERROR: NULL response to REQ on /organisations/London/ ");
-//            return null;
-//        }
-//    }
-
-    @RequestMapping(value="/organisations/ZUK/",method=RequestMethod.GET)
-    public String getZukOrganisations(){
-        String xml;
-        RequestEntity<String> req;
-        //ResponseEntity<XMLEnvelope> res = null;
-        MyCredentials creds  = new MyCredentials();
-
-        System.out.println("Received REQ to /organisations/ZUK/");
-        //Get Wolfgang,
-        //Get Management team
-        //Get organisationids Wolfgang is responsible for
-        //Get Organisationids others are responsible for
-        //Convert to a set
-        //get Organisations from set
-        //Save objref to  organisation and kontakt and management mmbr relations
-        //return Organisations with kontacts in JSON
-
-
-
-        return "Not finished yet";
-
-    }
-
-//    public String getManagement(){
-//        //TODO: FINISH MANAGEMENT! DOESNT WORK!
-//
-//        MyCredentials creds  = new MyCredentials();
-//        String xml = getXMLQuery_LeadersTeam();
-//
-//        RequestEntity<String> req;
-//        ResponseEntity<XMLEnvelope> res = null;
-//
-//        try{
-//
-//            System.out.println("Getting Management");
-//            req = new RequestEntity<>(xml, HttpMethod.POST,new URI("http://" + VipAddress + ":" + VportNr + "/xml"));
-//            res = xRestTemplate.exchange(req, XMLEnvelope.class);
-//            //System.out.println(res.toString());
-//            //System.out.println(res.getBody().toJSONString() );
-//
-//            System.out.println("Got Management");
-//        }
-//        catch (Exception e){
-//            System.out.println("Exception: " + e);
-//        }
-//
-//        List<XMLContact> cts = res.getBody().getBody().getQueryResponse().getContacts();
-//        return "Not Implemented";
-//    }
-//
-//    public List<XMLContact> getContacts(List<Long> Ids) {
-//
-//        MyCredentials creds  = new MyCredentials();
-//        String xml = getXMLQuery_GetContacts(Ids);
-//
-//        RequestEntity<String> req;
-//        ResponseEntity<XMLEnvelope> res = null;
-//
-//        try{
-//
-//            System.out.println("Getting contacts");
-//            req = new RequestEntity<>(xml, HttpMethod.POST,new URI("http://" + VipAddress + ":" + VportNr + "/xml"));
-//            res = xRestTemplate.exchange(req, XMLEnvelope.class);
-//            //System.out.println(res.toString());
-//            //System.out.println(res.getBody().toJSONString() );
-//
-//            System.out.println("Got contacts");
-//        }
-//        catch (Exception e){
-//            System.out.println("Exception: " + e);
-//        }
-//
-//        List<XMLContact> cts = res.getBody().getBody().getQueryResponse().getContacts();
-//        return cts;
-//
-//    }
-
-    public String getVipAddress() {
-        return this.VipAddress;
-    }
-
-    public String getVportNr() {
-        return this.VportNr;
-    }
-
     public String getOwnPortNr() {
         return OwnPortNr;
     }
 
-    public void setOwnPortNr(String ownPortNr) {
-        OwnPortNr = ownPortNr;
-    }
-
     public String getOwnIpAddress() {
         return OwnIpAddress;
-    }
-
-    public void setOwnIpAddress(String ownIpAddress) {
-        OwnIpAddress = ownIpAddress;
-    }
-
-    public void setVportNr(String vportNr) {
-        VportNr = vportNr;
-    }
-
-    public void setVipAddress(String vipAddress) {
-        VipAddress = vipAddress;
     }
 
     private String getXMLQuery_LeadersTeam() {
@@ -238,7 +197,7 @@ public class ResourceController {
                 "  <Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n" +
-                "        <ocl>projektBearbeiter->select(loginName='wje)</ocl>\n" +
+                "        <ocl>projektBearbeiter->select(loginName='wje')</ocl>\n" +
                 "      </Selection>\n" +
                 "      <Resultdef>\n" +
                 "        <member>Team</member>\n" + //will return objref for each member of team
@@ -248,7 +207,7 @@ public class ResourceController {
                 "</Envelope>";
     }
 
-    private String getXMLQuery_TeamsResponsibleAddresses(List<Long> memberIds) {
+    private String getXMLQuery_SupervisedAddresses(List<Long> memberIds) {
         String header = "<Envelope>\n" +
                 "  <Header>\n" +
                 "    <BasicAuth>\n" +
@@ -259,7 +218,8 @@ public class ResourceController {
 
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
-                "      <Selection>\n";
+                "      <Selection>\n" +
+                "        <objref>5295</objref>\n";
 
         for(Long id : memberIds) {
             bodyStart += "<objref>" + id + "</objref>\n";
@@ -268,6 +228,7 @@ public class ResourceController {
         String bodyEnd = "</Selection>\n" +
                 "      <Resultdef>\n" +
                 "        <member>BetreuteAdressen</member>\n" + //will return list of obj ref for each company
+                "        <member>Aktiv</member>\n" + //will return list of obj ref for each company
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +
@@ -295,9 +256,6 @@ public class ResourceController {
 
         String bodyEnd = "</Selection>\n" +
                 "      <Resultdef>\n" +
-                "        <member>Name</member>\n" + //will return list of obj ref for each company
-                "        <member>CreationDateTime</member>\n" + //will return list of obj ref for each company
-                "        <member>ModifiedDateTime</member>\n" + //will return list of obj ref for each company
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +
@@ -305,6 +263,7 @@ public class ResourceController {
 
         return header + bodyStart + bodyEnd;
     }
+
     private String getXMLQuery_GetContactDetails(List<Long> contactIds){
         String header = "<Envelope>\n" +
                 "  <Header>\n" +
@@ -326,9 +285,12 @@ public class ResourceController {
                 "      <Resultdef>\n" +
                 "        <member>Name</member>\n" + //will return list of obj ref for each company
                 "        <member>Firma</member>\n" + //will return objref to parent firma
-                "        <member>StandardEMail</member>\n" + //will return list of obj ref for each company
-                "        <member>StandardTelefon</member>\n" + //will return list of obj ref for each company
-                "        <member>StandardMobile</member>\n" + //will return list of obj ref for each company
+                "        <member>StandardEMail</member>\n" +
+                "        <member>StandardTelefon</member>\n" +
+                "        <member>StandardMobile</member>\n" +
+                "        <member>Vorname</member>\n" +
+                "        <member>betreuer</member>\n" +
+                "        <member>ModifiedDateTime</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +
@@ -336,6 +298,42 @@ public class ResourceController {
 
         return header + bodyStart + bodyEnd;
 
+    }
+
+    private String getXMLQuery_GetOrganisationDetails(List<Long> ids){
+        String header = "<Envelope>\n" +
+                "  <Header>\n" +
+                "    <BasicAuth>\n" +
+                "      <Name>" + this.username + "</Name>\n" +
+                "      <Password>" + this.password + "</Password>\n" +
+                "      </BasicAuth>\n" +
+                "  </Header>\n";
+
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
+
+        for(Long id : ids) {
+            bodyStart += "<objref>" + id + "</objref>\n";
+        }
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "        <member>Name</member>\n" + //will return list of obj ref for each company
+                "        <member>betreuer</member>\n" +
+                "        <member>StandardAdresse</member>\n" +
+                "        <member>StandardLand</member>\n" +
+                "        <member>StandardOrt</member>\n" +
+                "        <member>StandardPLZ</member>\n" +
+                "        <member>zusatz</member>\n" +
+                "        <member>aktiv</member>\n" +
+                "        <member>ModifiedDateTime</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + bodyStart + bodyEnd;
     }
 
 

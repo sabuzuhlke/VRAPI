@@ -9,12 +9,12 @@ import java.util.List;
 /**
  * Created by sabu on 25/04/2016.
  */
-public class XMLQueryResponse {
+public class QueryResponse {
 
     private List<Contact> contacts;
 
 
-    public XMLQueryResponse() {
+    public QueryResponse() {
         this.contacts = new ArrayList<>();
 
     }

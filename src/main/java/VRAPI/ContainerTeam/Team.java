@@ -5,18 +5,19 @@ import javax.xml.bind.annotation.XmlElement;
 /**
  * Created by gebo on 27/04/2016.
  */
-public class Addresses {
-    private XMLObjlist list;
+public class Team {
+    private Objlist list;
 
-    public Addresses() {
+    public Team() {
     }
 
     @XmlElement(name = "objlist")
-    public XMLObjlist getList() {
+
+    public Objlist getList() {
         return list;
     }
 
-    public void setList(XMLObjlist list) {
+    public void setList(Objlist list) {
         this.list = list;
     }
 }

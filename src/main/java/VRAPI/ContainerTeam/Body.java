@@ -5,19 +5,19 @@ import javax.xml.bind.annotation.XmlElement;
 /**
  * Created by sabu on 25/04/2016.
  */
-public class XMLBody {
+public class Body {
 
-    private XMLQueryResponse queryResponse;
+    private QueryResponse queryResponse;
 
-    public XMLBody() {
+    public Body() {
     }
 
     @XmlElement(name = "QueryResponse")
-    public XMLQueryResponse getQueryResponse() {
+    public QueryResponse getQueryResponse() {
         return queryResponse;
     }
 
-    public void setQueryResponse(XMLQueryResponse queryResponse) {
+    public void setQueryResponse(QueryResponse queryResponse) {
         this.queryResponse = queryResponse;
     }
 }

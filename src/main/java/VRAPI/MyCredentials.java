@@ -22,9 +22,6 @@ public class MyCredentials {
                 userName = line;
                 if((line = breader.readLine()) != null){
                     pass = line;
-                    if((line = breader.readLine()) != null) {
-                        apiKey = line;
-                    } else System.out.println("Couldnt read API key");
                 } else System.out.println("Couldnt read password.");
             } else System.out.println("Couldnt read username nor Password.");
         }

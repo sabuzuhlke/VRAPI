@@ -1,6 +1,5 @@
 package VRAPI.ContainerTeam;
 
-
 import javax.xml.bind.annotation.XmlElement;
 
 /**
@@ -8,29 +7,19 @@ import javax.xml.bind.annotation.XmlElement;
  */
 public class ProjectWorker {
 
-    private Addresses addresses;
+    private Team team;
     private Long objid;
-    private Boolean active;
     public ProjectWorker() {
     }
 
-    @XmlElement(name = "betreuteAdressen")
-    public Addresses getAddresses() {
-        return addresses;
+    @XmlElement(name = "team")
+    public Team getTeam() {
+        return team;
     }
 
-    public void setAddresses(Addresses addresses) {
-        this.addresses = addresses;
+    public void setTeam(Team team) {
+        this.team = team;
     }
-    @XmlElement(name = "aktiv")
-    public Boolean getActive() {
-        return active;
-    }
-
-    public void setActive(Boolean active) {
-        this.active = active;
-    }
-
     @XmlElement(name = "objid")
     public Long getObjid() {
         return objid;

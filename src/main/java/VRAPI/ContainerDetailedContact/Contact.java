@@ -15,8 +15,18 @@ public class Contact {
     private String phone;
     private String mobile;
     private String modified;
+    private PersonResponsible personResponsible;
 
     public Contact() {
+    }
+
+    @XmlElement(name = "betreuer")
+    public PersonResponsible getPersonResponsible() {
+        return personResponsible;
+    }
+
+    public void setPersonResponsible(PersonResponsible personResponsible) {
+        this.personResponsible = personResponsible;
     }
 
     @XmlElement(name = "objid")

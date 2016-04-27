@@ -1,4 +1,4 @@
-package VRAPI.ContainerEmployer;
+package VRAPI.ContainerTeam;
 
 import javax.xml.bind.annotation.XmlElement;
 import java.util.ArrayList;
@@ -7,12 +7,12 @@ import java.util.List;
 /**
  * Created by sabu on 25/04/2016.
  */
-public class XMLQueryResponse {
+public class QueryResponse {
 
     private List<ProjectWorker> workers;
 
 
-    public XMLQueryResponse() {
+    public QueryResponse() {
         this.workers = new ArrayList<>();
         ;
     }

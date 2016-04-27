@@ -1,4 +1,4 @@
-package VRAPI.ContainerEmployer;
+package VRAPI.ContainerSimpleContact;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -15,28 +15,28 @@ import java.io.StringWriter;
  * Created by sabu on 25/04/2016.
  */
 @XmlRootElement(name = "Envelope")
-public class XMLEnvelope {
+public class Envelope {
 
-    private XMLBody body;
+    private Body body;
 
-    public XMLEnvelope() {
+    public Envelope() {
     }
 
     @XmlElement(name = "Body")
-    public XMLBody getBody() {
+    public Body getBody() {
         return body;
     }
 
-    public void setBody(XMLBody body) {
+    public void setBody(Body body) {
         this.body = body;
     }
 
     @Override
     public String toString() {
         try {
-            JAXBElement<XMLEnvelope> jaxbElement = new JAXBElement<>(new QName("Envelope"), XMLEnvelope.class, this);
+            JAXBElement<Envelope> jaxbElement = new JAXBElement<>(new QName("Envelope"), Envelope.class, this);
             StringWriter writer = new StringWriter();
-            JAXBContext ctx = JAXBContext.newInstance(XMLEnvelope.class);
+            JAXBContext ctx = JAXBContext.newInstance(Envelope.class);
             Marshaller m = ctx.createMarshaller();
             m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
             m.marshal(jaxbElement, writer);
