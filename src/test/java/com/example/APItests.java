@@ -62,7 +62,7 @@ public class APItests {
             req = new RequestEntity<>( HttpMethod.GET,new URI(url));
         }
         catch(Exception e){
-            System.out.println("Could not create Request");
+            System.out.println("Could not create ping Request");
         }
         assertTrue(req != null);
 
@@ -74,20 +74,28 @@ public class APItests {
         assertTrue(res.getBody().equals("ping"));
 
     }
-//
+
 //    @Test
 //    public void canGetZUK(){
 //
 //        RestTemplate rt = new RestTemplate();
 //        String url = "http://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK/";
 //        RequestEntity<String> req = null;
-//        ResponseEntity<String> res;
+//        ResponseEntity<ZUKResponse> res;
 //        try{
 //
 //            req = new RequestEntity<>( HttpMethod.GET,new URI(url));
 //        }
 //        catch(Exception e){
-//            System.out.println("Could not create Request");
+//            System.out.println("Could not create Request for ZUK");
 //        }
+//        assertTrue(req != null);
+//
+//        res = rt.exchange(req,ZUKResponse.class);
+//
+//        assertTrue(res != null);
+//        assertTrue(res.getStatusCode() == HttpStatus.OK);
+//        assertTrue(res.getBody() != null);
+//        System.out.println(res.getBody().toPrettyString());
 //    }
 }

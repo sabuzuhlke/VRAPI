@@ -79,9 +79,18 @@ public class ResourceController {
         addressIds           = getSupervisedAddresses(teamIds);
         contactIdsAndOrgsIds = getSimpleContactsandOrgs(addressIds);
         contactIds           = contactIdsAndOrgsIds.get(0);
+        System.out.println("WE HAVE RECEIVED " + contactIds.size() + " CONTACTIDS");
         orgIds               = contactIdsAndOrgsIds.get(1);
+
         contacts             = getDetailedContacts(contactIds);
+
+        System.out.println("WE HAVE RECEIVED " + contacts.size() + " DETAILED contacts");
         orgs                 = getOrganisations(orgIds);
+        for(int i = 0; i < orgs.size(); i++){
+            if(orgs.get(i).getObjId() == 709814L){
+                System.out.println("FOUND IT!!!!!");
+            }
+        }
         zuk                  = buildZUKResponse(contacts, orgs);
 
         return zuk.toString();
@@ -137,8 +146,6 @@ public class ResourceController {
 
         ids.clear();
         ids.addAll(uniqueIds);
-
-        System.out.println(ids);
 
         return ids;
     }
@@ -210,6 +217,10 @@ public class ResourceController {
             for(VRAPI.ContainerDetailedOrganisation.Organisation o : res.getBody().getBody().getQueryResponse().getOrganisationList()){
                 if(o.getActive()){
                     orgs.add(o);
+
+                    if(o.getObjId() == 709814L){
+                        System.out.println("ADDED IT!!!!!");
+                    }
                 }
             }
 
@@ -381,24 +392,13 @@ public class ResourceController {
         return header + bodyStart + bodyEnd;
     }
 
-    private String createJsonString(ZUKResponse res) {
-
-        return "";
-    }
 
     public ZUKResponse buildZUKResponse(List<VRAPI.ContainerDetailedContact.Contact> contacts, List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs){
-
         ZUKResponse res = new ZUKResponse();
         List<JSONContact> dangle = new ArrayList<>();
-        int index = 0;
+        int ccounter = 0;
 
-        while(contacts.get(index).getOrganisation() == null
-                || contacts.get(index).getOrganisation().getObjref() == null){
 
-            JSONContact c = new JSONContact(contacts.get(index));
-            dangle.add(c);
-            index++;
-        }
 
         List<JSONOrganisation> jsonOrgs = new ArrayList<>();
         for(VRAPI.ContainerDetailedOrganisation.Organisation vo : orgs) {
@@ -407,21 +407,30 @@ public class ResourceController {
 
             List<JSONContact> orgContacts = new ArrayList<>();
 
-            //assuming that organisations get returned from vertec in objid order (ascending)
-            while (index < contacts.size()
-                    && contacts.get(index)
-                    .getOrganisation()
-                    .getObjref() == vo
-                    .getObjId()) {
-                JSONContact c = new JSONContact(contacts.get(index));
-                orgContacts.add(c);
-                index++;
+            for(Iterator<VRAPI.ContainerDetailedContact.Contact> vc = contacts.listIterator();vc.hasNext();){
+                VRAPI.ContainerDetailedContact.Contact a = vc.next();
+
+                if(a.getOrganisation() == null) continue;
+                if(a.getOrganisation().getObjref() == null) continue;
+
+                if(vo.getObjId().longValue() == a.getOrganisation().getObjref().longValue()) {
+                    JSONContact c = new JSONContact(a);
+                    orgContacts.add(c);
+                    ccounter++;
+                    vc.remove();
+                }
             }
 
             org.setContacts(orgContacts);
 
             jsonOrgs.add(org);
 
+        }
+
+        for(Iterator<VRAPI.ContainerDetailedContact.Contact> vc = contacts.listIterator();vc.hasNext();){
+            VRAPI.ContainerDetailedContact.Contact a = vc.next();
+                JSONContact c = new JSONContact(a);
+                dangle.add(c);
         }
 
         res.setDanglingContacts(dangle);
@@ -442,7 +451,7 @@ public class ResourceController {
 
             Long aref = a.getOrganisation().getObjref();
             Long bref = b.getOrganisation().getObjref();
-            return aref < bref ? -1 : (aref == bref ? 0 : 1);
+            return aref < bref ? -1 : (aref.longValue() == bref.longValue() ? 0 : 1);
         }
 
     }

@@ -19,6 +19,7 @@ public class Contact {
     private Boolean active;
 
     public Contact() {
+        this.organisation = null;
     }
 
     @XmlElement(name = "betreuer")

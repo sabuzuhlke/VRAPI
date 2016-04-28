@@ -218,12 +218,12 @@ public class XMLInterfaceTests {
         f.setFirstName("Mr Byron");
         g.setFirstName("Mama Waga");
         h.setFirstName("Sir Sub");
-        a.setOrganisation(new Organisation(1L));
+        a.setOrganisation(new Organisation(2L));
         b.setOrganisation(new Organisation(null));
         g.setOrganisation(new Organisation(null));
         c.setOrganisation(new Organisation(1L));
         d.setOrganisation(new Organisation(2L));
-        h.setOrganisation(new Organisation(2L));
+        h.setOrganisation(new Organisation(1L));
         e.setOrganisation(null);
         f.setOrganisation(null);
 
@@ -261,25 +261,25 @@ public class XMLInterfaceTests {
         assertTrue(res.getDanglingContacts().get(1).getSurname().equals("Waga"));
         assertTrue(res.getDanglingContacts().get(1).getFirstName().equals("Mama"));
 
+        System.out.println(res.toPrettyString());
         assertTrue( ! res.getOrganisationList().isEmpty());
         assertTrue(res.getOrganisationList().size() == 2);
-        assertTrue(res.getOrganisationList().get(0).getObjid() == 1L);
-        assertTrue(res.getOrganisationList().get(0).getContacts().size() == 2);
-        assertTrue(res.getOrganisationList().get(0).getContacts().get(0).getFirstName().equals("Ronald"));
-        assertTrue(res.getOrganisationList().get(0).getContacts().get(0).getSurname().equals("McDonald"));
-        assertTrue(res.getOrganisationList().get(0).getContacts().get(0).getPhone().equals("999"));
-        assertTrue(res.getOrganisationList().get(0).getContacts().get(0).getMobile().equals("07999"));
-        assertTrue(res.getOrganisationList().get(0).getContacts().get(0).getEmail().equals("childrenwelcome@me.com"));
-        assertTrue(res.getOrganisationList().get(0).getContacts().get(0).getObjid() == 1L);
-
-        assertTrue(res.getOrganisationList().get(0).getContacts().get(1).getFirstName().equals("The Colonel"));
-        assertTrue(res.getOrganisationList().get(0).getContacts().get(1).getObjid() == 2L);
-
         assertTrue(res.getOrganisationList().get(1).getObjid() == 2L);
-        assertTrue(res.getOrganisationList().get(1).getContacts().isEmpty());
+        assertTrue(res.getOrganisationList().get(1).getContacts().size() == 2);
+        assertTrue(res.getOrganisationList().get(1).getContacts().get(0).getFirstName().equals("Ronald"));
+        assertTrue(res.getOrganisationList().get(1).getContacts().get(0).getSurname().equals("McDonald"));
+        assertTrue(res.getOrganisationList().get(1).getContacts().get(0).getPhone().equals("999"));
+        assertTrue(res.getOrganisationList().get(1).getContacts().get(0).getMobile().equals("07999"));
+        assertTrue(res.getOrganisationList().get(1).getContacts().get(0).getEmail().equals("childrenwelcome@me.com"));
+        assertTrue(res.getOrganisationList().get(1).getContacts().get(0).getObjid() == 1L);
+
+        assertTrue(res.getOrganisationList().get(1).getContacts().get(1).getFirstName().equals("The Colonel"));
+        assertTrue(res.getOrganisationList().get(1).getContacts().get(1).getObjid() == 2L);
+
+        assertTrue(res.getOrganisationList().get(0).getObjid() == 1L);
+        assertTrue(res.getOrganisationList().get(0).getContacts().isEmpty());
 
 
-        System.out.println(res.toPrettyString());
 
 
     }
@@ -297,8 +297,8 @@ public class XMLInterfaceTests {
         b.setFirstName("The Colonel");
         c.setFirstName("The King");
         d.setFirstName("Mama");
-        a.setOrganisation(new Organisation(1L));
-        b.setOrganisation(new Organisation(1L));
+        a.setOrganisation(new Organisation(2L));
+        b.setOrganisation(new Organisation(2L));
         c.setOrganisation(null);
         d.setOrganisation(new Organisation(null));
 
