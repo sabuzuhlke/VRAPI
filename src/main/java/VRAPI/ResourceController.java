@@ -55,6 +55,33 @@ public class ResourceController {
         this.password = creds.getPass();
     }
 
+
+    @RequestMapping(value = "/organisations/ZUK", method = RequestMethod.GET)
+    public String getZUKOrganisations() {
+        List<Long> teamIds;
+        List<Long> addressIds;
+        List<List<Long>> contactIdsAndOrgsIds;
+        List<Long> contactIds;
+        List<Long> orgIds;
+        List<VRAPI.ContainerDetailedContact.Contact> contacts;
+        List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs;
+
+        teamIds              = getZUKTeamMemberIds();
+        addressIds           = getSupervisedAddresses(teamIds);
+        contactIdsAndOrgsIds = getSimpleContactsandOrgs(addressIds);
+        contactIds           = contactIdsAndOrgsIds.get(0);
+        orgIds               = contactIdsAndOrgsIds.get(1);
+        contacts             = getDetailedContacts(contactIds);
+        orgs                 = getOrganisations(orgIds);
+
+        return createJsonString(contacts, orgs);
+    }
+
+    private String createJsonString(List<VRAPI.ContainerDetailedContact.Contact> contacts, List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs) {
+
+        return "";
+    }
+
     //TODO: make xml access methods private, adjust tests: http://stackoverflow.com/questions/34571/how-to-test-a-class-that-has-private-methods-fields-or-inner-classes
     public List<Long> getZUKTeamMemberIds() {
         RequestEntity<String> req;
