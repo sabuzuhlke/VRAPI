@@ -1,4 +1,4 @@
-package VRAPI.ContainerSimpleContact;
+package VRAPI.ContainerSimpleContactOrganisation;
 
 import javax.xml.bind.annotation.XmlElement;
 

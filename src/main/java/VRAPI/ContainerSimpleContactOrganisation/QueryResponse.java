@@ -1,4 +1,4 @@
-package VRAPI.ContainerSimpleContact;
+package VRAPI.ContainerSimpleContactOrganisation;
 
 
 
@@ -12,11 +12,12 @@ import java.util.List;
 public class QueryResponse {
 
     private List<Contact> contacts;
+    private List<Organisation> orgs;
 
 
     public QueryResponse() {
         this.contacts = new ArrayList<>();
-
+        this.orgs = new ArrayList<>();
     }
     @XmlElement(name = "Kontakt")
     public List<Contact> getContacts() {
@@ -25,6 +26,15 @@ public class QueryResponse {
 
     public void setContacts(List<Contact> contacts) {
         this.contacts = contacts;
+    }
+
+    @XmlElement(name = "Firma")
+    public List<Organisation> getOrgs() {
+        return orgs;
+    }
+
+    public void setOrgs(List<Organisation> orgs) {
+        this.orgs = orgs;
     }
 }
 
