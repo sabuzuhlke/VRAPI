@@ -88,22 +88,13 @@ public class ResourceController {
             VRAPI.ContainerAddresses.Envelope env = res.getBody();
 
             for(VRAPI.ContainerAddresses.ProjectWorker w : env.getBody().getQueryResponse().getWorkers()){
-                if (w.getObjid() == 8619482L) {
-                    System.out.println("Justin has " + w.getAddresses().getList().getObjects().size() + " contacts, very very impressive");
-                }
-                if (w.getObjid() == 5295L) {
-                    System.out.println("Wolfgang has " + w.getAddresses().getList().getObjects().size() + " contacts, very very impressive");
-                }
                 if (w.getActive()) {
                     ids.addAll(w.getAddresses().getList().getObjects());
                 }
             }
 
-            System.out.println("LIST: " + ids.size());
 
             uniqueIds.addAll(ids);
-
-            System.out.println("SET: " + ids.size());
 
         } catch (Exception e) {
             System.out.println("ERROR IN GETTING Supervised Addresses" + e);
@@ -117,27 +108,35 @@ public class ResourceController {
         return ids;
     }
 
-    public List<Long> getSimpleContacts(List<Long> contactIds) {
+    public List<List<Long>> getSimpleContactsandOrgs(List<Long> contactIds) {
         RequestEntity<String> req;
         //no need for set as well as list as objids queried from set
-        List<Long> ids = new ArrayList<>();
+        List<Long> cIds = new ArrayList<>();
+        List<Long> oIds = new ArrayList<>();
+        List<List<Long>> rIds = new ArrayList<>();
         try {
 
             String xmlQuery = getXMLQuery_GetContacts(contactIds);
             String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
             req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
-            ResponseEntity<VRAPI.ContainerSimpleContact.Envelope> res = this.rest.exchange(req, VRAPI.ContainerSimpleContact.Envelope.class);
-            VRAPI.ContainerSimpleContact.Envelope env = res.getBody();
+            ResponseEntity<VRAPI.ContainerSimpleContactOrganisation.Envelope> res = this.rest.exchange(req, VRAPI.ContainerSimpleContactOrganisation.Envelope.class);
+            VRAPI.ContainerSimpleContactOrganisation.Envelope env = res.getBody();
 
-            for(VRAPI.ContainerSimpleContact.Contact c : env.getBody().getQueryResponse().getContacts()) {
-                ids.add(c.getObjid());
+            for(VRAPI.ContainerSimpleContactOrganisation.Contact c : env.getBody().getQueryResponse().getContacts()) {
+                cIds.add(c.getObjid());
+            }
+            for(VRAPI.ContainerSimpleContactOrganisation.Organisation o : env.getBody().getQueryResponse().getOrgs()) {
+                oIds.add(o.getObjid());
             }
 
         } catch (Exception e){
             System.out.println("ERROR IN GETTING SIMPLE CONTACTS: " + e);
         }
 
-        return ids;
+        rIds.add(cIds);
+        rIds.add(oIds);
+
+        return rIds;
     }
 
     public List<VRAPI.ContainerDetailedContact.Contact> getDetailedContacts(List<Long> ids) {
@@ -149,7 +148,12 @@ public class ResourceController {
             req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
             ResponseEntity<VRAPI.ContainerDetailedContact.Envelope> res = this.rest.exchange(req, VRAPI.ContainerDetailedContact.Envelope.class);
 
-            contacts = res.getBody().getBody().getQueryResponse().getContactList();
+            for(VRAPI.ContainerDetailedContact.Contact c : res.getBody().getBody().getQueryResponse().getContactList()){
+                if(c.getActive()){
+                    contacts.add(c);
+                }
+            }
+
 
         } catch ( Exception e){
             System.out.println("Exception in getDetailedContacts: " + e);
@@ -166,7 +170,12 @@ public class ResourceController {
             req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
             ResponseEntity<VRAPI.ContainerDetailedOrganisation.Envelope> res = this.rest.exchange(req, VRAPI.ContainerDetailedOrganisation.Envelope.class);
 
-            orgs = res.getBody().getBody().getQueryResponse().getOrganisationList();
+            for(VRAPI.ContainerDetailedOrganisation.Organisation o : res.getBody().getBody().getQueryResponse().getOrganisationList()){
+                if(o.getActive()){
+                    orgs.add(o);
+                }
+            }
+
 
         } catch ( Exception e){
             System.out.println("Exception in getDetailed Organisations: " + e);
@@ -293,6 +302,7 @@ public class ResourceController {
                 "        <member>Vorname</member>\n" +
                 "        <member>betreuer</member>\n" +
                 "        <member>ModifiedDateTime</member>\n" +
+                "        <member>aktiv</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +

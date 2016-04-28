@@ -129,7 +129,7 @@ public class XMLToPOJOTests{
 
     @Test
     public void canParseContactIds() {        //------------------------ Doesn't parse <Person>s
-        VRAPI.ContainerSimpleContact.Envelope env = null;
+        VRAPI.ContainerSimpleContactOrganisation.Envelope env = null;
 
         String xml = "<Envelope>" +
                 "   <Body>" +
@@ -152,10 +152,10 @@ public class XMLToPOJOTests{
 
         try {
 
-            JAXBContext jc = JAXBContext.newInstance(VRAPI.ContainerSimpleContact.Envelope.class);
+            JAXBContext jc = JAXBContext.newInstance(VRAPI.ContainerSimpleContactOrganisation.Envelope.class);
             Unmarshaller u = jc.createUnmarshaller();
             StringReader reader = new StringReader(xml);
-            env = (VRAPI.ContainerSimpleContact.Envelope) u.unmarshal(reader);
+            env = (VRAPI.ContainerSimpleContactOrganisation.Envelope) u.unmarshal(reader);
         } catch (Exception e) {
             System.out.println("ERROR in Unmarshall Addresses test: " + e);
         }

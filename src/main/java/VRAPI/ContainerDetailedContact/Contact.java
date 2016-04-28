@@ -16,6 +16,7 @@ public class Contact {
     private String mobile;
     private String modified;
     private PersonResponsible personResponsible;
+    private Boolean active;
 
     public Contact() {
     }
@@ -99,5 +100,14 @@ public class Contact {
 
     public void setModified(String modified) {
         this.modified = modified;
+    }
+
+    @XmlElement(name = "aktiv")
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 }

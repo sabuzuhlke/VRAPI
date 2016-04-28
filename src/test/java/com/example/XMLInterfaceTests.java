@@ -100,20 +100,26 @@ public class XMLInterfaceTests {
         Long[] array = getSomeAddressIds();
         List<Long> contactIdsFromActiveTeamMembers = new ArrayList<>(Arrays.asList(array));
 
-        List<Long> res = rc.getSimpleContacts(contactIdsFromActiveTeamMembers);
+        List<List<Long>> res = rc.getSimpleContactsandOrgs(contactIdsFromActiveTeamMembers);
 
         assertTrue( ! res.isEmpty());
-        assertTrue( ! res.contains(504419L));
-        assertTrue( ! res.contains(745314L));
-        assertTrue(res.contains(17533851L));
-        assertTrue(res.contains(17534224L));
+        assertTrue( ! res.get(0).contains(504419L));
+        assertTrue( ! res.get(0).contains(504419L));
+        assertTrue( ! res.get(1).contains(504419L));
+        assertTrue( ! res.get(1).contains(745314L));
+        assertTrue(res.get(0).contains(17533851L));
+        assertTrue(res.get(0).contains(17534224L));
+        assertTrue(res.get(1).contains(692179L));
+        assertTrue(res.get(1).contains(695902L));
         assertTrue(res.size() == 2);
+        assertTrue(res.get(0).size() == 2);
+        assertTrue(res.get(1).size() == 2);
 
 
     }
 
     public Long[] getSomeAddressIds() {
-        Long[] a = {504419L, 745314L, 17533851L, 17534224L};
+        Long[] a = {504419L, 745314L, 17533851L, 17534224L, 692179L, 695902L};
         return a;
     }
 
@@ -175,5 +181,19 @@ public class XMLInterfaceTests {
         return a;
     }
 
-    }
+//    @Test
+//    public void testthiasandthat(){
+//        List<Long> teamids = rc.getZUKTeamMemberIds();
+//        List<Long> addrids = rc.getSupervisedAddresses(teamids);
+//        List<List<Long>> CO = rc.getSimpleContactsandOrgs(addrids);
+//        List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs = rc.getOrganisations(CO.get(1));
+//
+//
+//        System.out.println("Nr contacts: " + CO.get(0).size());
+//        System.out.println("Nr orgs: " + CO.get(1).size());
+//        System.out.println("Active out of these: " + orgs.size());
+//
+//    }
+
+}
 
