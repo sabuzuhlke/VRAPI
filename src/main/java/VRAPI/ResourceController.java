@@ -2,8 +2,9 @@ package VRAPI;
 import java.net.URI;
 import java.util.*;
 
+import VRAPI.ContainerJSON.JSONContact;
 import VRAPI.ContainerJSON.JSONOrganisation;
-import VRAPI.ContainerJSON.OrganisationList;
+import VRAPI.ContainerJSON.ZUKResponse;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -27,6 +28,7 @@ public class ResourceController {
     private String username;
     private String password;
     private RestTemplate rest;
+    public ContactComparator comparator;
 
     public ResourceController() {
         //IpAddress:portNum of VertecServer
@@ -53,8 +55,14 @@ public class ResourceController {
 
         this.username = creds.getUserName();
         this.password = creds.getPass();
-    }
 
+        this.comparator = new ContactComparator();
+    }
+//------------------------------------------------------------------------------------------------------------Paths
+    @RequestMapping(value = "/ping", method = RequestMethod.GET)
+    public String ping() {
+        return "ping";
+    }
 
     @RequestMapping(value = "/organisations/ZUK", method = RequestMethod.GET)
     public String getZUKOrganisations() {
@@ -65,6 +73,7 @@ public class ResourceController {
         List<Long> orgIds;
         List<VRAPI.ContainerDetailedContact.Contact> contacts;
         List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs;
+        ZUKResponse zuk;
 
         teamIds              = getZUKTeamMemberIds();
         addressIds           = getSupervisedAddresses(teamIds);
@@ -73,15 +82,14 @@ public class ResourceController {
         orgIds               = contactIdsAndOrgsIds.get(1);
         contacts             = getDetailedContacts(contactIds);
         orgs                 = getOrganisations(orgIds);
+        zuk                  = buildZUKResponse(contacts, orgs);
 
-        return createJsonString(contacts, orgs);
+        return zuk.toString();
     }
 
-    private String createJsonString(List<VRAPI.ContainerDetailedContact.Contact> contacts, List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs) {
 
-        return "";
-    }
 
+    //------------------------------------------------------------------------------------------------------------Helper Methods
     //TODO: make xml access methods private, adjust tests: http://stackoverflow.com/questions/34571/how-to-test-a-class-that-has-private-methods-fields-or-inner-classes
     public List<Long> getZUKTeamMemberIds() {
         RequestEntity<String> req;
@@ -185,6 +193,8 @@ public class ResourceController {
         } catch ( Exception e){
             System.out.println("Exception in getDetailedContacts: " + e);
         }
+
+        Collections.sort(contacts, this.comparator);
         return contacts;
     }
 
@@ -210,10 +220,6 @@ public class ResourceController {
         return orgs;
     }
 
-    @RequestMapping(value = "/ping", method = RequestMethod.GET)
-    public String ping() {
-        return "ping";
-    }
 
     public String getOwnPortNr() {
         return OwnPortNr;
@@ -375,10 +381,65 @@ public class ResourceController {
         return header + bodyStart + bodyEnd;
     }
 
-    private class ContactComparator implements Comparator<VRAPI.ContainerDetailedContact.Contact> {
+    private String createJsonString(ZUKResponse res) {
+
+        return "";
+    }
+
+    public ZUKResponse buildZUKResponse(List<VRAPI.ContainerDetailedContact.Contact> contacts, List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs){
+
+        ZUKResponse res = new ZUKResponse();
+        List<JSONContact> dangle = new ArrayList<>();
+        int index = 0;
+
+        while(contacts.get(index).getOrganisation() == null
+                || contacts.get(index).getOrganisation().getObjref() == null){
+
+            JSONContact c = new JSONContact(contacts.get(index));
+            dangle.add(c);
+            index++;
+        }
+
+        List<JSONOrganisation> jsonOrgs = new ArrayList<>();
+        for(VRAPI.ContainerDetailedOrganisation.Organisation vo : orgs) {
+
+            JSONOrganisation org = new JSONOrganisation(vo);
+
+            List<JSONContact> orgContacts = new ArrayList<>();
+
+            //assuming that organisations get returned from vertec in objid order (ascending)
+            while (index < contacts.size()
+                    && contacts.get(index)
+                    .getOrganisation()
+                    .getObjref() == vo
+                    .getObjId()) {
+                JSONContact c = new JSONContact(contacts.get(index));
+                orgContacts.add(c);
+                index++;
+            }
+
+            org.setContacts(orgContacts);
+
+            jsonOrgs.add(org);
+
+        }
+
+        res.setDanglingContacts(dangle);
+        res.setOrganisationList(jsonOrgs);
+
+        return res;
+    }
+
+    //------------------------------------------------------------------------------------------------------------Comparator
+    public class ContactComparator implements Comparator<VRAPI.ContainerDetailedContact.Contact> {
 
         @Override
         public int compare(VRAPI.ContainerDetailedContact.Contact a, VRAPI.ContainerDetailedContact.Contact b) {
+            if((a.getOrganisation() == null || a.getOrganisation().getObjref() == null)
+                    && (b.getOrganisation() == null || b.getOrganisation().getObjref() == null)) return 0;
+            if((a.getOrganisation() == null) || (a.getOrganisation().getObjref() == null)) return -1;
+            if((b.getOrganisation() == null) || (b.getOrganisation().getObjref() == null)) return 1;
+
             Long aref = a.getOrganisation().getObjref();
             Long bref = b.getOrganisation().getObjref();
             return aref < bref ? -1 : (aref == bref ? 0 : 1);

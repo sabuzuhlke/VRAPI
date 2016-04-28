@@ -7,8 +7,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
  */
 public class JSONContact {
 
-    @JsonProperty("fullname")
-    private String fullname;
+    @JsonProperty("firstName")
+    private String firstName;
+
+    @JsonProperty("surname")
+    private String surname;
 
     @JsonProperty("email")
     private String email;
@@ -22,9 +25,6 @@ public class JSONContact {
     @JsonProperty("owner")
     private String owner;   // name of owner
 
-    @JsonProperty("orgid")
-    private Long orgid;    // vertec id of organisation
-
     @JsonProperty("modified")
     private String modified;
 
@@ -34,12 +34,23 @@ public class JSONContact {
     public JSONContact() {
     }
 
-    public String getFullname() {
-        return fullname;
+    public JSONContact(VRAPI.ContainerDetailedContact.Contact c){
+        this.setObjid(c.getObjId());
+        this.setEmail(c.getEmail());
+        this.setMobile(c.getMobile());
+        this.setFirstName(c.getFirstName());
+        this.setModified(c.getModified());
+        this.setOwner("replace With appropriate value");
+        this.setPhone(c.getPhone());
+        this.setSurname(c.getSurnname());
     }
 
-    public void setFullname(String fullname) {
-        this.fullname = fullname;
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
     }
 
     public String getEmail() {
@@ -74,14 +85,6 @@ public class JSONContact {
         this.owner = owner;
     }
 
-    public Long getOrgid() {
-        return orgid;
-    }
-
-    public void setOrgid(Long orgid) {
-        this.orgid = orgid;
-    }
-
     public String getModified() {
         return modified;
     }
@@ -96,5 +99,13 @@ public class JSONContact {
 
     public void setObjid(Long objid) {
         this.objid = objid;
+    }
+
+    public String getSurname() {
+        return surname;
+    }
+
+    public void setSurname(String surname) {
+        this.surname = surname;
     }
 }

@@ -1,5 +1,8 @@
 package com.example;
 import VRAPI.Application;
+import VRAPI.ContainerDetailedContact.Contact;
+import VRAPI.ContainerDetailedContact.Organisation;
+import VRAPI.ContainerJSON.ZUKResponse;
 import VRAPI.ResourceController;
 import com.fasterxml.jackson.databind.deser.std.ContainerDeserializerBase;
 import org.junit.Before;
@@ -17,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 import static org.junit.Assert.assertTrue;
@@ -37,29 +41,6 @@ public class XMLInterfaceTests {
 
     }
 
-    @Test
-    public void apiIsUP(){
-        RestTemplate rt = new RestTemplate();
-        String url = "http://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/ping";
-        RequestEntity<String> req = null;
-        ResponseEntity<String> res;
-        try{
-
-            req = new RequestEntity<>( HttpMethod.GET,new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create Request");
-        }
-        assertTrue(req != null);
-
-        res = rt.exchange(req,String.class);
-
-        assertTrue(res != null);
-        assertTrue(res.getStatusCode() == HttpStatus.OK);
-        assertTrue(res.getBody() != null);
-        assertTrue(res.getBody().equals("ping"));
-
-    }
 
     @Test
     public void canGetZUKTeamMembers() {
@@ -179,6 +160,222 @@ public class XMLInterfaceTests {
     public Long[] getSomeOrgIds(){
         Long[] a = {37358L, 710369L, 710627L};
         return a;
+    }
+
+    @Test
+    public void canCompareContacts(){
+        VRAPI.ContainerDetailedContact.Contact a = new VRAPI.ContainerDetailedContact.Contact();
+        VRAPI.ContainerDetailedContact.Contact b = new VRAPI.ContainerDetailedContact.Contact();
+        VRAPI.ContainerDetailedContact.Contact c = new VRAPI.ContainerDetailedContact.Contact();
+        int r;
+
+
+        a.setFirstName("Ronald McDonald");
+        b.setFirstName("The King");
+        c.setFirstName("The Colonel");
+        a.setOrganisation(new VRAPI.ContainerDetailedContact.Organisation(1L));
+        b.setOrganisation(new VRAPI.ContainerDetailedContact.Organisation(null));
+        c.setOrganisation(new VRAPI.ContainerDetailedContact.Organisation(3L));
+
+        r = rc.comparator.compare(a,a);
+        assertTrue(r == 0);
+
+        r = rc.comparator.compare(a,b);
+        assertTrue(r == 1);
+
+        r = rc.comparator.compare(a,c);
+        assertTrue(r == -1);
+
+        r = rc.comparator.compare(b,a);
+        assertTrue(r == -1);
+
+        r = rc.comparator.compare(b,b);
+        assertTrue(r == 0);
+
+        r = rc.comparator.compare(c,a);
+        assertTrue(r == 1);
+
+    }
+
+    @Test
+    public void canSortContacts(){
+        Contact a = new Contact();
+        Contact b = new Contact();
+        Contact c = new Contact();
+        Contact d = new Contact();
+        Contact e = new Contact();
+        Contact f = new Contact();
+        Contact g = new Contact();
+        Contact h = new Contact();
+
+        List<Contact> contacts = new ArrayList<>();
+
+        a.setFirstName("Ronald McDonald");
+        b.setFirstName("The King");
+        c.setFirstName("The Colonel");
+        d.setFirstName("Ms Wendy");
+        e.setFirstName("ferNando");
+        f.setFirstName("Mr Byron");
+        g.setFirstName("Mama Waga");
+        h.setFirstName("Sir Sub");
+        a.setOrganisation(new Organisation(1L));
+        b.setOrganisation(new Organisation(null));
+        g.setOrganisation(new Organisation(null));
+        c.setOrganisation(new Organisation(1L));
+        d.setOrganisation(new Organisation(2L));
+        h.setOrganisation(new Organisation(2L));
+        e.setOrganisation(null);
+        f.setOrganisation(null);
+
+        contacts.add(a);
+        contacts.add(b);
+        contacts.add(c);
+        contacts.add(d);
+        contacts.add(e);
+        contacts.add(f);
+        contacts.add(g);
+        contacts.add(h);
+
+        Collections.sort(contacts, rc.comparator);
+
+        assertTrue(contacts.get(4).getOrganisation().getObjref() == 1L);
+        assertTrue(contacts.get(5).getOrganisation().getObjref() == 1L);
+        assertTrue(contacts.get(6).getOrganisation().getObjref() == 2L);
+        assertTrue(contacts.get(7).getOrganisation().getObjref() == 2L);
+    }
+
+
+    @Test
+    public void canCreateJsonContainer(){
+
+        ZUKResponse res = rc.buildZUKResponse(getsomeContacts(),getsomeOrgs());
+
+        assertTrue(res.getDanglingContacts().size() == 2);
+        assertTrue(res.getDanglingContacts().get(0).getFirstName().equals("The King"));
+        assertTrue(res.getDanglingContacts().get(0).getSurname().equals("Burger"));
+        assertTrue(res.getDanglingContacts().get(0).getPhone().equals("999"));
+        assertTrue(res.getDanglingContacts().get(0).getMobile().equals("07999"));
+        assertTrue(res.getDanglingContacts().get(0).getEmail().equals("whopper@star.com"));
+        assertTrue(res.getDanglingContacts().get(0).getModified().equals("12:12:2012"));
+        assertTrue(res.getDanglingContacts().get(0).getObjid() == 3L);
+        assertTrue(res.getDanglingContacts().get(1).getSurname().equals("Waga"));
+        assertTrue(res.getDanglingContacts().get(1).getFirstName().equals("Mama"));
+
+        assertTrue( ! res.getOrganisationList().isEmpty());
+        assertTrue(res.getOrganisationList().size() == 2);
+        assertTrue(res.getOrganisationList().get(0).getObjid() == 1L);
+        assertTrue(res.getOrganisationList().get(0).getContacts().size() == 2);
+        assertTrue(res.getOrganisationList().get(0).getContacts().get(0).getFirstName().equals("Ronald"));
+        assertTrue(res.getOrganisationList().get(0).getContacts().get(0).getSurname().equals("McDonald"));
+        assertTrue(res.getOrganisationList().get(0).getContacts().get(0).getPhone().equals("999"));
+        assertTrue(res.getOrganisationList().get(0).getContacts().get(0).getMobile().equals("07999"));
+        assertTrue(res.getOrganisationList().get(0).getContacts().get(0).getEmail().equals("childrenwelcome@me.com"));
+        assertTrue(res.getOrganisationList().get(0).getContacts().get(0).getObjid() == 1L);
+
+        assertTrue(res.getOrganisationList().get(0).getContacts().get(1).getFirstName().equals("The Colonel"));
+        assertTrue(res.getOrganisationList().get(0).getContacts().get(1).getObjid() == 2L);
+
+        assertTrue(res.getOrganisationList().get(1).getObjid() == 2L);
+        assertTrue(res.getOrganisationList().get(1).getContacts().isEmpty());
+
+
+        System.out.println(res.toPrettyString());
+
+
+    }
+
+    public List<Contact> getsomeContacts(){
+        //TODO: do responsible ppl
+        Contact a = new Contact();
+        Contact b = new Contact();
+        Contact c = new Contact();
+        Contact d = new Contact();
+
+        List<Contact> contacts = new ArrayList<>();
+
+        a.setFirstName("Ronald");
+        b.setFirstName("The Colonel");
+        c.setFirstName("The King");
+        d.setFirstName("Mama");
+        a.setOrganisation(new Organisation(1L));
+        b.setOrganisation(new Organisation(1L));
+        c.setOrganisation(null);
+        d.setOrganisation(new Organisation(null));
+
+        a.setSurnname("McDonald");
+        b.setSurnname("Sanders");
+        c.setSurnname("Burger");
+        d.setSurnname("Waga");
+
+        a.setPhone("999");
+        b.setPhone("999");
+        c.setPhone("999");
+        d.setPhone("999");
+
+        a.setMobile("07999");
+        b.setMobile("07999");
+        c.setMobile("07999");
+        d.setMobile("07999");
+
+        a.setEmail("childrenwelcome@me.com");
+        b.setEmail("chicken@chicken.com");
+        c.setEmail("whopper@star.com");
+        d.setEmail("bad@service.com");
+
+        a.setObjId(1L);
+        b.setObjId(2L);
+        c.setObjId(3L);
+        d.setObjId(4L);
+
+        a.setModified("12:12:2012");
+        b.setModified("12:12:2012");
+        c.setModified("12:12:2012");
+        d.setModified("12:12:2012");
+
+        contacts.add(a);
+        contacts.add(b);
+        contacts.add(c);
+        contacts.add(d);
+
+        Collections.sort(contacts, rc.comparator);
+
+        return contacts;
+    }
+
+    public List<VRAPI.ContainerDetailedOrganisation.Organisation> getsomeOrgs(){
+        //TODO: do responsible ppl
+        VRAPI.ContainerDetailedOrganisation.Organisation o1 = new VRAPI.ContainerDetailedOrganisation.Organisation();
+        VRAPI.ContainerDetailedOrganisation.Organisation o2 = new VRAPI.ContainerDetailedOrganisation.Organisation();
+        List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs = new ArrayList<>();
+
+        o1.setObjId(1L);
+        o2.setObjId(2L);
+
+        o1.setModified("23:23:1876");
+        o2.setModified("23:23:1876");
+
+        o1.setAdditionalAddressName(" no!");
+        o2.setAdditionalAddressName(" no!");
+
+        o1.setCity("Sin City");
+        o2.setCity("Ouahog");
+
+        o1.setCountry("Murica!");
+        o2.setCountry("Murica!");
+
+        o1.setName("Association of good Fast Food Chains");
+        o2.setName("The healthy options");
+
+        o1.setStreetAddress("666 Highway To Hell");
+        o2.setStreetAddress("667 Stairway To Heaven");
+
+        o1.setZip("666");
+        o2.setZip("777");
+
+        orgs.add(o1);
+        orgs.add(o2);
+
+        return orgs;
     }
 
 //    @Test

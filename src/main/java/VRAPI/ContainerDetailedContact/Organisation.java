@@ -12,6 +12,10 @@ public class Organisation {
     public Organisation() {
     }
 
+    public Organisation(Long objref) { //ATM purely for testing purposes
+        this.objref = objref;
+    }
+
     @XmlElement(name = "objref")
     public Long getObjref() {
         return objref;
