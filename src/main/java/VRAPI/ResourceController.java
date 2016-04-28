@@ -2,6 +2,8 @@ package VRAPI;
 import java.net.URI;
 import java.util.*;
 
+import VRAPI.ContainerJSON.JSONOrganisation;
+import VRAPI.ContainerJSON.OrganisationList;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -336,5 +338,15 @@ public class ResourceController {
         return header + bodyStart + bodyEnd;
     }
 
+    private class ContactComparator implements Comparator<VRAPI.ContainerDetailedContact.Contact> {
+
+        @Override
+        public int compare(VRAPI.ContainerDetailedContact.Contact a, VRAPI.ContainerDetailedContact.Contact b) {
+            Long aref = a.getOrganisation().getObjref();
+            Long bref = b.getOrganisation().getObjref();
+            return aref < bref ? -1 : (aref == bref ? 0 : 1);
+        }
+
+    }
 
 }
