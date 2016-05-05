@@ -78,14 +78,18 @@ public class ResourceController {
         teamIds              = getZUKTeamMemberIds();
         addressIds           = getSupervisedAddresses(teamIds);
         contactIdsAndOrgsIds = getSimpleContactsandOrgs(addressIds);
+
         contactIds           = contactIdsAndOrgsIds.get(0);
         System.out.println("WE HAVE RECEIVED " + contactIds.size() + " CONTACTIDS");
+
         orgIds               = contactIdsAndOrgsIds.get(1);
 
         contacts             = getDetailedContacts(contactIds);
-
         System.out.println("WE HAVE RECEIVED " + contacts.size() + " DETAILED contacts");
+
+
         orgs                 = getOrganisations(orgIds);
+
         for(int i = 0; i < orgs.size(); i++){
             if(orgs.get(i).getObjId() == 709814L){
                 System.out.println("FOUND IT!!!!!");
@@ -207,26 +211,24 @@ public class ResourceController {
 
     public List<VRAPI.ContainerDetailedOrganisation.Organisation> getOrganisations(List<Long> ids) {
         RequestEntity<String> req;
+        ResponseEntity<VRAPI.ContainerDetailedOrganisation.Envelope> res = null;
         List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs = new ArrayList<>();
         try {
             String xmlQuery = getXMLQuery_GetOrganisationDetails(ids);
             String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
             req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
-            ResponseEntity<VRAPI.ContainerDetailedOrganisation.Envelope> res = this.rest.exchange(req, VRAPI.ContainerDetailedOrganisation.Envelope.class);
+            res = this.rest.exchange(req, VRAPI.ContainerDetailedOrganisation.Envelope.class);
 
             for(VRAPI.ContainerDetailedOrganisation.Organisation o : res.getBody().getBody().getQueryResponse().getOrganisationList()){
                 if(o.getActive()){
                     orgs.add(o);
-
-                    if(o.getObjId() == 709814L){
-                        System.out.println("ADDED IT!!!!!");
-                    }
                 }
             }
 
 
         } catch ( Exception e){
             System.out.println("Exception in getDetailed Organisations: " + e);
+            System.out.println("Exception in getDetailed Organisations: " + res);
         }
         return orgs;
     }
@@ -346,6 +348,7 @@ public class ResourceController {
                 "        <member>Vorname</member>\n" +
                 "        <member>betreuer</member>\n" +
                 "        <member>ModifiedDateTime</member>\n" +
+                "        <member>creationDateTime</member>\n" +
                 "        <member>aktiv</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
@@ -384,6 +387,7 @@ public class ResourceController {
                 "        <member>zusatz</member>\n" +
                 "        <member>aktiv</member>\n" +
                 "        <member>ModifiedDateTime</member>\n" +
+                "        <member>creationDateTime</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +

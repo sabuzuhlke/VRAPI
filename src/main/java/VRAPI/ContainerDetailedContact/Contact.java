@@ -18,6 +18,18 @@ public class Contact {
     private PersonResponsible personResponsible;
     private Boolean active;
 
+
+    private String creationTime;
+
+    @XmlElement(name = "creationDateTime")
+    public String getCreationTime() {
+        return creationTime;
+    }
+
+    public void setCreationTime(String creationTime) {
+        this.creationTime = creationTime;
+    }
+
     public Contact() {
         this.organisation = null;
     }

@@ -17,6 +17,16 @@ public class Organisation {
     private String additionalAddressName;
     private String modified;
     private Boolean active;                          //can remove if they ALL come back active (sourced from only active contacts)
+    private String creationTime;
+
+    @XmlElement(name = "creationDateTime")
+    public String getCreationTime() {
+        return creationTime;
+    }
+
+    public void setCreationTime(String creationTime) {
+        this.creationTime = creationTime;
+    }
 
     public Organisation() {
     }

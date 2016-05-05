@@ -2,6 +2,7 @@ package com.example;
 import VRAPI.Application;
 import VRAPI.ContainerDetailedContact.Contact;
 import VRAPI.ContainerDetailedContact.Organisation;
+import VRAPI.ContainerDetailedContact.PersonResponsible;
 import VRAPI.ContainerJSON.ZUKResponse;
 import VRAPI.ResourceController;
 import com.fasterxml.jackson.databind.deser.std.ContainerDeserializerBase;
@@ -332,6 +333,16 @@ public class XMLInterfaceTests {
         c.setModified("12:12:2012");
         d.setModified("12:12:2012");
 
+        a.setPersonResponsible(new PersonResponsible());
+        b.setPersonResponsible(new PersonResponsible());
+        c.setPersonResponsible(new PersonResponsible());
+        d.setPersonResponsible(new PersonResponsible());
+
+        a.getPersonResponsible().setObjref(1L);
+        b.getPersonResponsible().setObjref(1L);
+        c.getPersonResponsible().setObjref(1L);
+        d.getPersonResponsible().setObjref(1L);
+
         contacts.add(a);
         contacts.add(b);
         contacts.add(c);
@@ -372,8 +383,15 @@ public class XMLInterfaceTests {
         o1.setZip("666");
         o2.setZip("777");
 
+        o1.setPersonResponsible(new VRAPI.ContainerDetailedOrganisation.PersonResponsible());
+        o2.setPersonResponsible(new VRAPI.ContainerDetailedOrganisation.PersonResponsible());
+
+        o1.getPersonResponsible().setObjref(1L);
+        o2.getPersonResponsible().setObjref(1L);
+
         orgs.add(o1);
         orgs.add(o2);
+
 
         return orgs;
     }

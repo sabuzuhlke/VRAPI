@@ -23,13 +23,24 @@ public class JSONContact {
     private String mobile;
 
     @JsonProperty("owner")
-    private String owner;   // name of owner
+    private Long owner;   // name of owner
 
     @JsonProperty("modified")
     private String modified;
 
     @JsonProperty("objid")
     private Long objid;
+
+    @JsonProperty("creationTime")
+    private String creationTime;
+
+    public String getCreationTime() {
+        return creationTime;
+    }
+
+    public void setCreationTime(String creationTime) {
+        this.creationTime = creationTime;
+    }
 
     public JSONContact() {
     }
@@ -40,9 +51,10 @@ public class JSONContact {
         this.setMobile(c.getMobile());
         this.setFirstName(c.getFirstName());
         this.setModified(c.getModified());
-        this.setOwner("replace With appropriate value");
+        this.setOwner(c.getPersonResponsible().getObjref());
         this.setPhone(c.getPhone());
         this.setSurname(c.getSurnname());
+        this.creationTime = c.getCreationTime();
     }
 
     public String getFirstName() {
@@ -77,11 +89,11 @@ public class JSONContact {
         this.mobile = mobile;
     }
 
-    public String getOwner() {
+    public Long getOwner() {
         return owner;
     }
 
-    public void setOwner(String owner) {
+    public void setOwner(Long owner) {
         this.owner = owner;
     }
 
