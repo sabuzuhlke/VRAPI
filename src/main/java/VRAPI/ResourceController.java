@@ -5,6 +5,7 @@ import java.util.*;
 import VRAPI.ContainerJSON.JSONContact;
 import VRAPI.ContainerJSON.JSONOrganisation;
 import VRAPI.ContainerJSON.ZUKResponse;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -17,6 +18,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+
+import javax.servlet.http.HttpServletRequest;
 
 @RestController
 public class ResourceController {
@@ -59,8 +62,15 @@ public class ResourceController {
         this.comparator = new ContactComparator();
     }
 //------------------------------------------------------------------------------------------------------------Paths
+    @Autowired
+    private HttpServletRequest request;
+
     @RequestMapping(value = "/ping", method = RequestMethod.GET)
     public String ping() {
+
+        System.out.println(request.getHeader("Email"));
+        System.out.println(request.getHeader("Password"));
+
         return "ping";
     }
 
@@ -263,6 +273,7 @@ public class ResourceController {
                 "  </Body>\n" +
                 "</Envelope>";
     }
+
 
     private String getXMLQuery_SupervisedAddresses(List<Long> memberIds) {
         String header = "<Envelope>\n" +
