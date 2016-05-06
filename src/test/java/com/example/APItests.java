@@ -5,34 +5,22 @@ package com.example;
  */
 
 import VRAPI.Application;
+import VRAPI.MyAccessCredentials;
+import VRAPI.MyLimitedCredentials;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import VRAPI.Application;
-import VRAPI.ContainerDetailedContact.Contact;
-import VRAPI.ContainerDetailedContact.Organisation;
-import VRAPI.ContainerJSON.ZUKResponse;
 import VRAPI.ResourceController;
-import com.fasterxml.jackson.databind.deser.std.ContainerDeserializerBase;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
 
 import static org.junit.Assert.assertTrue;
 
@@ -50,15 +38,38 @@ public class APItests {
         this.rc = new ResourceController();
     }
 
+    static {
+        //for localhost testing only
+        javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(
+                new javax.net.ssl.HostnameVerifier() {
+
+                    public boolean verify(String hostname,
+                                          javax.net.ssl.SSLSession sslSession) {
+                        if (hostname.equals("localhost")) {
+                            return true;
+                        }
+                        return false;
+                    }
+                });
+    }
+
     @Test
     public void apiIsUP(){
+
         RestTemplate rt = new RestTemplate();
-        String url = "http://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/ping";
+        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/ping";
         RequestEntity<String> req = null;
         ResponseEntity<String> res;
+
+        MyAccessCredentials mac = new MyAccessCredentials();
+        String username = mac.getUserName();
+        String pwd = mac.getPass();
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", username + ':' + pwd);
         try{
 
-            req = new RequestEntity<>( HttpMethod.GET,new URI(url));
+            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
         }
         catch(Exception e){
             System.out.println("Could not create ping Request");
@@ -70,7 +81,71 @@ public class APItests {
         assertTrue(res != null);
         assertTrue(res.getStatusCode() == HttpStatus.OK);
         assertTrue(res.getBody() != null);
-        assertTrue(res.getBody().equals("ping"));
+        assertTrue(res.getBody().equals("Success!"));
+
+    }
+
+
+    @Test
+    public void canNotGetZUKWithLimitedAccess(){
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK";
+        RequestEntity<String> req = null;
+        ResponseEntity<String> res;
+
+        MyLimitedCredentials mlc = new MyLimitedCredentials();
+        String username = mlc.getUserName();
+        String pwd = mlc.getPass();
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", username + ':' + pwd);
+        try{
+
+            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+        }
+        catch(Exception e){
+            System.out.println("Could not create ping Request");
+        }
+        assertTrue(req != null);
+        res = rt.exchange(req,String.class);
+
+        System.out.println("res: " + res);
+
+        assertTrue(res != null);
+        assertTrue(res.getBody() != null);
+        assertTrue(res.getBody()
+                .contains("Partial Failure: Username and Password provided " +
+                        "do not have sufficient permissions to access all " +
+                        "Vertec Data. Some queries may return missing or no " +
+                        "information"));
+
+    }
+
+    @Test
+    public void canNotGetZUKWithNoAccess(){
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK";
+        RequestEntity<String> req = null;
+        ResponseEntity<String> res;
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", "blah" + ':' + "blah");
+        try{
+
+            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+        }
+        catch(Exception e){
+            System.out.println("Could not create ping Request");
+        }
+        assertTrue(req != null);
+        res = rt.exchange(req,String.class);
+
+        System.out.println("res: " + res);
+
+        assertTrue(res != null);
+        assertTrue(res.getBody() != null);
+        assertTrue(res.getBody()
+                .contains("Ping Failed: Wrong Username or Password recieved in request header"));
 
     }
 
@@ -97,4 +172,6 @@ public class APItests {
 //        assertTrue(res.getBody() != null);
 //        System.out.println(res.getBody().toPrettyString());
 //    }
+
+
 }

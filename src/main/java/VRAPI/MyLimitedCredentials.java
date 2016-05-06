@@ -1,20 +1,22 @@
 package VRAPI;
 
+/**
+ * Created by sabu on 06/05/2016.
+ */
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
-public class MyCredentials {
+public class MyLimitedCredentials {
 
     private String pass = "";
     private String userName = "";
-    private String apiKey = "";
 
-    public MyCredentials() {
+    public MyLimitedCredentials() {
         String line;
         try{
 
-            File file = new File("creds.txt");
+            File file = new File("limitedCreds.txt");
 
             FileReader reader = new FileReader(file.getAbsolutePath());
             BufferedReader breader = new BufferedReader(reader);
@@ -39,7 +41,4 @@ public class MyCredentials {
         return userName;
     }
 
-    public String getApiKey() {
-        return apiKey;
-    }
 }

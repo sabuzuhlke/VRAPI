@@ -5,6 +5,7 @@ import java.util.*;
 import VRAPI.ContainerJSON.JSONContact;
 import VRAPI.ContainerJSON.JSONOrganisation;
 import VRAPI.ContainerJSON.ZUKResponse;
+import io.swagger.annotations.ApiResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -16,10 +17,12 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
 public class ResourceController {
@@ -54,7 +57,7 @@ public class ResourceController {
         rest.setMessageConverters(converters);
 
         //TODO: replace with proper authenitcation
-        MyCredentials creds = new MyCredentials();
+        MyAccessCredentials creds = new MyAccessCredentials();
 
         this.username = creds.getUserName();
         this.password = creds.getPass();
@@ -65,13 +68,70 @@ public class ResourceController {
     @Autowired
     private HttpServletRequest request;
 
+    //TODO: add appropriate response codes
+
     @RequestMapping(value = "/ping", method = RequestMethod.GET)
     public String ping() {
 
-        System.out.println(request.getHeader("Email"));
-        System.out.println(request.getHeader("Password"));
+        RequestEntity<String> req;
+        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+        try {
+            authorize();
+            String xmlQuery = getXMLQuery_ping();
+            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
+            ResponseEntity<VRAPI.ContainerTeam.Envelope> res = this.rest.exchange(req, VRAPI.ContainerTeam.Envelope.class);
 
-        return "ping";
+            checkResHasInfo(res.getBody());
+
+        } catch (Exception e) {
+            //hopefully will only happen when response returns Fault from XML Interface, then test to see whether incorret username and pwd, or limited access
+            System.out.println("Did not recieve Team, attempting to recieve error message");
+            try {
+
+                req = new RequestEntity<>(getXMLQuery_ping(), HttpMethod.POST, new URI(uri));
+                ResponseEntity<VRAPI.ContainerError.Envelope> res = this.rest.exchange(req, VRAPI.ContainerError.Envelope.class);
+
+                String errorDetail = res.getBody().getBody().getFault().getDetails().getDetailitem().get(0);
+                System.out.println(errorDetail);
+                if (errorDetail.contains("Error: Authentication failure. Wrong User Name or Password")) {
+                    return "Ping Failed: Wrong Username or Password recieved in request header";
+                } else {
+                    return "Partial Failure: Username and Password provided do not have sufficient permissions to access all Vertec Data. Some queries may return missing or no information";
+                }
+
+            } catch (Exception newe) {
+                return "Unhandled Error in server: " + newe;
+            }
+        }
+
+        return "Success!";
+    }
+
+    private void checkResHasInfo(VRAPI.ContainerTeam.Envelope envelope) throws Exception {
+        if (envelope.getBody().getQueryResponse() == null) {
+            throw new XMLFailureException();
+        }
+    }
+
+    private class XMLFailureException extends Exception {
+        private XMLFailureException() {
+
+        }
+
+        public XMLFailureException(String message) {
+            super(message);
+        }
+    }
+
+    private void authorize() throws Exception {
+        try {
+            String userpwd = request.getHeader("Authorization");
+            String[] both = userpwd.split(":");
+            this.username = both[0];
+            this.password = both[1];
+        } catch (Exception e) {
+             throw new Exception("Request failed: Authorization header incorrectly set");
+        }
     }
 
     @RequestMapping(value = "/organisations/ZUK", method = RequestMethod.GET)
@@ -85,26 +145,29 @@ public class ResourceController {
         List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs;
         ZUKResponse zuk;
 
-        teamIds              = getZUKTeamMemberIds();
+        try {
+
+            authorize();
+            teamIds = getZUKTeamMemberIds();
+
+        } catch (Exception e) {
+            //hopefully will only happen when response returns Fault from XML Interface, then test to see whether incorret username and pwd, or limited access
+            return e.toString();
+        }
+
+
         addressIds           = getSupervisedAddresses(teamIds);
+
         contactIdsAndOrgsIds = getSimpleContactsandOrgs(addressIds);
 
         contactIds           = contactIdsAndOrgsIds.get(0);
-        System.out.println("WE HAVE RECEIVED " + contactIds.size() + " CONTACTIDS");
 
         orgIds               = contactIdsAndOrgsIds.get(1);
 
         contacts             = getDetailedContacts(contactIds);
-        System.out.println("WE HAVE RECEIVED " + contacts.size() + " DETAILED contacts");
-
 
         orgs                 = getOrganisations(orgIds);
 
-        for(int i = 0; i < orgs.size(); i++){
-            if(orgs.get(i).getObjId() == 709814L){
-                System.out.println("FOUND IT!!!!!");
-            }
-        }
         zuk                  = buildZUKResponse(contacts, orgs);
 
         return zuk.toString();
@@ -114,20 +177,47 @@ public class ResourceController {
 
     //------------------------------------------------------------------------------------------------------------Helper Methods
     //TODO: make xml access methods private, adjust tests: http://stackoverflow.com/questions/34571/how-to-test-a-class-that-has-private-methods-fields-or-inner-classes
-    public List<Long> getZUKTeamMemberIds() {
+    public List<Long> getZUKTeamMemberIds() throws Exception {
         RequestEntity<String> req;
         List<Long> ids = new ArrayList<>();
+        ResponseEntity<VRAPI.ContainerTeam.Envelope> res;
+
+        String xmlQuery = getXMLQuery_LeadersTeam();
+        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+
+        req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
+
+        Exception exception = null;
+
         try {
-
-            String xmlQuery = getXMLQuery_LeadersTeam();
-            String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
-            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
-            ResponseEntity<VRAPI.ContainerTeam.Envelope> res = this.rest.exchange(req, VRAPI.ContainerTeam.Envelope.class);
-
+            res = this.rest.exchange(req, VRAPI.ContainerTeam.Envelope.class);
+            checkResHasInfo(res.getBody());
             ids = res.getBody().getBody().getQueryResponse().getWorkers().get(0).getTeam().getList().getObjects();
 
+        } catch (XMLFailureException e) {
+            System.out.println("XMLException thrown by getZUKTeamMemberIds");
+            System.out.println("Did not recieve Team, attempting to recieve error message");
+            try {
+                ResponseEntity<VRAPI.ContainerError.Envelope> rese = this.rest.exchange(req, VRAPI.ContainerError.Envelope.class);
+
+                String errorDetail = rese.getBody().getBody().getFault().getDetails().getDetailitem().get(0);
+                System.out.println(errorDetail);
+
+                if (errorDetail.contains("Error: Authentication failure. Wrong User Name or Password")) {
+                    exception = new XMLFailureException("Ping Failed: Wrong Username or Password recieved in request header");
+                } else {
+                    exception =  new XMLFailureException("Partial Failure: Username and Password provided do not have sufficient permissions to access all Vertec Data. Some queries may return missing or no information");
+                }
+
+            } catch (Exception newe) {
+                exception = new Exception("Unhandled Error in server: " + newe.toString());
+            }
         } catch (Exception e) {
-            System.out.println("ERROR IN GETTING ZUK TEAM MEMBERS" + e);
+            exception = new Exception("Unhandled Error in server" + e);
+        }
+
+        if (exception != null) {
+            throw exception;
         }
 
         return ids;
@@ -250,6 +340,10 @@ public class ResourceController {
 
     public String getOwnIpAddress() {
         return OwnIpAddress;
+    }
+
+    private String getXMLQuery_ping() {
+        return getXMLQuery_LeadersTeam();
     }
 
     private String getXMLQuery_LeadersTeam() {
