@@ -48,7 +48,6 @@ public class APItests {
     @Before
     public void setUp(){
         this.rc = new ResourceController();
-
     }
 
     @Test
