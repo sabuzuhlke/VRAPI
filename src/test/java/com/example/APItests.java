@@ -140,8 +140,6 @@ public class APItests {
         assertTrue(req != null);
         res = rt.exchange(req,String.class);
 
-        System.out.println("res: " + res);
-
         assertTrue(res != null);
         assertTrue(res.getBody() != null);
         assertTrue(res.getBody()
