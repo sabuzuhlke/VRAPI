@@ -52,7 +52,6 @@ public class APItests {
                     }
                 });
     }
-
     @Test
     public void apiIsUP(){
 

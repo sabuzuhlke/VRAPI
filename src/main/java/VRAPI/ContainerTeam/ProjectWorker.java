@@ -9,6 +9,7 @@ public class ProjectWorker {
 
     private Team team;
     private Long objid;
+
     public ProjectWorker() {
     }
 
@@ -28,4 +29,6 @@ public class ProjectWorker {
     public void setObjid(Long objid) {
         this.objid = objid;
     }
+
+
 }

@@ -23,6 +23,7 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.http.HttpServletResponse;
 
 @RestController
 public class ResourceController {
@@ -35,6 +36,7 @@ public class ResourceController {
     private String password;
     private RestTemplate rest;
     public ContactComparator comparator;
+    private Map<Long,String> teamMap;
 
     public ResourceController() {
         //IpAddress:portNum of VertecServer
@@ -63,6 +65,7 @@ public class ResourceController {
         this.password = creds.getPass();
 
         this.comparator = new ContactComparator();
+        this.teamMap = new HashMap<>();
     }
 //------------------------------------------------------------------------------------------------------------Paths
     @Autowired
@@ -227,6 +230,7 @@ public class ResourceController {
         RequestEntity<String> req;
         List<Long> ids = new ArrayList<>();
         Set<Long> uniqueIds = new HashSet<>();
+        this.teamMap = new HashMap<>();
         try {
 
             String xmlQuery = getXMLQuery_SupervisedAddresses(supervisorIds);
@@ -238,6 +242,7 @@ public class ResourceController {
             for(VRAPI.ContainerAddresses.ProjectWorker w : env.getBody().getQueryResponse().getWorkers()){
                 if (w.getActive()) {
                     ids.addAll(w.getAddresses().getList().getObjects());
+
                 }
             }
 
@@ -390,7 +395,8 @@ public class ResourceController {
         String bodyEnd = "</Selection>\n" +
                 "      <Resultdef>\n" +
                 "        <member>BetreuteAdressen</member>\n" + //will return list of obj ref for each company
-                "        <member>Aktiv</member>\n" + //will return list of obj ref for each company
+                "        <member>Aktiv</member>\n" +
+                "        <member>briefEmail</member>\n" + //will return Email address of team member
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +
