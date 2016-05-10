@@ -91,6 +91,7 @@ public class ResourceController {
             System.out.println("Did not recieve Team, attempting to recieve error message");
             try {
 
+                authorize();
                 req = new RequestEntity<>(getXMLQuery_ping(), HttpMethod.POST, new URI(uri));
                 ResponseEntity<VRAPI.ContainerError.Envelope> res = this.rest.exchange(req, VRAPI.ContainerError.Envelope.class);
 
