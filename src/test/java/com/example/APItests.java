@@ -5,6 +5,7 @@ package com.example;
  */
 
 import VRAPI.Application;
+import VRAPI.ContainerJSON.ZUKResponse;
 import VRAPI.MyAccessCredentials;
 import VRAPI.MyLimitedCredentials;
 import org.junit.runner.RunWith;
@@ -146,29 +147,40 @@ public class APItests {
 
     }
 
-//    @Test
-//    public void canGetZUK(){
-//
-//        RestTemplate rt = new RestTemplate();
-//        String url = "http://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK/";
-//        RequestEntity<String> req = null;
-//        ResponseEntity<ZUKResponse> res;
-//        try{
-//
-//            req = new RequestEntity<>( HttpMethod.GET,new URI(url));
-//        }
-//        catch(Exception e){
-//            System.out.println("Could not create Request for ZUK");
-//        }
-//        assertTrue(req != null);
-//
-//        res = rt.exchange(req,ZUKResponse.class);
-//
-//        assertTrue(res != null);
-//        assertTrue(res.getStatusCode() == HttpStatus.OK);
-//        assertTrue(res.getBody() != null);
-//        System.out.println(res.getBody().toPrettyString());
-//    }
+    @Test
+    public void canGetZUK(){
+
+        RestTemplate rt = new RestTemplate();
+        System.out.println("Not 1");
+        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK/";
+        RequestEntity<String> req = null;
+        ResponseEntity<ZUKResponse> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+        try{
+
+
+            //add authentication header to headers object
+            MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+            headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+        }
+        catch(Exception e){
+            System.out.println("Could not create Request for ZUK");
+        }
+        assertTrue(req != null);
+
+        System.out.println("Not 2");
+
+        res = rt.exchange(req,ZUKResponse.class);
+
+        System.out.println("Not 3");
+
+        assertTrue(res != null);
+        assertTrue(res.getStatusCode() == HttpStatus.OK);
+        assertTrue(res.getBody() != null);
+        System.out.println(res.getBody().toPrettyString());
+    }
 
 
 }

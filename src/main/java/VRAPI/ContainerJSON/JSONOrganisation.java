@@ -29,7 +29,7 @@ public class JSONOrganisation {
     private String country;
 
     @JsonProperty("owner")
-    private Long owner;
+    private String owner;
 
     @JsonProperty("objid")
     private Long objid; //unsure if needed
@@ -42,6 +42,7 @@ public class JSONOrganisation {
 
     @JsonProperty("creationTime")
     private String creationTime;
+
 
     public String getCreationTime() {
         return creationTime;
@@ -62,7 +63,7 @@ public class JSONOrganisation {
         this.setCity(o.getCity());
         this.setZip(o.getZip());
         this.setCountry(o.getCountry());
-        this.setOwner(o.getPersonResponsible().getObjref());
+        //this.setOwner(o.getPersonResponsible().getObjref());  //Have to set owner to email address in buildZUKResponse
         this.setObjid(o.getObjId());
         this.setModified(o.getModified());
         this.contacts = new ArrayList<>();
@@ -77,11 +78,11 @@ public class JSONOrganisation {
         this.name = name;
     }
 
-    public Long getOwner() {
+    public String getOwner() {
         return owner;
     }
 
-    public void setOwner(Long owner) {
+    public void setOwner(String owner) {
         this.owner = owner;
     }
 

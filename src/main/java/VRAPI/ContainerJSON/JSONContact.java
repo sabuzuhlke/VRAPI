@@ -2,6 +2,8 @@ package VRAPI.ContainerJSON;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.util.List;
+
 /**
  * Created by sabu on 27/04/2016.
  */
@@ -23,7 +25,7 @@ public class JSONContact {
     private String mobile;
 
     @JsonProperty("owner")
-    private Long owner;   // name of owner
+    private String owner;   // name of owner
 
     @JsonProperty("modified")
     private String modified;
@@ -33,6 +35,9 @@ public class JSONContact {
 
     @JsonProperty("creationTime")
     private String creationTime;
+
+    @JsonProperty("followers")
+    private List<String> followers;
 
     public String getCreationTime() {
         return creationTime;
@@ -51,10 +56,18 @@ public class JSONContact {
         this.setMobile(c.getMobile());
         this.setFirstName(c.getFirstName());
         this.setModified(c.getModified());
-        this.setOwner(c.getPersonResponsible().getObjref());
+        //this.setOwner(c.getPersonResponsible().getObjref()); //has to be set in buildZUKResponse
         this.setPhone(c.getPhone());
         this.setSurname(c.getSurnname());
         this.creationTime = c.getCreationTime();
+    }
+
+    public List<String> getFollowers() {
+        return followers;
+    }
+
+    public void setFollowers(List<String> followers) {
+        this.followers = followers;
     }
 
     public String getFirstName() {
@@ -89,11 +102,11 @@ public class JSONContact {
         this.mobile = mobile;
     }
 
-    public Long getOwner() {
+    public String getOwner() {
         return owner;
     }
 
-    public void setOwner(Long owner) {
+    public void setOwner(String owner) {
         this.owner = owner;
     }
 

@@ -19,10 +19,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.Assert.assertTrue;
 
@@ -255,6 +252,23 @@ public class XMLInterfaceTests {
     @Test
     public void canCreateJsonContainer(){
 
+        Map<Long, String> teamMap = new HashMap<>();
+
+        teamMap.put(1L, "a@eat.com");
+        teamMap.put(2L, "b@eat.com");
+        teamMap.put(3L, "c@eat.com");
+
+        rc.setTeamMap(teamMap);
+
+        Map<Long, List<String>> followers = new HashMap<>();
+
+        List<String> followerlist = new ArrayList<>();
+        followerlist.add("b@eat.com");
+
+        followers.put(2L, followerlist);
+
+        rc.setFollowerMap(followers);
+
         ZUKResponse res = rc.buildZUKResponse(getsomeContacts(),getsomeOrgs());
 
         assertTrue(res.getDanglingContacts().size() == 2);
@@ -276,15 +290,21 @@ public class XMLInterfaceTests {
         assertTrue(res.getOrganisationList().get(1).getContacts().get(0).getFirstName().equals("Ronald"));
         assertTrue(res.getOrganisationList().get(1).getContacts().get(0).getSurname().equals("McDonald"));
         assertTrue(res.getOrganisationList().get(1).getContacts().get(0).getPhone().equals("999"));
+        assertTrue(res.getOrganisationList().get(1).getContacts().get(0).getFollowers().isEmpty());
         assertTrue(res.getOrganisationList().get(1).getContacts().get(0).getMobile().equals("07999"));
         assertTrue(res.getOrganisationList().get(1).getContacts().get(0).getEmail().equals("childrenwelcome@me.com"));
         assertTrue(res.getOrganisationList().get(1).getContacts().get(0).getObjid() == 1L);
+        assertTrue(res.getOrganisationList().get(1).getContacts().get(0).getOwner().equals("a@eat.com"));
+
 
         assertTrue(res.getOrganisationList().get(1).getContacts().get(1).getFirstName().equals("The Colonel"));
         assertTrue(res.getOrganisationList().get(1).getContacts().get(1).getObjid() == 2L);
+        assertTrue(res.getOrganisationList().get(1).getContacts().get(1).getOwner().equals("b@eat.com"));
+        assertTrue(res.getOrganisationList().get(1).getContacts().get(1).getFollowers().get(0).equals("b@eat.com"));
 
         assertTrue(res.getOrganisationList().get(0).getObjid() == 1L);
         assertTrue(res.getOrganisationList().get(0).getContacts().isEmpty());
+        assertTrue(res.getOrganisationList().get(0).getOwner().equals("a@eat.com"));
 
 
 
@@ -345,9 +365,10 @@ public class XMLInterfaceTests {
         d.setPersonResponsible(new PersonResponsible());
 
         a.getPersonResponsible().setObjref(1L);
-        b.getPersonResponsible().setObjref(1L);
-        c.getPersonResponsible().setObjref(1L);
-        d.getPersonResponsible().setObjref(1L);
+        b.getPersonResponsible().setObjref(2L);
+        c.getPersonResponsible().setObjref(2L);
+        d.getPersonResponsible().setObjref(3L);
+
 
         contacts.add(a);
         contacts.add(b);
@@ -416,5 +437,52 @@ public class XMLInterfaceTests {
 //
 //    }
 
+    @Test
+    public void GivenTeamListCanBuildMapOfFollowedObjects() {
+        List<Long> teamIds = new ArrayList<>();
+        try {
+
+            teamIds = rc.getZUKTeamMemberIds();
+
+        } catch (Exception e) {
+
+            assertTrue(false);
+        }
+
+        assertTrue(!teamIds.isEmpty());
+        Map<Long, List<String>> map = rc.createFollowerMap(teamIds);
+
+        assertTrue(map.get(13030752L).contains("justin.cowling@zuhlke.com"));
+        assertTrue(map.get(22285081L).contains("justin.cowling@zuhlke.com"));
+        assertTrue(map.get(22285152L).contains("justin.cowling@zuhlke.com"));
+        assertTrue(map.get(22286793L).contains("justin.cowling@zuhlke.com"));
+
+    }
+
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

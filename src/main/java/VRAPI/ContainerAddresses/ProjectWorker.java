@@ -11,6 +11,7 @@ public class ProjectWorker {
     private Addresses addresses;
     private Long objid;
     private Boolean active;
+    private String email;
     public ProjectWorker() {
     }
 
@@ -38,5 +39,14 @@ public class ProjectWorker {
 
     public void setObjid(Long objid) {
         this.objid = objid;
+    }
+
+    @XmlElement(name = "briefEmail")
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 }

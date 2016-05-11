@@ -5,7 +5,8 @@ import java.util.*;
 import VRAPI.ContainerJSON.JSONContact;
 import VRAPI.ContainerJSON.JSONOrganisation;
 import VRAPI.ContainerJSON.ZUKResponse;
-import io.swagger.annotations.ApiResponse;
+import VRAPI.FromContainer.Envelope;
+import VRAPI.FromContainer.GenericLinkContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -17,13 +18,10 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpServletResponse;
 
 @RestController
 public class ResourceController {
@@ -37,6 +35,7 @@ public class ResourceController {
     private RestTemplate rest;
     public ContactComparator comparator;
     private Map<Long,String> teamMap;
+    private Map<Long, List<String>> followerMap;
 
     public ResourceController() {
         //IpAddress:portNum of VertecServer
@@ -66,8 +65,26 @@ public class ResourceController {
 
         this.comparator = new ContactComparator();
         this.teamMap = new HashMap<>();
+        this.followerMap = new HashMap<>();
     }
-//------------------------------------------------------------------------------------------------------------Paths
+
+    public Map<Long, List<String>> getFollowerMap() {
+        return followerMap;
+    }
+
+    public void setFollowerMap(Map<Long, List<String>> followerMap) {
+        this.followerMap = followerMap;
+    }
+
+    public Map<Long, String> getTeamMap() {
+        return teamMap;
+    }
+
+    public void setTeamMap(Map<Long, String> teamMap) {
+        this.teamMap = teamMap;
+    }
+
+    //------------------------------------------------------------------------------------------------------------Paths
     @Autowired
     private HttpServletRequest request;
 
@@ -159,6 +176,7 @@ public class ResourceController {
             return e.toString();
         }
 
+        this.followerMap = createFollowerMap(teamIds);
 
         addressIds           = getSupervisedAddresses(teamIds);
 
@@ -244,6 +262,7 @@ public class ResourceController {
                 if (w.getActive()) {
                     ids.addAll(w.getAddresses().getList().getObjects());
 
+                    teamMap.put(w.getObjid(), w.getEmail());
                 }
             }
 
@@ -339,6 +358,85 @@ public class ResourceController {
         return orgs;
     }
 
+    public Map<Long, List<String>> createFollowerMap(List<Long> teamIds) {
+        Map<Long, List<String>> map = new HashMap<>();
+        ResponseEntity<VRAPI.ContainerFollower.Envelope> leader;
+
+        for (Long id : teamIds) {
+
+            //#2 query for  project leaders aktiv and fromlink
+            leader = getGenericLinkContainers(id);
+
+
+            if (leader.getBody().getBody().getQueryResponse().getProjectWorker().getActive()) {
+                ResponseEntity<VRAPI.FromContainer.Envelope> resFromContainer;
+
+                //#3 query for generic Link Containers
+                resFromContainer = getFromContainer(leader.getBody().getBody().getQueryResponse().getProjectWorker().getFromLinks().getObjlist().getObjref());
+
+                List<GenericLinkContainer> genericLinkContainers = resFromContainer.getBody().getBody().getQueryResponse().getGenericLinkContainers();
+
+                for(GenericLinkContainer glc : genericLinkContainers){
+                    Long objref = glc.getFromContainer().getObjref();
+                    try {
+
+                        List<String> idsFollowing = map.get(objref);
+                        idsFollowing.add(leader.getBody().getBody().getQueryResponse().getProjectWorker().getEmail().toLowerCase());
+                        map.replace(objref, idsFollowing);
+
+                    } catch (Exception e) {
+
+                        List<String> idsFollowing = new ArrayList<>();
+                        idsFollowing.add(leader.getBody().getBody().getQueryResponse().getProjectWorker().getEmail().toLowerCase());
+                        map.put(objref, idsFollowing);
+
+                    }
+                }
+            }
+        }
+
+        return map;
+
+    }
+
+    public ResponseEntity<VRAPI.FromContainer.Envelope> getFromContainer(List<Long> ids) {
+        String xmlQuery = getXMLQuery_FromContainers(ids);
+        RequestEntity<String> req;
+        ResponseEntity<VRAPI.FromContainer.Envelope> res = null;
+        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+
+        try {
+
+            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
+            res = this.rest.exchange(req, VRAPI.FromContainer.Envelope.class);
+        } catch (Exception e) {
+            System.out.println("ERROR IN GETTING FROM CONTAINERS: " + e);
+        }
+
+        return res;
+    }
+
+
+    public ResponseEntity<VRAPI.ContainerFollower.Envelope> getGenericLinkContainers(Long id) {
+        String xmlQuery = getXMLQuery_LeadersFromLinks(id);
+
+        RequestEntity<String> req;
+        ResponseEntity<VRAPI.ContainerFollower.Envelope> res = null;
+
+        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+        try {
+
+            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
+            res = this.rest.exchange(req, VRAPI.ContainerFollower.Envelope.class);
+
+        } catch (Exception e) {
+            System.out.println("EXCEPTION IN GETTING GENERIC LIST CONTAINER: " +  e);
+        }
+
+        return res;
+
+    }
+
 
     public String getOwnPortNr() {
         return OwnPortNr;
@@ -346,6 +444,58 @@ public class ResourceController {
 
     public String getOwnIpAddress() {
         return OwnIpAddress;
+    }
+
+    private String getXMLQuery_FromContainers(List<Long> containerIds) {
+        String header = "<Envelope>\n" +
+                "  <Header>\n" +
+                "    <BasicAuth>\n" +
+                "      <Name>" + this.username + "</Name>\n" +
+                "      <Password>" + this.password + "</Password>\n" +
+                "      </BasicAuth>\n" +
+                "  </Header>\n";
+
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
+        if(containerIds != null){
+            for (Long id : containerIds) {
+                bodyStart += "<objref>" + id + "</objref>\n";
+            }
+        }
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "        <member>fromContainer</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + bodyStart + bodyEnd;
+    }
+
+    private String getXMLQuery_LeadersFromLinks(Long id) {
+        return "<Envelope>\n" +
+                "  <Header>\n" +
+                "    <BasicAuth>\n" +
+                "      <Name>" + this.username + "</Name>\n" +
+                "      <Password>" + this.password + "</Password>\n" +
+                "      </BasicAuth>\n" +
+                "  </Header>\n" +
+                "\n" +
+                "  <Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n" +
+                "        <objref>" + id + "</objref>\n" +
+                "      </Selection>\n" +
+                "      <Resultdef>\n" +
+                "        <member>fromlinks</member>\n" +
+                "        <member>aktiv</member>\n" +
+                "        <member>briefEmail</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
     }
 
     private String getXMLQuery_ping() {
@@ -521,6 +671,8 @@ public class ResourceController {
 
             JSONOrganisation org = new JSONOrganisation(vo);
 
+            org.setOwner(teamMap.get(vo.getPersonResponsible().getObjref()));
+
             List<JSONContact> orgContacts = new ArrayList<>();
 
             for(Iterator<VRAPI.ContainerDetailedContact.Contact> vc = contacts.listIterator();vc.hasNext();){
@@ -531,8 +683,13 @@ public class ResourceController {
 
                 if(vo.getObjId().longValue() == a.getOrganisation().getObjref().longValue()) {
                     JSONContact c = new JSONContact(a);
+                    c.setOwner(teamMap.get(a.getPersonResponsible().getObjref()).toLowerCase());
+                    c.setFollowers(followerMap.get(c.getObjid()));
+                    if(c.getFollowers() == null) c.setFollowers(new ArrayList<>());
+                    if(c.getFollowers().size() > 1) ccounter++;
+
+
                     orgContacts.add(c);
-                    ccounter++;
                     vc.remove();
                 }
             }
@@ -543,14 +700,21 @@ public class ResourceController {
 
         }
 
-        for(Iterator<VRAPI.ContainerDetailedContact.Contact> vc = contacts.listIterator();vc.hasNext();){
+        for(Iterator<VRAPI.ContainerDetailedContact.Contact> vc = contacts.listIterator(); vc.hasNext();){
             VRAPI.ContainerDetailedContact.Contact a = vc.next();
-                JSONContact c = new JSONContact(a);
-                dangle.add(c);
+            JSONContact c = new JSONContact(a);
+            c.setOwner(teamMap.get(a.getPersonResponsible().getObjref()));
+            c.setFollowers(followerMap.get(c.getObjid()));
+
+            if(c.getFollowers() == null) c.setFollowers(new ArrayList<>());
+            dangle.add(c);
         }
 
         res.setDanglingContacts(dangle);
         res.setOrganisationList(jsonOrgs);
+
+        System.out.println("nr of ppl with multiple followers: " + ccounter);
+        System.out.println("nr followed ppl: " + followerMap.size());
 
         return res;
     }
