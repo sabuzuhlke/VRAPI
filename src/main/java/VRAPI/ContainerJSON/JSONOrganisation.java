@@ -37,12 +37,17 @@ public class JSONOrganisation {
     @JsonProperty("modified")
     private String modified;
 
-    @JsonProperty("contacts")
-    private List<JSONContact> contacts;
-
     @JsonProperty("creationTime")
     private String creationTime;
 
+    @JsonProperty("parentOrganisationId")
+    private Long parentOrganisationId;
+
+    @JsonProperty("childOrganisationList")
+    private List<Long> childOrganisationList;
+
+    @JsonProperty("contacts")
+    private List<JSONContact> contacts;
 
     public String getCreationTime() {
         return creationTime;
@@ -68,6 +73,13 @@ public class JSONOrganisation {
         this.setModified(o.getModified());
         this.contacts = new ArrayList<>();
         this.creationTime = o.getCreationTime();
+        if (o.getDaughterFirm() != null) {
+            this.childOrganisationList = o
+                    .getDaughterFirm()
+                    .getObjlist()
+                    .getObjref();
+        }
+        this.parentOrganisationId = o.getParentFirm().getObjref();
     }
 
     public String getName() {
@@ -148,5 +160,21 @@ public class JSONOrganisation {
 
     public void setCountry(String country) {
         this.country = country;
+    }
+
+    public Long getParentOrganisationId() {
+        return parentOrganisationId;
+    }
+
+    public void setParentOrganisationId(Long parentOrganisationId) {
+        this.parentOrganisationId = parentOrganisationId;
+    }
+
+    public List<Long> getChildOrganisationList() {
+        return childOrganisationList;
+    }
+
+    public void setChildOrganisationList(List<Long> childOrganisationList) {
+        this.childOrganisationList = childOrganisationList;
     }
 }

@@ -7,17 +7,17 @@ import javax.xml.bind.annotation.XmlElement;
  */
 public class DaughterFirms {
 
-    private Objlist objlistt;
+    private Objlist objlist;
 
     public DaughterFirms() {
     }
 
     @XmlElement(name  = "objlist")
-    public Objlist getObjlistt() {
-        return objlistt;
+    public Objlist getObjlist() {
+        return objlist;
     }
 
-    public void setObjlistt(Objlist objlistt) {
-        this.objlistt = objlistt;
+    public void setObjlist(Objlist objlist) {
+        this.objlist = objlist;
     }
 }

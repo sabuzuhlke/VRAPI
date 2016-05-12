@@ -650,6 +650,8 @@ public class ResourceController {
                 "        <member>aktiv</member>\n" +
                 "        <member>ModifiedDateTime</member>\n" +
                 "        <member>creationDateTime</member>\n" +
+                "        <member>mutterfirma</member>\n" +
+                "        <member>tochterfirmen</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +

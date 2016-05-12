@@ -151,7 +151,6 @@ public class APItests {
     public void canGetZUK(){
 
         RestTemplate rt = new RestTemplate();
-        System.out.println("Not 1");
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK/";
         RequestEntity<String> req = null;
         ResponseEntity<ZUKResponse> res;
@@ -170,11 +169,7 @@ public class APItests {
         }
         assertTrue(req != null);
 
-        System.out.println("Not 2");
-
         res = rt.exchange(req,ZUKResponse.class);
-
-        System.out.println("Not 3");
 
         assertTrue(res != null);
         assertTrue(res.getStatusCode() == HttpStatus.OK);

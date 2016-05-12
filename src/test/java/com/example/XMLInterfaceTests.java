@@ -3,6 +3,9 @@ import VRAPI.Application;
 import VRAPI.ContainerDetailedContact.Contact;
 import VRAPI.ContainerDetailedContact.Organisation;
 import VRAPI.ContainerDetailedContact.PersonResponsible;
+import VRAPI.ContainerDetailedOrganisation.DaughterFirms;
+import VRAPI.ContainerDetailedOrganisation.Objlist;
+import VRAPI.ContainerDetailedOrganisation.ParentFirm;
 import VRAPI.ContainerJSON.ZUKResponse;
 import VRAPI.ResourceController;
 import com.fasterxml.jackson.databind.deser.std.ContainerDeserializerBase;
@@ -415,6 +418,20 @@ public class XMLInterfaceTests {
 
         o1.getPersonResponsible().setObjref(1L);
         o2.getPersonResponsible().setObjref(1L);
+
+        o1.setDaughterFirm(new DaughterFirms());
+        o1.getDaughterFirm().setObjlist(new Objlist());
+        o1.getDaughterFirm().getObjlist().setObjref(new ArrayList<>());
+
+        o1.setParentFirm(new ParentFirm());
+        o1.getParentFirm().setObjref(1234L);
+
+        o2.setDaughterFirm(new DaughterFirms());
+        o2.getDaughterFirm().setObjlist(new Objlist());
+        o2.getDaughterFirm().getObjlist().setObjref(new ArrayList<>());
+
+        o2.setParentFirm(new ParentFirm());
+        o2.getParentFirm().setObjref(1234L);
 
         orgs.add(o1);
         orgs.add(o2);
