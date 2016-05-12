@@ -18,6 +18,26 @@ public class Organisation {
     private String modified;
     private Boolean active;                          //can remove if they ALL come back active (sourced from only active contacts)
     private String creationTime;
+    private ParentFirm parentFirm;
+    private DaughterFirms daughterFirm;
+
+    @XmlElement(name = "mutterfirma")
+    public ParentFirm getParentFirm() {
+        return parentFirm;
+    }
+
+    public void setParentFirm(ParentFirm parentFirm) {
+        this.parentFirm = parentFirm;
+    }
+
+    @XmlElement(name = "tochterfirmen")
+    public DaughterFirms getDaughterFirm() {
+        return daughterFirm;
+    }
+
+    public void setDaughterFirm(DaughterFirms daughterFirm) {
+        this.daughterFirm = daughterFirm;
+    }
 
     @XmlElement(name = "creationDateTime")
     public String getCreationTime() {
