@@ -1,4 +1,4 @@
-package VRAPI.ContainerJSON;
+package VRAPI.ContainerOrganisationJSON;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Created by sabu on 27/04/2016.
  */
-public class ZUKResponse {
+public class ZUKOrganisationResponse {
 
     @JsonProperty("organisations")
     private List<JSONOrganisation> organisationList;
@@ -17,7 +17,7 @@ public class ZUKResponse {
     @JsonProperty("danglingContacts")
     private List<JSONContact> danglingContacts;
 
-    public ZUKResponse() {
+    public ZUKOrganisationResponse() {
         this.organisationList = new ArrayList<>();
         this.danglingContacts = new ArrayList<>();
     }

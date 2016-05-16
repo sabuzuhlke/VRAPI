@@ -2,10 +2,13 @@ package VRAPI;
 import java.net.URI;
 import java.util.*;
 
-import VRAPI.ContainerJSON.JSONContact;
-import VRAPI.ContainerJSON.JSONOrganisation;
-import VRAPI.ContainerJSON.ZUKResponse;
-import VRAPI.FromContainer.Envelope;
+import VRAPI.ContainerOrganisationJSON.JSONContact;
+import VRAPI.ContainerOrganisationJSON.JSONOrganisation;
+import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
+import VRAPI.ContainerProjectJSON.JSONPhase;
+import VRAPI.ContainerProjectJSON.JSONProject;
+import VRAPI.ContainerProjectJSON.ZUKProjectsResponse;
+import VRAPI.ContainerProjects.ProjectWorker;
 import VRAPI.FromContainer.GenericLinkContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -164,7 +167,7 @@ public class ResourceController {
         List<Long> orgIds;
         List<VRAPI.ContainerDetailedContact.Contact> contacts;
         List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs;
-        ZUKResponse zuk;
+        ZUKOrganisationResponse zuk;
 
         try {
 
@@ -190,11 +193,160 @@ public class ResourceController {
 
         orgs                 = getOrganisations(orgIds);
 
-        zuk                  = buildZUKResponse(contacts, orgs);
+        zuk                  = buildZUKOrganisationsResponse(contacts, orgs);
 
         return zuk.toString();
     }
 
+    public void populateTeamMap() {
+        List<Long> teamIds = new ArrayList<>();
+        try {
+            authorize();
+            teamIds = getZUKTeamMemberIds();
+        } catch (Exception e) {
+            System.out.println("EXCEPTION POPULATING TEAM MAP: " + e);
+        }
+        getSupervisedAddresses(teamIds);
+
+    }
+
+    @RequestMapping(value = "/projects/ZUK", method = RequestMethod.GET)
+    public String getZUKProjects() {
+
+        System.out.println("Populating team Map");
+        populateTeamMap();
+
+        List<Long> teamIDs;
+        List<Long> projectIds;
+
+        try {
+            authorize();
+            teamIDs = getZUKTeamMemberIds();
+
+        } catch (Exception e) {
+            return e.toString();
+        }
+
+        System.out.println("Getting project ids");
+        projectIds = getProjectsTeamAreWorkingOn(teamIDs);
+
+        Set<Long> projIdSet = new HashSet<>();
+        projIdSet.addAll(projectIds);
+        System.out.println("Got " + projectIds.size() + " ids");
+        System.out.println("Got " + projIdSet.size() + " unique ids");
+
+        System.out.println("GEtting details of projects");
+        List<VRAPI.ContainerDetailedProjects.Project> projects = getDetailedProjects(projectIds);
+        System.out.println("Got " + projects.size() + " projects");
+
+        List<JSONProject> projectList = new ArrayList<>();
+
+        int phasecounter = 0;
+        for(VRAPI.ContainerDetailedProjects.Project project : projects) {
+            List<JSONPhase> phases = new ArrayList<>();
+            List<VRAPI.ContainerPhases.ProjectPhase> phasesForProject = getPhasesForProject(project.getPhases().getObjlist().getObjrefs());
+
+            if (phasesForProject != null) {
+                for (VRAPI.ContainerPhases.ProjectPhase ph : phasesForProject) {
+                    JSONPhase phaseToAdd = new JSONPhase(ph);
+                    phaseToAdd.setPersonResponsible(teamMap.get(ph.getPersonResponsible().getObjref()));
+                    phasecounter++;
+                    phases.add(phaseToAdd);
+                }
+            }
+
+            JSONProject proj = new JSONProject(project);
+            proj.setPhases(phases);
+
+            projectList.add(proj);
+
+        }
+
+        System.out.println("GOt " + phasecounter + " phases in total");
+
+        ZUKProjectsResponse response = new ZUKProjectsResponse();
+        response.setProjects(projectList);
+
+        return response.toString();
+
+    }
+
+    public List<VRAPI.ContainerDetailedProjects.Project> getDetailedProjects(List<Long> projectIds) {
+
+        RequestEntity<String> req;
+        ResponseEntity<VRAPI.ContainerDetailedProjects.Envelope> res;
+        List<VRAPI.ContainerDetailedProjects.Project> projectList = new ArrayList<>();
+        String xmlQuery = getXMLQuery_GetProjectDetails(projectIds);
+        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+
+        try {
+
+            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
+            res = rest.exchange(req, VRAPI.ContainerDetailedProjects.Envelope.class);
+
+            //TODO: filter inactive projects, if necessary
+            projectList = res.getBody().getBody().getQueryResponse().getProjects();
+
+        } catch (Exception e) {
+            System.out.println("EXCEPTION GETTING DETAILED PROJECTS: " +  e);
+        }
+
+        return projectList;
+    }
+
+    public List<VRAPI.ContainerPhases.ProjectPhase> getPhasesForProject(List<Long> phaseIds){
+        RequestEntity<String> req;
+        ResponseEntity<VRAPI.ContainerPhases.Envelope> res;
+        List<VRAPI.ContainerPhases.ProjectPhase> phaseList = new ArrayList<>();
+        String xmlQuery = getXMLQuery_GetProjectPhases(phaseIds);
+
+
+        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+        try {
+
+            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
+            res = rest.exchange(req, VRAPI.ContainerPhases.Envelope.class);
+
+            //TODO: filter inactive projects, if necessary
+            phaseList = res.getBody().getBody().getQueryResponse().getPhases();
+
+        } catch (Exception e) {
+            System.out.println("EXCEPTION GETTING DETAILED PROJECT_PHASES: " +  e);
+        }
+
+        return phaseList;
+    }
+
+    public List<Long> getProjectsTeamAreWorkingOn(List<Long> teamIds) {
+
+        RequestEntity<String> req;
+        ResponseEntity<VRAPI.ContainerProjects.Envelope> res;
+        //ResponseEntity<String> res;
+
+        List<Long> projectIds = new ArrayList<>();
+
+        String xmlQuery = getXMLQuery_GetProjectIds(teamIds);
+        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+
+        try {
+
+            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
+            res = rest.exchange(req, VRAPI.ContainerProjects.Envelope.class);
+            //res = rest.exchange(req, String.class);
+
+            for (ProjectWorker p : res.getBody().getBody().getQueryResponse().getProjectWorkers()) {
+                if (p.getActive()) {
+                    projectIds.addAll(p.getProjectsList().getObjList().getObjrefs());
+                }
+            }
+
+        } catch (Exception e) {
+            System.out.println("EXCEPTION GETTNG PROJECTS IDS LIST: " + e);
+        }
+
+        return projectIds;
+
+    }
 
 
     //------------------------------------------------------------------------------------------------------------Helper Methods
@@ -416,7 +568,6 @@ public class ResourceController {
         return res;
     }
 
-
     public ResponseEntity<VRAPI.ContainerFollower.Envelope> getGenericLinkContainers(Long id) {
         String xmlQuery = getXMLQuery_LeadersFromLinks(id);
 
@@ -437,13 +588,64 @@ public class ResourceController {
 
     }
 
+    public ZUKOrganisationResponse buildZUKOrganisationsResponse(List<VRAPI.ContainerDetailedContact.Contact> contacts, List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs){
+        ZUKOrganisationResponse res = new ZUKOrganisationResponse();
+        List<JSONContact> dangle = new ArrayList<>();
+        int ccounter = 0;
 
-    public String getOwnPortNr() {
-        return OwnPortNr;
-    }
 
-    public String getOwnIpAddress() {
-        return OwnIpAddress;
+
+        List<JSONOrganisation> jsonOrgs = new ArrayList<>();
+        for(VRAPI.ContainerDetailedOrganisation.Organisation vo : orgs) {
+
+            JSONOrganisation org = new JSONOrganisation(vo);
+
+            org.setOwner(teamMap.get(vo.getPersonResponsible().getObjref()));
+
+            List<JSONContact> orgContacts = new ArrayList<>();
+
+            for(Iterator<VRAPI.ContainerDetailedContact.Contact> vc = contacts.listIterator();vc.hasNext();){
+                VRAPI.ContainerDetailedContact.Contact a = vc.next();
+
+                if(a.getOrganisation() == null) continue;
+                if(a.getOrganisation().getObjref() == null) continue;
+
+                if(vo.getObjId().longValue() == a.getOrganisation().getObjref().longValue()) {
+                    JSONContact c = new JSONContact(a);
+                    c.setOwner(teamMap.get(a.getPersonResponsible().getObjref()).toLowerCase());
+                    c.setFollowers(followerMap.get(c.getObjid()));
+                    if(c.getFollowers() == null) c.setFollowers(new ArrayList<>());
+                    if(c.getFollowers().size() > 1) ccounter++;
+
+
+                    orgContacts.add(c);
+                    vc.remove();
+                }
+            }
+
+            org.setContacts(orgContacts);
+
+            jsonOrgs.add(org);
+
+        }
+
+        for(Iterator<VRAPI.ContainerDetailedContact.Contact> vc = contacts.listIterator(); vc.hasNext();){
+            VRAPI.ContainerDetailedContact.Contact a = vc.next();
+            JSONContact c = new JSONContact(a);
+            c.setOwner(teamMap.get(a.getPersonResponsible().getObjref()));
+            c.setFollowers(followerMap.get(c.getObjid()));
+
+            if(c.getFollowers() == null) c.setFollowers(new ArrayList<>());
+            dangle.add(c);
+        }
+
+        res.setDanglingContacts(dangle);
+        res.setOrganisationList(jsonOrgs);
+
+        System.out.println("nr of ppl with multiple followers: " + ccounter);
+        System.out.println("nr followed ppl: " + followerMap.size());
+
+        return res;
     }
 
     private String getXMLQuery_FromContainers(List<Long> containerIds) {
@@ -523,7 +725,6 @@ public class ResourceController {
                 "  </Body>\n" +
                 "</Envelope>";
     }
-
 
     private String getXMLQuery_SupervisedAddresses(List<Long> memberIds) {
         String header = "<Envelope>\n" +
@@ -660,68 +861,104 @@ public class ResourceController {
         return header + bodyStart + bodyEnd;
     }
 
+    private String getXMLQuery_GetProjectDetails(List<Long> ids){
+        String header = "<Envelope>\n" +
+                "  <Header>\n" +
+                "    <BasicAuth>\n" +
+                "      <Name>" + this.username + "</Name>\n" +
+                "      <Password>" + this.password + "</Password>\n" +
+                "      </BasicAuth>\n" +
+                "  </Header>\n";
 
-    public ZUKResponse buildZUKResponse(List<VRAPI.ContainerDetailedContact.Contact> contacts, List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs){
-        ZUKResponse res = new ZUKResponse();
-        List<JSONContact> dangle = new ArrayList<>();
-        int ccounter = 0;
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
 
-
-
-        List<JSONOrganisation> jsonOrgs = new ArrayList<>();
-        for(VRAPI.ContainerDetailedOrganisation.Organisation vo : orgs) {
-
-            JSONOrganisation org = new JSONOrganisation(vo);
-
-            org.setOwner(teamMap.get(vo.getPersonResponsible().getObjref()));
-
-            List<JSONContact> orgContacts = new ArrayList<>();
-
-            for(Iterator<VRAPI.ContainerDetailedContact.Contact> vc = contacts.listIterator();vc.hasNext();){
-                VRAPI.ContainerDetailedContact.Contact a = vc.next();
-
-                if(a.getOrganisation() == null) continue;
-                if(a.getOrganisation().getObjref() == null) continue;
-
-                if(vo.getObjId().longValue() == a.getOrganisation().getObjref().longValue()) {
-                    JSONContact c = new JSONContact(a);
-                    c.setOwner(teamMap.get(a.getPersonResponsible().getObjref()).toLowerCase());
-                    c.setFollowers(followerMap.get(c.getObjid()));
-                    if(c.getFollowers() == null) c.setFollowers(new ArrayList<>());
-                    if(c.getFollowers().size() > 1) ccounter++;
-
-
-                    orgContacts.add(c);
-                    vc.remove();
-                }
-            }
-
-            org.setContacts(orgContacts);
-
-            jsonOrgs.add(org);
-
+        for(Long id : ids) {
+            bodyStart += "<objref>" + id + "</objref>\n";
         }
 
-        for(Iterator<VRAPI.ContainerDetailedContact.Contact> vc = contacts.listIterator(); vc.hasNext();){
-            VRAPI.ContainerDetailedContact.Contact a = vc.next();
-            JSONContact c = new JSONContact(a);
-            c.setOwner(teamMap.get(a.getPersonResponsible().getObjref()));
-            c.setFollowers(followerMap.get(c.getObjid()));
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "        <member>Kunde</member>\n" + //will return list of obj ref for each company
+                "        <member>Aktiv</member>\n" +
+                "        <member>Phasen</member>\n" +
+                "        <member>projektnummer</member>\n" +
+                "        <member>projektleiter</member>\n" +
+                "        <member>code</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
 
-            if(c.getFollowers() == null) c.setFollowers(new ArrayList<>());
-            dangle.add(c);
-        }
-
-        res.setDanglingContacts(dangle);
-        res.setOrganisationList(jsonOrgs);
-
-        System.out.println("nr of ppl with multiple followers: " + ccounter);
-        System.out.println("nr followed ppl: " + followerMap.size());
-
-        return res;
+        return header + bodyStart + bodyEnd;
     }
 
-    //------------------------------------------------------------------------------------------------------------Comparator
+    private String getXMLQuery_GetProjectIds(List<Long> memberIds) {
+        String header = "<Envelope>\n" +
+                "  <Header>\n" +
+                "    <BasicAuth>\n" +
+                "      <Name>" + this.username + "</Name>\n" +
+                "      <Password>" + this.password + "</Password>\n" +
+                "      </BasicAuth>\n" +
+                "  </Header>\n";
+
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n" +
+                "        <objref>5295</objref>\n";
+
+        for(Long id : memberIds) {
+            bodyStart += "<objref>" + id + "</objref>\n";
+        }
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "        <member>bearbProjekte</member>\n" + //will return list of obj ref for each company
+                "        <member>Aktiv</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + bodyStart + bodyEnd;
+    }
+    private String getXMLQuery_GetProjectPhases(List<Long> ids){
+        String header = "<Envelope>\n" +
+                "  <Header>\n" +
+                "    <BasicAuth>\n" +
+                "      <Name>" + this.username + "</Name>\n" +
+                "      <Password>" + this.password + "</Password>\n" +
+                "      </BasicAuth>\n" +
+                "  </Header>\n";
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
+
+        for(Long id : ids) {
+            bodyStart += "<objref>" + id + "</objref>\n";
+        }
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "           <member>aktiv</member>\n" +
+                "           <member>SumWertInt</member>\n" +
+                "           <member>SumWertExt</member>\n" +
+                "           <member>Status</member>\n" +
+                "           <member>Code</member>\n" +
+                "           <member>Beschreibung</member>\n" +
+                "           <member>AbschlussDatum</member>\n" +
+                "           <member>Verantwortlicher</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+
+        return header + bodyStart + bodyEnd;
+    }
+//------------------------------------------------------------------------------------------------------------Comparator
+
     public class ContactComparator implements Comparator<VRAPI.ContainerDetailedContact.Contact> {
 
         @Override
@@ -736,6 +973,14 @@ public class ResourceController {
             return aref < bref ? -1 : (aref.longValue() == bref.longValue() ? 0 : 1);
         }
 
+    }
+
+    public String getOwnPortNr() {
+        return OwnPortNr;
+    }
+
+    public String getOwnIpAddress() {
+        return OwnIpAddress;
     }
 
 }

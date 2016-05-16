@@ -1,4 +1,4 @@
-package VRAPI.ContainerJSON;
+package VRAPI.ContainerOrganisationJSON;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -56,7 +56,7 @@ public class JSONContact {
         this.setMobile(c.getMobile());
         this.setFirstName(c.getFirstName());
         this.setModified(c.getModified());
-        //this.setOwner(c.getPersonResponsible().getObjref()); //has to be set in buildZUKResponse
+        //this.setOwner(c.getPersonResponsible().getObjref()); //has to be set in buildZUKOrganisationsResponse
         this.setPhone(c.getPhone());
         this.setSurname(c.getSurnname());
         this.creationTime = c.getCreationTime();

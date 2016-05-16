@@ -1,4 +1,4 @@
-package VRAPI.ContainerJSON;
+package VRAPI.ContainerOrganisationJSON;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -68,7 +68,7 @@ public class JSONOrganisation {
         this.setCity(o.getCity());
         this.setZip(o.getZip());
         this.setCountry(o.getCountry());
-        //this.setOwner(o.getPersonResponsible().getObjref());  //Have to set owner to email address in buildZUKResponse
+        //this.setOwner(o.getPersonResponsible().getObjref());  //Have to set owner to email address in buildZUKOrganisationsResponse
         this.setObjid(o.getObjId());
         this.setModified(o.getModified());
         this.contacts = new ArrayList<>();

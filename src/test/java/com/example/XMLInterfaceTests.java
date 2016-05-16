@@ -6,22 +6,15 @@ import VRAPI.ContainerDetailedContact.PersonResponsible;
 import VRAPI.ContainerDetailedOrganisation.DaughterFirms;
 import VRAPI.ContainerDetailedOrganisation.Objlist;
 import VRAPI.ContainerDetailedOrganisation.ParentFirm;
-import VRAPI.ContainerJSON.ZUKResponse;
+import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
 import VRAPI.ResourceController;
-import com.fasterxml.jackson.databind.deser.std.ContainerDeserializerBase;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.web.client.RestTemplate;
 
-import java.net.URI;
 import java.util.*;
 
 import static org.junit.Assert.assertTrue;
@@ -81,6 +74,62 @@ public class XMLInterfaceTests {
     public Long[] getSomeTeamMemberIds() {
         Long[] a = {504419L, 504749L, 1795374L, 6574798L, 8619482L, 8904906L, 10301189L, 12456812L};
         return a;
+    }
+
+    public Long[] getSomeProjectIds() {
+        Long[] a = {23207688L, 24276335L, 26437983L, 26661642L};
+        return a;
+    }
+
+    @Test
+    public void canGetDetailedProjects() {
+        List<Long> projectsIds = new ArrayList<>(Arrays.asList(getSomeProjectIds()));
+
+        List<VRAPI.ContainerDetailedProjects.Project> projects = rc.getDetailedProjects(projectsIds);
+
+        assertTrue( ! projectsIds.isEmpty());
+        assertTrue(projects.size() == 4);
+
+        assertTrue(projects.get(0).getActive());
+        assertTrue(projects.get(0).getCode().equals("C19066"));
+        assertTrue(projects.get(0).getId() == 23207688L);
+        assertTrue(projects.get(0).getClient().getObjref() == 1882164);
+        assertTrue(projects.get(0).getLeader().getObjref() == 11563550);
+        assertTrue( ! projects.get(0).getPhases().getObjlist().getObjrefs().isEmpty());
+    }
+
+    @Test
+    public void canGetListofPhases(){
+        List<Long> phaseIds = new ArrayList<>(Arrays.asList(getSomePhases()));
+
+        List<VRAPI.ContainerPhases.ProjectPhase> phases = rc.getPhasesForProject(phaseIds);
+
+        assertTrue(phases.size() == 3);
+        assertTrue( ! phases.get(1).getActive());
+        assertTrue(phases.get(1).getCode().equals("10_ALPHA"));
+        assertTrue(phases.get(1).getDescription().equals("CA Alpha"));
+        assertTrue(phases.get(1).getExternalValue().equals("353,290.32"));
+        assertTrue(phases.get(1).getInternalValue().equals("353,290.32"));
+        assertTrue(phases.get(1).getStatus() == 1);
+        assertTrue(phases.get(1).getPersonResponsible().getObjref() == 504354);
+
+    }
+    public Long[] getSomePhases(){
+        Long[] a = {23207714L, 23207775L, 23238394L};
+        return a;
+    }
+
+
+
+    @Test
+    public void canGetTeamsProjectIds() {
+
+        List<Long> teamMemberIds = new ArrayList<>(Arrays.asList(getSomeTeamMemberIds()));
+
+        List<Long> projectIds = rc.getProjectsTeamAreWorkingOn(teamMemberIds);
+
+        assertTrue( ! projectIds.isEmpty());
+        assertTrue(projectIds.size() > 10);
     }
 
     @Test
@@ -151,7 +200,6 @@ public class XMLInterfaceTests {
         assertTrue(orgs.get(0).getAdditionalAddressName().equals(""));
         assertTrue(orgs.get(0).getCity().equals("London"));
         assertTrue(orgs.get(0).getCountry().equals("United Kingdom"));
-        assertTrue(orgs.get(0).getModified().equals("2016-03-31T17:39:26"));
         assertTrue(orgs.get(0).getName().equals("Zuhlke Engineering Ltd"));
         assertTrue(orgs.get(0).getStreetAddress().equals("80 Great Eastern Street"));
         assertTrue(orgs.get(0).getZip().equals("EC2A 3JL"));
@@ -272,7 +320,7 @@ public class XMLInterfaceTests {
 
         rc.setFollowerMap(followers);
 
-        ZUKResponse res = rc.buildZUKResponse(getsomeContacts(),getsomeOrgs());
+        ZUKOrganisationResponse res = rc.buildZUKOrganisationsResponse(getsomeContacts(),getsomeOrgs());
 
         assertTrue(res.getDanglingContacts().size() == 2);
         assertTrue(res.getDanglingContacts().get(0).getFirstName().equals("The King"));
@@ -315,7 +363,6 @@ public class XMLInterfaceTests {
     }
 
     public List<Contact> getsomeContacts(){
-        //TODO: do responsible ppl
         Contact a = new Contact();
         Contact b = new Contact();
         Contact c = new Contact();
@@ -384,7 +431,6 @@ public class XMLInterfaceTests {
     }
 
     public List<VRAPI.ContainerDetailedOrganisation.Organisation> getsomeOrgs(){
-        //TODO: do responsible ppl
         VRAPI.ContainerDetailedOrganisation.Organisation o1 = new VRAPI.ContainerDetailedOrganisation.Organisation();
         VRAPI.ContainerDetailedOrganisation.Organisation o2 = new VRAPI.ContainerDetailedOrganisation.Organisation();
         List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs = new ArrayList<>();
