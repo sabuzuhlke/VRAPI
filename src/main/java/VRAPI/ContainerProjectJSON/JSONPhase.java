@@ -26,6 +26,14 @@ public class JSONPhase {
     private String internalValue;
     @JsonProperty("person_responsible")
     private String personResponsible;
+    @JsonProperty("start_date")
+    private String startDate;
+    @JsonProperty("end_date")
+    private String endDate;
+    @JsonProperty("offered_date")
+    private String offeredDate;
+    @JsonProperty("granted_date")
+    private String grantedDate;
 
     public JSONPhase() {
     }
@@ -38,6 +46,10 @@ public class JSONPhase {
         this.status = ph.getStatus();
         this.externalValue = ph.getExternalValue();
         this.internalValue = ph.getExternalValue();
+        this.startDate = ph.getStartDate();
+        this.endDate = ph.getEndDate();
+        this.offeredDate = ph.getOfferedDate();
+        //this.grantedDate = ph
         //set personResponsible outside
     }
 
@@ -104,5 +116,29 @@ public class JSONPhase {
 
     public void setPersonResponsible(String personResponsible) {
         this.personResponsible = personResponsible;
+    }
+
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
+    }
+
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
+    }
+
+    public String getOfferedDate() {
+        return offeredDate;
+    }
+
+    public void setOfferedDate(String offeredDate) {
+        this.offeredDate = offeredDate;
     }
 }

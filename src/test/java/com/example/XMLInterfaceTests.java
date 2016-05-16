@@ -6,7 +6,9 @@ import VRAPI.ContainerDetailedContact.PersonResponsible;
 import VRAPI.ContainerDetailedOrganisation.DaughterFirms;
 import VRAPI.ContainerDetailedOrganisation.Objlist;
 import VRAPI.ContainerDetailedOrganisation.ParentFirm;
+import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
+import VRAPI.ContainerProjectType.ProjectType;
 import VRAPI.ResourceController;
 import org.junit.Before;
 import org.junit.Test;
@@ -90,6 +92,8 @@ public class XMLInterfaceTests {
         assertTrue( ! projectsIds.isEmpty());
         assertTrue(projects.size() == 4);
 
+        System.out.println(projects.get(0).toJSONString());
+
         assertTrue(projects.get(0).getActive());
         assertTrue(projects.get(0).getCode().equals("C19066"));
         assertTrue(projects.get(0).getId() == 23207688L);
@@ -97,10 +101,13 @@ public class XMLInterfaceTests {
         assertTrue(projects.get(0).getLeader().getObjref() == 11563550);
         assertTrue( ! projects.get(0).getPhases().getObjlist().getObjrefs().isEmpty());
         assertTrue(projects.get(0).getCustomer() != null);
+        assertTrue(projects.get(0).getType().getObjref() == 26540859L);
+        assertTrue(projects.get(0).getCurrency() != null);
+        assertTrue(projects.get(0).getCurrency().getObjref() == 346658L);
 
         for(int i = 0; i < projects.size(); i++ ){
 
-            System.out.println(projects.get(i));
+            System.out.println(projects.get(i).toJSONString());
         }
     }
 
@@ -136,6 +143,40 @@ public class XMLInterfaceTests {
 
         assertTrue( ! projectIds.isEmpty());
         assertTrue(projectIds.size() > 10);
+    }
+
+    @Test
+    public void canGetProjectType(){
+        List<Long> typeIds = new ArrayList<>(Arrays.asList(getSomeTypeids()));
+
+        List<ProjectType> projTypes = rc.getProjectTypes(typeIds);
+
+        for(int i = 0; i < projTypes.size(); i++){
+            System.out.println(projTypes.get(i));
+        }
+
+        assertTrue(projTypes.get(0).getDescripton().contains("UK"));
+        assertTrue(projTypes.get(1).getDescripton().contains("SGB_"));
+        assertTrue(projTypes.get(2).getDescripton().contains("SGB_"));
+
+    }
+
+    public Long[] getSomeTypeids(){
+        Long[] a = {26540859L, 592903L, 26540856L};
+        return a;
+    }
+
+    @Test
+    public void canGetProjectCurrency(){
+
+        List<Long> projectIds = new ArrayList<>(Arrays.asList(getSomeProjectIds()));
+        List<Project> projects = rc.getDetailedProjects(projectIds);
+        Long currencyId = projects.get(0).getCurrency().getObjref(); //GBP
+
+        VRAPI.ContainerCurrency.Currency currency = rc.getCurrency(currencyId);
+
+        assertTrue(currency.getName().equals("GBP"));
+
     }
 
     @Test

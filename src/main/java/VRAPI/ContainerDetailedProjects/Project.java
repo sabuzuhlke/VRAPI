@@ -17,6 +17,8 @@ public class Project {
     private Leader leader;
     private String title;
     private Customer customer;
+    private Type type;
+    private Currency currency;
 
     public Project() {
     }
@@ -93,8 +95,25 @@ public class Project {
         this.customer = customer;
     }
 
-    @Override
-    public String toString(){
+    @XmlElement(name = "typ")
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    @XmlElement(name = "waehrung")
+    public Currency getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(Currency currency) {
+        this.currency = currency;
+    }
+
+    public String toJSONString(){
         String retStr = null;
         ObjectMapper m = new ObjectMapper();
         try{

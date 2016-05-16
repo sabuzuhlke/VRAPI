@@ -15,6 +15,9 @@ public class ProjectPhase {
     private String externalValue;
     private String internalValue;
     private PersonResponsible personResponsible;
+    private String startDate;
+    private String endDate;
+    private String offeredDate;
 
     public ProjectPhase() {
     }
@@ -85,6 +88,32 @@ public class ProjectPhase {
     @XmlElement(name = "verantwortlicher")
     public PersonResponsible getPersonResponsible() {
         return personResponsible;
+    }
+    @XmlElement(name = "xStartDatum")
+    public String getStartDate() {
+        return startDate;
+    }
+
+    public void setStartDate(String startDate) {
+        this.startDate = startDate;
+    }
+
+    @XmlElement(name = "endDatum")
+    public String getEndDate() {
+        return endDate;
+    }
+
+    public void setEndDate(String endDate) {
+        this.endDate = endDate;
+    }
+
+    @XmlElement(name = "offertDatum")
+    public String getOfferedDate() {
+        return offeredDate;
+    }
+
+    public void setOfferedDate(String offeredDate) {
+        this.offeredDate = offeredDate;
     }
 
     public void setPersonResponsible(PersonResponsible personResponsible) {

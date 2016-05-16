@@ -1,36 +1,30 @@
-package VRAPI.ContainerDetailedProjects;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
+package VRAPI.ContainerProjectType;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.Marshaller;
-import javax.xml.bind.annotation.XmlAnyAttribute;
 import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
 import java.io.StringWriter;
 
 /**
- * Created by sabu on 13/05/2016.
+ * Created by gebo on 16/05/2016.
  */
-@XmlRootElement(name = "Envelope")
-public class Envelope {
-    private Body body;
+public class Body {
+    private QueryResponse queryResponse;
 
-    public Envelope() {
+    public Body() {
     }
 
-    @XmlElement(name  = "Body")
-    public Body getBody() {
-        return body;
+    @XmlElement(name = "QueryResponse")
+    public QueryResponse getQueryResponse() {
+        return queryResponse;
     }
 
-    public void setBody(Body body) {
-        this.body = body;
+    public void setQueryResponse(QueryResponse queryResponse) {
+        this.queryResponse = queryResponse;
     }
-
     @Override
     public String toString(){
-            StringWriter writer = new StringWriter();
+        StringWriter writer = new StringWriter();
 
         try {
             JAXBContext jc = JAXBContext.newInstance(this.getClass());
@@ -40,6 +34,6 @@ public class Envelope {
         } catch (Exception e){
             System.out.println("Could not marshall Detailed Project envelope to XML string");
         }
-            return writer.toString();
+        return writer.toString();
     }
 }

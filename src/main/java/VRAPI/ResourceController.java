@@ -2,12 +2,14 @@ package VRAPI;
 import java.net.URI;
 import java.util.*;
 
+import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.JSONContact;
 import VRAPI.ContainerOrganisationJSON.JSONOrganisation;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
 import VRAPI.ContainerProjectJSON.JSONPhase;
 import VRAPI.ContainerProjectJSON.JSONProject;
 import VRAPI.ContainerProjectJSON.ZUKProjectsResponse;
+import VRAPI.ContainerProjectType.ProjectType;
 import VRAPI.ContainerProjects.ProjectWorker;
 import VRAPI.FromContainer.GenericLinkContainer;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -212,6 +214,9 @@ public class ResourceController {
 
     @RequestMapping(value = "/projects/ZUK", method = RequestMethod.GET)
     public String getZUKProjects() {
+        List<VRAPI.ContainerPhases.ProjectPhase> phasesForProject;
+        List<Long> typeIds;
+        List<ProjectType> projectTypes;
 
         System.out.println("Populating team Map");
         populateTeamMap();
@@ -244,24 +249,43 @@ public class ResourceController {
         int phasecounter = 0;
         for(VRAPI.ContainerDetailedProjects.Project project : projects) {
             List<JSONPhase> phases = new ArrayList<>();
-            List<VRAPI.ContainerPhases.ProjectPhase> phasesForProject = getPhasesForProject(project.getPhases().getObjlist().getObjrefs());
+            phasesForProject = getPhasesForProject(project.getPhases().getObjlist().getObjrefs());
 
             if (phasesForProject != null) {
                 for (VRAPI.ContainerPhases.ProjectPhase ph : phasesForProject) {
                     JSONPhase phaseToAdd = new JSONPhase(ph);
                     phaseToAdd.setPersonResponsible(teamMap.get(ph.getPersonResponsible().getObjref()));
                     phasecounter++;
-                    phases.add(phaseToAdd);
+
+                    //ONLY ADD PHASE IF IT IS NOT "00_INTERN"
+                    if( ! phaseToAdd.getCode().contains("00_INTERN")){
+
+                        phases.add(phaseToAdd);
+                    }
                 }
             }
+            //GET TYPE OF PROJECT
+            typeIds = new ArrayList<>();
+            typeIds.add(project.getType().getObjref());
 
-            JSONProject proj = new JSONProject(project);
-            proj.setPhases(phases);
+            projectTypes = getProjectTypes(typeIds);
 
-            projectList.add(proj);
+            //following if statement makes sure we only send projects done in the UK
+            if(projectTypes.get(0).getDescripton().contains("SGB") || projectTypes.get(0).getDescripton().contains("EMS") || projectTypes.get(0).getDescripton().contains("DSI") || projectTypes.get(0).getDescripton().contains("CAP")){
 
+                //GET CURRENCY OF PROJECT
+                VRAPI.ContainerCurrency.Currency currency = getCurrency(project.getCurrency().getObjref());
+
+                JSONProject proj = new JSONProject(project);
+                proj.setPhases(phases);
+                proj.setType(projectTypes.get(0).getDescripton());
+                proj.setCurrency(currency.getName());
+
+                projectList.add(proj);
+            }
         }
 
+        System.out.println("Got " + projectList.size() + " ZUK projects");
         System.out.println("GOt " + phasecounter + " phases in total");
 
         ZUKProjectsResponse response = new ZUKProjectsResponse();
@@ -280,10 +304,8 @@ public class ResourceController {
         String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
 
         try {
-
             req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
             res = rest.exchange(req, VRAPI.ContainerDetailedProjects.Envelope.class);
-
             //TODO: filter inactive projects, if necessary
             projectList = res.getBody().getBody().getQueryResponse().getProjects();
 
@@ -293,6 +315,7 @@ public class ResourceController {
 
         return projectList;
     }
+
 
     public List<VRAPI.ContainerPhases.ProjectPhase> getPhasesForProject(List<Long> phaseIds){
         RequestEntity<String> req;
@@ -316,6 +339,45 @@ public class ResourceController {
 
         return phaseList;
     }
+
+    public List<ProjectType> getProjectTypes(List<Long> ids){
+        RequestEntity<String> req;
+        ResponseEntity<VRAPI.ContainerProjectType.Envelope> res;
+        String xmlQuery = getXMLQuery_GetProjectTypes(ids);
+
+        List<ProjectType> projectTypes = new ArrayList<>();
+
+        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+        try{
+            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
+            res = rest.exchange(req, VRAPI.ContainerProjectType.Envelope.class);
+            for(ProjectType pt : res.getBody().getBody().getQueryResponse().getProjectTypes()){
+                projectTypes.add(pt);
+            }
+        } catch (Exception e){
+            System.out.println("Exception in getting Project Types");
+        }
+        return projectTypes;
+    }
+
+    public VRAPI.ContainerCurrency.Currency getCurrency(Long id) {
+        RequestEntity<String> req;
+        ResponseEntity<VRAPI.ContainerCurrency.Envelope> res = null;
+        String xmlQuery = getXMLQuery_GetCurrency(id);
+        VRAPI.ContainerCurrency.Currency currency = null;
+
+        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+        try {
+            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
+            res = rest.exchange(req, VRAPI.ContainerCurrency.Envelope.class);
+
+            currency = res.getBody().getBody().getQueryResponse().getCurrency();
+        } catch (Exception e) {
+            System.out.println("Exception in getting Currency");
+        }
+        return currency;
+    }
+
 
     public List<Long> getProjectsTeamAreWorkingOn(List<Long> teamIds) {
 
@@ -887,6 +949,8 @@ public class ResourceController {
                 "        <member>projektleiter</member>\n" +
                 "        <member>code</member>\n" +
                 "        <member>auftraggeber</member>\n" +
+                "        <member>typ</member>\n" +
+                "        <member>waehrung</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +
@@ -950,6 +1014,9 @@ public class ResourceController {
                 "           <member>Beschreibung</member>\n" +
                 "           <member>AbschlussDatum</member>\n" +
                 "           <member>Verantwortlicher</member>\n" +
+                "           <member>offertdatum</member>\n" +
+                "           <member>startDatum</member>\n" +
+                "           <member>endDatum</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +
@@ -958,6 +1025,60 @@ public class ResourceController {
 
         return header + bodyStart + bodyEnd;
     }
+
+    private String getXMLQuery_GetProjectTypes(List<Long> ids){
+        String header = "<Envelope>\n" +
+                "  <Header>\n" +
+                "    <BasicAuth>\n" +
+                "      <Name>" + this.username + "</Name>\n" +
+                "      <Password>" + this.password + "</Password>\n" +
+                "      </BasicAuth>\n" +
+                "  </Header>\n";
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
+
+        for(Long id : ids) {
+            bodyStart += "<objref>" + id + "</objref>\n";
+        }
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "           <member>bezeichnung</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+
+        return header + bodyStart + bodyEnd;
+    }
+
+    private String getXMLQuery_GetCurrency(Long id){
+        String header = "<Envelope>\n" +
+                "  <Header>\n" +
+                "    <BasicAuth>\n" +
+                "      <Name>" + this.username + "</Name>\n" +
+                "      <Password>" + this.password + "</Password>\n" +
+                "      </BasicAuth>\n" +
+                "  </Header>\n";
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
+                    bodyStart += "<objref>" + id + "</objref>\n";
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "           <member>bezeichnung</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+
+        return header + bodyStart + bodyEnd;
+    }
+
 //------------------------------------------------------------------------------------------------------------Comparator
 
     public class ContactComparator implements Comparator<VRAPI.ContainerDetailedContact.Contact> {

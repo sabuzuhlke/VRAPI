@@ -5,7 +5,9 @@ package com.example;
  */
 
 import VRAPI.Application;
+import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
+import VRAPI.ContainerProjectJSON.JSONProject;
 import VRAPI.ContainerProjectJSON.ZUKProjectsResponse;
 import VRAPI.MyAccessCredentials;
 import VRAPI.MyLimitedCredentials;
@@ -202,10 +204,15 @@ public class APItests {
 
         res = rt.exchange(req, ZUKProjectsResponse.class);
 
+        System.out.println(res);
         assertTrue(res != null);
         assertTrue(res.getStatusCode() == HttpStatus.OK);
         assertTrue(res.getBody() != null);
-        System.out.println(res.getBody().toString());
+
+        for(JSONProject p : res.getBody().getProjects()){
+            assertTrue(p.getType().contains("SGB") || p.getType().contains("EMS") || p.getType().contains("DSI") || p.getType().contains("CAP"));
+        }
+        //System.out.println(res.getBody().toString());
 
     }
 

@@ -25,6 +25,10 @@ public class JSONProject {
     private List<JSONPhase> phases;
     @JsonProperty("customer_ref")
     private Long customerId;
+    @JsonProperty("type")
+    private String type;
+    @JsonProperty("currency")
+    private String currency;
 
     public JSONProject() {
     }
@@ -37,9 +41,9 @@ public class JSONProject {
         this.clientRef = pr.getClient().getObjref();
         this.leaderRef = pr.getLeader().getObjref();
         this.customerId = pr.getCustomer().getObjref();
-
-        System.out.println("Added customer: " +  customerId);
         //set phases outside of constructor
+        //set Type outside of constructor
+        //set currency outside of constructor
     }
 
     public String getTitle() {
@@ -105,4 +109,21 @@ public class JSONProject {
     public void setCustomerId(Long customerId) {
         this.customerId = customerId;
     }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public String getCurrency() {
+        return currency;
+    }
+
+    public void setCurrency(String currency) {
+        this.currency = currency;
+    }
 }
+
