@@ -96,6 +96,12 @@ public class XMLInterfaceTests {
         assertTrue(projects.get(0).getClient().getObjref() == 1882164);
         assertTrue(projects.get(0).getLeader().getObjref() == 11563550);
         assertTrue( ! projects.get(0).getPhases().getObjlist().getObjrefs().isEmpty());
+        assertTrue(projects.get(0).getCustomer() != null);
+
+        for(int i = 0; i < projects.size(); i++ ){
+
+            System.out.println(projects.get(i));
+        }
     }
 
     @Test

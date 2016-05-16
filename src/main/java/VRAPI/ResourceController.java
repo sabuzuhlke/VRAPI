@@ -886,6 +886,7 @@ public class ResourceController {
                 "        <member>projektnummer</member>\n" +
                 "        <member>projektleiter</member>\n" +
                 "        <member>code</member>\n" +
+                "        <member>auftraggeber</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +

@@ -1,5 +1,7 @@
 package VRAPI.ContainerDetailedProjects;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.xml.bind.annotation.XmlElement;
 
 /**
@@ -14,6 +16,7 @@ public class Project {
     private Phases phases;
     private Leader leader;
     private String title;
+    private Customer customer;
 
     public Project() {
     }
@@ -79,5 +82,28 @@ public class Project {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    @XmlElement(name = "auftraggeber")
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
+    }
+
+    @Override
+    public String toString(){
+        String retStr = null;
+        ObjectMapper m = new ObjectMapper();
+        try{
+
+            retStr = m.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+        }
+        catch(Exception e){
+            System.out.println("Could not convert XML Envelope to JSON: " + e.toString());
+        }
+        return retStr;
     }
 }
