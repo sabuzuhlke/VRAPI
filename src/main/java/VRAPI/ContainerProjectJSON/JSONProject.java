@@ -29,6 +29,10 @@ public class JSONProject {
     private String currency;
     @JsonProperty("phases")
     private List<JSONPhase> phases;
+    @JsonProperty("last_modified")
+    private String modifiedDate;
+    @JsonProperty("created")
+    private String creationDate;
 
 
     public JSONProject() {
@@ -42,6 +46,9 @@ public class JSONProject {
         this.clientRef = pr.getClient().getObjref();
         this.leaderRef = pr.getLeader().getObjref();
         this.customerId = pr.getCustomer().getObjref();
+        this.modifiedDate = pr.getModifiedDate();
+        this.creationDate = pr.getCreationDate();
+
         //set phases outside of constructor
         //set Type outside of constructor
         //set currency outside of constructor
@@ -125,6 +132,22 @@ public class JSONProject {
 
     public void setCurrency(String currency) {
         this.currency = currency;
+    }
+
+    public String getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(String modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    public String getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(String creationDate) {
+        this.creationDate = creationDate;
     }
 }
 

@@ -952,6 +952,8 @@ public class ResourceController {
                 "        <member>auftraggeber</member>\n" +
                 "        <member>typ</member>\n" +
                 "        <member>waehrung</member>\n" +
+                "        <member>modifieddatetime</member>\n" +
+                "        <member>creationdatetime</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +
@@ -1020,6 +1022,8 @@ public class ResourceController {
                 "           <member>endDatum</member>\n" +
                 "           <member>verkaufsstatus</member>\n" +
                 "           <member>absagegrundtext</member>\n" +
+                "           <member>creationdatetime</member>\n" +
+                "           <member>modifieddatetime</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +

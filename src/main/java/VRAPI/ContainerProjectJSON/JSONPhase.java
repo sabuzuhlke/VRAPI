@@ -38,6 +38,10 @@ public class JSONPhase {
     private String grantedDate;
     @JsonProperty("lost_reason")
     private String lostReason;
+    @JsonProperty("last_modified")
+    private String modifiedDate;
+    @JsonProperty("created")
+    private String creationDate;
 
     public JSONPhase() {
     }
@@ -55,6 +59,8 @@ public class JSONPhase {
         this.offeredDate = ph.getOfferedDate();
         this.salesStatus = ph.getSalesStatus();
         this.lostReason = ph.getLostReason();
+        this.modifiedDate = ph.getModifiedDate();
+        this.creationDate = ph.getCreationDate();
         //this.grantedDate = ph
         //set personResponsible outside
     }
@@ -146,5 +152,46 @@ public class JSONPhase {
 
     public void setOfferedDate(String offeredDate) {
         this.offeredDate = offeredDate;
+    }
+
+    public String getSalesStatus() {
+        return salesStatus;
+    }
+
+    public void setSalesStatus(String salesStatus) {
+        this.salesStatus = salesStatus;
+    }
+
+    public String getGrantedDate() {
+        return grantedDate;
+    }
+
+    public void setGrantedDate(String grantedDate) {
+        this.grantedDate = grantedDate;
+    }
+
+    public String getLostReason() {
+        return lostReason;
+    }
+
+    public void setLostReason(String lostReason) {
+        this.lostReason = lostReason;
+    }
+
+    public String getModifiedDate() {
+
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(String modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    public String getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(String creationDate) {
+        this.creationDate = creationDate;
     }
 }

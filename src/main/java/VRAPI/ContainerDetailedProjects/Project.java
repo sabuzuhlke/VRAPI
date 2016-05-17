@@ -19,6 +19,8 @@ public class Project {
     private Customer customer;
     private Type type;
     private Currency currency;
+    private String modifiedDate;
+    private String creationDate;
 
     public Project() {
     }
@@ -111,6 +113,24 @@ public class Project {
 
     public void setCurrency(Currency currency) {
         this.currency = currency;
+    }
+
+    @XmlElement(name = "modifiedDateTime")
+    public String getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(String modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    @XmlElement(name = "creationDateTime")
+    public String getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(String creationDate) {
+        this.creationDate = creationDate;
     }
 
     public String toJSONString(){

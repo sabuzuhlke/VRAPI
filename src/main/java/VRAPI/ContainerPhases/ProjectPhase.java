@@ -23,6 +23,8 @@ public class ProjectPhase {
     private String offeredDate;
     private String salesStatus;
     private String lostReason;
+    private String modifiedDate;
+    private String creationDate;
 
     public ProjectPhase() {
     }
@@ -141,5 +143,23 @@ public class ProjectPhase {
 
     public void setLostReason(String lostReason) {
         this.lostReason = lostReason;
+    }
+
+    @XmlElement(name = "modifiedDateTime")
+    public String getModifiedDate() {
+        return modifiedDate;
+    }
+
+    public void setModifiedDate(String modifiedDate) {
+        this.modifiedDate = modifiedDate;
+    }
+
+    @XmlElement(name = "creationDateTime")
+    public String getCreationDate() {
+        return creationDate;
+    }
+
+    public void setCreationDate(String creationDate) {
+        this.creationDate = creationDate;
     }
 }
