@@ -36,6 +36,8 @@ public class JSONPhase {
     private String offeredDate;
     @JsonProperty("granted_date")
     private String grantedDate;
+    @JsonProperty("lost_reason")
+    private String lostReason;
 
     public JSONPhase() {
     }
@@ -52,6 +54,7 @@ public class JSONPhase {
         this.endDate = ph.getEndDate();
         this.offeredDate = ph.getOfferedDate();
         this.salesStatus = ph.getSalesStatus();
+        this.lostReason = ph.getLostReason();
         //this.grantedDate = ph
         //set personResponsible outside
     }

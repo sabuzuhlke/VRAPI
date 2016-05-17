@@ -1019,6 +1019,7 @@ public class ResourceController {
                 "           <member>startDatum</member>\n" +
                 "           <member>endDatum</member>\n" +
                 "           <member>verkaufsstatus</member>\n" +
+                "           <member>absagegrundtext</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +

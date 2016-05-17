@@ -22,6 +22,7 @@ public class ProjectPhase {
     private String endDate;
     private String offeredDate;
     private String salesStatus;
+    private String lostReason;
 
     public ProjectPhase() {
     }
@@ -133,4 +134,12 @@ public class ProjectPhase {
         this.salesStatus = salesStatus;
     }
 
+    @XmlElement(name = "absagegrundtext")
+    public String getLostReason() {
+        return lostReason;
+    }
+
+    public void setLostReason(String lostReason) {
+        this.lostReason = lostReason;
+    }
 }
