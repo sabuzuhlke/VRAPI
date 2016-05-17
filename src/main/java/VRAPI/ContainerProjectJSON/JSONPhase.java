@@ -20,6 +20,8 @@ public class JSONPhase {
     private String code;
     @JsonProperty("status")
     private int status;
+    @JsonProperty("sales_status")
+    private String salesStatus;
     @JsonProperty("external_value")
     private String externalValue;
     @JsonProperty("internal_value")
@@ -49,6 +51,7 @@ public class JSONPhase {
         this.startDate = ph.getStartDate();
         this.endDate = ph.getEndDate();
         this.offeredDate = ph.getOfferedDate();
+        this.salesStatus = ph.getSalesStatus();
         //this.grantedDate = ph
         //set personResponsible outside
     }

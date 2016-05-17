@@ -1,6 +1,9 @@
 package VRAPI.ContainerPhases;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.annotation.XmlElement;
+import java.io.StringWriter;
 
 /**
  * Created by sabu on 13/05/2016.
@@ -18,6 +21,7 @@ public class ProjectPhase {
     private String startDate;
     private String endDate;
     private String offeredDate;
+    private String salesStatus;
 
     public ProjectPhase() {
     }
@@ -119,4 +123,14 @@ public class ProjectPhase {
     public void setPersonResponsible(PersonResponsible personResponsible) {
         this.personResponsible = personResponsible;
     }
+
+    @XmlElement(name = "verkaufsstatus")
+    public String getSalesStatus() {
+        return salesStatus;
+    }
+
+    public void setSalesStatus(String salesStatus) {
+        this.salesStatus = salesStatus;
+    }
+
 }

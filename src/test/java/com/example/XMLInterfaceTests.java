@@ -8,6 +8,9 @@ import VRAPI.ContainerDetailedOrganisation.Objlist;
 import VRAPI.ContainerDetailedOrganisation.ParentFirm;
 import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
+import VRAPI.ContainerProjectJSON.JSONPhase;
+import VRAPI.ContainerProjectJSON.JSONProject;
+import VRAPI.ContainerProjectJSON.ZUKProjectsResponse;
 import VRAPI.ContainerProjectType.ProjectType;
 import VRAPI.ResourceController;
 import org.junit.Before;
@@ -125,6 +128,8 @@ public class XMLInterfaceTests {
         assertTrue(phases.get(1).getInternalValue().equals("353,290.32"));
         assertTrue(phases.get(1).getStatus() == 1);
         assertTrue(phases.get(1).getPersonResponsible().getObjref() == 504354);
+        assertTrue(phases.get(1).getSalesStatus().equals("21 - Verkauft (schriftlich) / Sold (written PO)"));
+
 
     }
     public Long[] getSomePhases(){
@@ -568,6 +573,9 @@ public class XMLInterfaceTests {
         assertTrue(map.get(22286793L).contains("justin.cowling@zuhlke.com"));
 
     }
+
+
+
 
 }
 

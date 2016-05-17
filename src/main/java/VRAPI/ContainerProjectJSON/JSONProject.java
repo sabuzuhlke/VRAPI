@@ -21,14 +21,15 @@ public class JSONProject {
     private Long clientRef;
     @JsonProperty("leader_ref")
     private Long leaderRef;
-    @JsonProperty("phases")
-    private List<JSONPhase> phases;
     @JsonProperty("customer_ref")
     private Long customerId;
     @JsonProperty("type")
     private String type;
     @JsonProperty("currency")
     private String currency;
+    @JsonProperty("phases")
+    private List<JSONPhase> phases;
+
 
     public JSONProject() {
     }

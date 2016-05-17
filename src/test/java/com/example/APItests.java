@@ -210,7 +210,7 @@ public class APItests {
         assertTrue(res.getBody() != null);
 
         for(JSONProject p : res.getBody().getProjects()){
-            assertTrue(p.getType().contains("SGB") || p.getType().contains("EMS") || p.getType().contains("DSI") || p.getType().contains("CAP"));
+            assertTrue(p.getType().contains("SGB_") || p.getType().contains("EMS") || p.getType().contains("DSI") || p.getType().contains("CAP"));
         }
         //System.out.println(res.getBody().toString());
 

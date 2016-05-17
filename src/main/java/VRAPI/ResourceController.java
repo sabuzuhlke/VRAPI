@@ -247,6 +247,7 @@ public class ResourceController {
         List<JSONProject> projectList = new ArrayList<>();
 
         int phasecounter = 0;
+
         for(VRAPI.ContainerDetailedProjects.Project project : projects) {
             List<JSONPhase> phases = new ArrayList<>();
             phasesForProject = getPhasesForProject(project.getPhases().getObjlist().getObjrefs());
@@ -271,7 +272,7 @@ public class ResourceController {
             projectTypes = getProjectTypes(typeIds);
 
             //following if statement makes sure we only send projects done in the UK
-            if(projectTypes.get(0).getDescripton().contains("SGB") || projectTypes.get(0).getDescripton().contains("EMS") || projectTypes.get(0).getDescripton().contains("DSI") || projectTypes.get(0).getDescripton().contains("CAP")){
+            if(projectTypes.get(0).getDescripton().contains("SGB_") || projectTypes.get(0).getDescripton().contains("EMS") || projectTypes.get(0).getDescripton().contains("DSI") || projectTypes.get(0).getDescripton().contains("CAP")){
 
                 //GET CURRENCY OF PROJECT
                 VRAPI.ContainerCurrency.Currency currency = getCurrency(project.getCurrency().getObjref());
@@ -1017,6 +1018,7 @@ public class ResourceController {
                 "           <member>offertdatum</member>\n" +
                 "           <member>startDatum</member>\n" +
                 "           <member>endDatum</member>\n" +
+                "           <member>verkaufsstatus</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +
