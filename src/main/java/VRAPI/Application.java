@@ -8,7 +8,6 @@ import org.springframework.context.annotation.ComponentScan;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
-@EnableSwagger2
 @ComponentScan(basePackageClasses = {ResourceController.class})
 public class Application {
 
