@@ -11,9 +11,6 @@ import javax.xml.bind.annotation.XmlRootElement;
 import javax.xml.namespace.QName;
 import java.io.StringWriter;
 
-/**
- * Created by sabu on 25/04/2016.
- */
 @XmlRootElement(name = "Envelope")
 public class Envelope {
 
@@ -44,7 +41,7 @@ public class Envelope {
         } catch (JAXBException e) {
             e.printStackTrace();
         }
-        return "MARSHALLING FAILED BUT THERES SOMETHING HERE";
+        return "MARSHALLING FAILED BUT THERE'S SOMETHING HERE";
     }
 
     public String toJSONString(){
