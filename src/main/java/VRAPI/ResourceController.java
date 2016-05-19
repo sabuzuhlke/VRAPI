@@ -296,14 +296,9 @@ public class ResourceController {
     }
 
     public Set<Long> getProjectsTeamAreWorkingOn(Collection<Long> teamIds)  {
-
-        String xmlQuery = getXMLQuery_GetProjectIds(Lists.newArrayList(teamIds));
-        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
-
-        final RequestEntity<String> req = new RequestEntity<>(xmlQuery, HttpMethod.POST, URI.create(uri));
-        final ResponseEntity<VRAPI.ContainerProjects.Envelope> res = rest.exchange(req, VRAPI.ContainerProjects.Envelope.class);
-
-        return res.getBody().getBody().getQueryResponse().getProjectWorkers().stream()
+        return callVertec(getXMLQuery_GetProjectIds(Lists.newArrayList(teamIds)),
+                VRAPI.ContainerProjects.Envelope.class)
+                .getBody().getQueryResponse().getProjectWorkers().stream()
                 .filter(ProjectWorker::getActive)
                 .flatMap(worker -> worker.getProjectsList().getObjList().getObjrefs().stream())
                 .collect(toSet());
@@ -358,117 +353,59 @@ public class ResourceController {
     public List<Long> getAddressIdsSupervisedBy(List<Long> supervisorIds){
         List<Long> ids = new ArrayList<>();
         Set<Long> uniqueIds = new HashSet<>();
-        this.teamMap = new HashMap<>();
-        try {
-
-            String xmlQuery = getXMLQuery_SupervisedAddresses(supervisorIds);
-            String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
-            RequestEntity<String> req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
-            ResponseEntity<VRAPI.ContainerAddresses.Envelope> res = rest.exchange(req, VRAPI.ContainerAddresses.Envelope.class);
-            VRAPI.ContainerAddresses.Envelope env = res.getBody();
-
-            env.getBody().getQueryResponse().getWorkers().stream()
-                    .filter(VRAPI.ContainerAddresses.ProjectWorker::getActive)
-                    .forEach(w -> { ids.addAll(w.getAddresses().getList().getObjects());
-
-                teamMap.put(w.getObjid(), w.getEmail());
-            });
-
-
-            uniqueIds.addAll(ids);
-
-        } catch (Exception e) {
-            System.out.println("ERROR IN GETTING Supervised Addresses" + e);
-        }
-
+        callVertec(getXMLQuery_SupervisedAddresses(supervisorIds), VRAPI.ContainerAddresses.Envelope.class)
+                .getBody().getQueryResponse().getWorkers().stream()
+                .filter(VRAPI.ContainerAddresses.ProjectWorker::getActive)
+                .forEach(w -> {
+                    ids.addAll(w.getAddresses().getList().getObjects());
+                    teamMap.put(w.getObjid(), w.getEmail());
+                });
+        uniqueIds.addAll(ids);
         ids.clear();
         ids.addAll(uniqueIds);
-
         return ids;
     }
 
     public List<List<Long>> getSimpleContactsandOrgs(List<Long> contactIds) {
-        RequestEntity<String> req;
-        //no need for set as well as list as objids queried from set
         List<Long> cIds = new ArrayList<>();
         List<Long> oIds = new ArrayList<>();
         List<List<Long>> rIds = new ArrayList<>();
-        try {
+        VRAPI.ContainerSimpleContactOrganisation.Envelope env
+                = callVertec(getXMLQuery_GetContacts(contactIds), VRAPI.ContainerSimpleContactOrganisation.Envelope.class);
 
-            String xmlQuery = getXMLQuery_GetContacts(contactIds);
-            String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
-            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
-            ResponseEntity<VRAPI.ContainerSimpleContactOrganisation.Envelope> res = this.rest.exchange(req, VRAPI.ContainerSimpleContactOrganisation.Envelope.class);
-            VRAPI.ContainerSimpleContactOrganisation.Envelope env = res.getBody();
-
-            cIds.addAll(
-                    env.getBody().getQueryResponse().getContacts().stream()
-                    .map(Contact::getObjid)
-                    .collect(toList()));
-
-            oIds.addAll(
-                    env.getBody().getQueryResponse().getOrgs().stream()
-                    .map(Organisation::getObjid)
-                    .collect(toList()));
-
-        } catch (Exception e){
-            System.out.println("ERROR IN GETTING SIMPLE CONTACTS: " + e);
-        }
-
+        cIds.addAll(
+                env.getBody().getQueryResponse().getContacts().stream()
+                        .map(Contact::getObjid)
+                        .collect(toList()));
+        oIds.addAll(
+                env.getBody().getQueryResponse().getOrgs().stream()
+                        .map(Organisation::getObjid)
+                        .collect(toList()));
         rIds.add(cIds);
         rIds.add(oIds);
-
         return rIds;
     }
 
     public List<VRAPI.ContainerDetailedContact.Contact> getDetailedContacts(List<Long> ids) {
-        RequestEntity<String> req;
         List<VRAPI.ContainerDetailedContact.Contact> contacts = new ArrayList<>();
-        try {
-            String xmlQuery = getXMLQuery_GetContactDetails(ids);
-            String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
-            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
-            ResponseEntity<VRAPI.ContainerDetailedContact.Envelope> res = this.rest.exchange(req, VRAPI.ContainerDetailedContact.Envelope.class);
-
-            contacts.addAll(
-                    res.getBody().getBody().getQueryResponse().getContactList().stream()
-                    .filter(VRAPI.ContainerDetailedContact.Contact::getActive)
-                    .collect(toList()));
-
-
-        } catch ( Exception e){
-            System.out.println("Exception in getDetailedContacts: " + e);
-        }
+        contacts.addAll(
+                callVertec(getXMLQuery_GetContactDetails(ids), VRAPI.ContainerDetailedContact.Envelope.class).getBody().getQueryResponse().getContactList().stream()
+                        .filter(VRAPI.ContainerDetailedContact.Contact::getActive)
+                        .collect(toList()));
 
         Collections.sort(contacts, this.comparator);
         return contacts;
     }
 
     public List<VRAPI.ContainerDetailedOrganisation.Organisation> getOrganisations(List<Long> ids) {
-        RequestEntity<String> req;
-        ResponseEntity<VRAPI.ContainerDetailedOrganisation.Envelope> res = null;
-        List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs = new ArrayList<>();
-        try {
-            String xmlQuery = getXMLQuery_GetOrganisationDetails(ids);
-            String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
-            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
-            res = this.rest.exchange(req, VRAPI.ContainerDetailedOrganisation.Envelope.class);
-
-            orgs.addAll(res.getBody().getBody().getQueryResponse().getOrganisationList().stream()
-                    .filter(VRAPI.ContainerDetailedOrganisation.Organisation::getActive)
-                    .collect(toList()));
-
-
-        } catch ( Exception e){
-            System.out.println("Exception in getDetailed Organisations: " + e);
-            System.out.println("Exception in getDetailed Organisations: " + res);
-        }
-        return orgs;
+        return callVertec(getXMLQuery_GetOrganisationDetails(ids), VRAPI.ContainerDetailedOrganisation.Envelope.class).getBody().getQueryResponse().getOrganisationList().stream()
+                .filter(VRAPI.ContainerDetailedOrganisation.Organisation::getActive)
+                .collect(toList());
     }
 
     public Map<Long, List<String>> createFollowerMap(List<Long> teamIds) {
         Map<Long, List<String>> map = new HashMap<>();
-        ResponseEntity<VRAPI.ContainerFollower.Envelope> leader;
+        VRAPI.ContainerFollower.Envelope leader;
 
         for (Long id : teamIds) {
 
@@ -476,26 +413,26 @@ public class ResourceController {
             leader = getGenericLinkContainers(id);
 
 
-            if (leader.getBody().getBody().getQueryResponse().getProjectWorker().getActive()) {
-                ResponseEntity<VRAPI.FromContainer.Envelope> resFromContainer;
+            if (leader.getBody().getQueryResponse().getProjectWorker().getActive()) {
+                VRAPI.FromContainer.Envelope resFromContainer;
 
                 //#3 query for generic Link Containers
-                resFromContainer = getFromContainer(leader.getBody().getBody().getQueryResponse().getProjectWorker().getFromLinks().getObjlist().getObjref());
+                resFromContainer = getFromContainer(leader.getBody().getQueryResponse().getProjectWorker().getFromLinks().getObjlist().getObjref());
 
-                List<GenericLinkContainer> genericLinkContainers = resFromContainer.getBody().getBody().getQueryResponse().getGenericLinkContainers();
+                List<GenericLinkContainer> genericLinkContainers = resFromContainer.getBody().getQueryResponse().getGenericLinkContainers();
 
                 for(GenericLinkContainer glc : genericLinkContainers){
                     Long objref = glc.getFromContainer().getObjref();
                     try {
 
                         List<String> idsFollowing = map.get(objref);
-                        idsFollowing.add(leader.getBody().getBody().getQueryResponse().getProjectWorker().getEmail().toLowerCase());
+                        idsFollowing.add(leader.getBody().getQueryResponse().getProjectWorker().getEmail().toLowerCase());
                         map.replace(objref, idsFollowing);
 
                     } catch (Exception e) {
 
                         List<String> idsFollowing = new ArrayList<>();
-                        idsFollowing.add(leader.getBody().getBody().getQueryResponse().getProjectWorker().getEmail().toLowerCase());
+                        idsFollowing.add(leader.getBody().getQueryResponse().getProjectWorker().getEmail().toLowerCase());
                         map.put(objref, idsFollowing);
 
                     }
@@ -507,41 +444,12 @@ public class ResourceController {
 
     }
 
-    private ResponseEntity<VRAPI.FromContainer.Envelope> getFromContainer(List<Long> ids) {
-        String xmlQuery = getXMLQuery_FromContainers(ids);
-        RequestEntity<String> req;
-        ResponseEntity<VRAPI.FromContainer.Envelope> res = null;
-        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
-
-        try {
-
-            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
-            res = this.rest.exchange(req, VRAPI.FromContainer.Envelope.class);
-        } catch (Exception e) {
-            System.out.println("ERROR IN GETTING FROM CONTAINERS: " + e);
-        }
-
-        return res;
+    private VRAPI.FromContainer.Envelope getFromContainer(List<Long> ids) {
+        return callVertec(getXMLQuery_FromContainers(ids), VRAPI.FromContainer.Envelope.class);
     }
 
-    private ResponseEntity<VRAPI.ContainerFollower.Envelope> getGenericLinkContainers(Long id) {
-        String xmlQuery = getXMLQuery_LeadersFromLinks(id);
-
-        RequestEntity<String> req;
-        ResponseEntity<VRAPI.ContainerFollower.Envelope> res = null;
-
-        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
-        try {
-
-            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
-            res = this.rest.exchange(req, VRAPI.ContainerFollower.Envelope.class);
-
-        } catch (Exception e) {
-            System.out.println("EXCEPTION IN GETTING GENERIC LIST CONTAINER: " +  e);
-        }
-
-        return res;
-
+    private VRAPI.ContainerFollower.Envelope getGenericLinkContainers(Long id) {
+        return callVertec(getXMLQuery_LeadersFromLinks(id), VRAPI.ContainerFollower.Envelope.class);
     }
 
     public ZUKOrganisationResponse buildZUKOrganisationsResponse(Map<Long, List<String>> followerMap, List<VRAPI.ContainerDetailedContact.Contact> contacts, List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs){
