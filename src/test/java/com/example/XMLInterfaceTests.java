@@ -10,7 +10,6 @@ import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
 import VRAPI.ContainerProjectType.ProjectType;
 import VRAPI.ResourceController;
-import org.hamcrest.Matcher;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -350,9 +349,7 @@ public class XMLInterfaceTests {
 
         followers.put(2L, followerlist);
 
-        rc.setFollowerMap(followers);
-
-        ZUKOrganisationResponse res = rc.buildZUKOrganisationsResponse(getsomeContacts(),getsomeOrgs());
+        ZUKOrganisationResponse res = rc.buildZUKOrganisationsResponse(followers, getsomeContacts(),getsomeOrgs());
 
         assertTrue(res.getDanglingContacts().size() == 2);
         assertTrue(res.getDanglingContacts().get(0).getFirstName().equals("The King"));
