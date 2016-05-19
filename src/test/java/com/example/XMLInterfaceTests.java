@@ -8,12 +8,10 @@ import VRAPI.ContainerDetailedOrganisation.Objlist;
 import VRAPI.ContainerDetailedOrganisation.ParentFirm;
 import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
-import VRAPI.ContainerProjectJSON.JSONPhase;
-import VRAPI.ContainerProjectJSON.JSONProject;
-import VRAPI.ContainerProjectJSON.ZUKProjectsResponse;
 import VRAPI.ContainerProjectType.ProjectType;
 import VRAPI.ResourceController;
-import org.junit.Before;
+import org.hamcrest.Matcher;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -22,24 +20,21 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.*;
 
+import static java.util.Arrays.asList;
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(Application.class)
 @WebIntegrationTest
-/**
- * Created by gebo on 25/04/2016.
- */
+
+@Ignore
 public class XMLInterfaceTests {
 
-    private ResourceController rc;
-
-    @Before
-    public void setUp(){
-        this.rc = new ResourceController();
-
-    }
-
+    public static final List<Long> KNOWN_SUPERVISOR_IDS = asList(504419L, 504749L, 1795374L, 6574798L, 8619482L, 8904906L, 10301189L, 12456812L);
+    public static final long ADDRESS_BELONGING_TO_INACTIVE_TEAM_MEMBER = 1307942L;
+    private final ResourceController rc = new ResourceController();
 
     @Test
     public void canGetZUKTeamMembers() {
@@ -61,34 +56,19 @@ public class XMLInterfaceTests {
 
     @Test
     public void canGetTeamMembersResponsibleAddresses() {
-
-        Long[] array = getSomeTeamMemberIds();
-        List<Long> teamMemberIds = new ArrayList<>(Arrays.asList(array));
-
-        List<Long> res = rc.getSupervisedAddresses(teamMemberIds);
-
-
-        assertTrue( ! res.isEmpty() );
-        assertTrue( ! res.contains(1307942L) ); //some item returned by inactive contact
-        assertTrue( res.contains(711471L) ); //some item returned
-        assertTrue( res.contains(23137004L) ); //some other item returned
-        assertTrue( res.size() >= 100 );
-
-    }
-
-    public Long[] getSomeTeamMemberIds() {
-        Long[] a = {504419L, 504749L, 1795374L, 6574798L, 8619482L, 8904906L, 10301189L, 12456812L};
-        return a;
+        List<Long> addressIds = rc.getAddressIdsSupervisedBy(KNOWN_SUPERVISOR_IDS);
+        assertThat(addressIds, hasItems(711471L, 23137004L));
+        assertThat(addressIds, not(hasItem(ADDRESS_BELONGING_TO_INACTIVE_TEAM_MEMBER)));
+        assertThat(addressIds, hasSize(greaterThan(100)));
     }
 
     public Long[] getSomeProjectIds() {
-        Long[] a = {23207688L, 24276335L, 26437983L, 26661642L};
-        return a;
+        return new Long[]{23207688L, 24276335L, 26437983L, 26661642L};
     }
 
     @Test
     public void canGetDetailedProjects() {
-        List<Long> projectsIds = new ArrayList<>(Arrays.asList(getSomeProjectIds()));
+        List<Long> projectsIds = new ArrayList<>(asList(getSomeProjectIds()));
 
         List<VRAPI.ContainerDetailedProjects.Project> projects = rc.getDetailedProjects(projectsIds);
 
@@ -116,7 +96,7 @@ public class XMLInterfaceTests {
 
     @Test
     public void canGetListofPhases(){
-        List<Long> phaseIds = new ArrayList<>(Arrays.asList(getSomePhases()));
+        List<Long> phaseIds = new ArrayList<>(asList(getSomePhases()));
 
         List<VRAPI.ContainerPhases.ProjectPhase> phases = rc.getPhasesForProject(phaseIds);
 
@@ -142,7 +122,7 @@ public class XMLInterfaceTests {
     @Test
     public void canGetTeamsProjectIds() {
 
-        List<Long> teamMemberIds = new ArrayList<>(Arrays.asList(getSomeTeamMemberIds()));
+        List<Long> teamMemberIds = new ArrayList<>(asList(new Long[]{504419L, 504749L, 1795374L, 6574798L, 8619482L, 8904906L, 10301189L, 12456812L}));
 
         List<Long> projectIds = rc.getProjectsTeamAreWorkingOn(teamMemberIds);
 
@@ -152,7 +132,7 @@ public class XMLInterfaceTests {
 
     @Test
     public void canGetProjectType(){
-        List<Long> typeIds = new ArrayList<>(Arrays.asList(getSomeTypeids()));
+        List<Long> typeIds = new ArrayList<>(asList(getSomeTypeids()));
 
         List<ProjectType> projTypes = rc.getProjectTypes(typeIds);
 
@@ -174,7 +154,7 @@ public class XMLInterfaceTests {
     @Test
     public void canGetProjectCurrency(){
 
-        List<Long> projectIds = new ArrayList<>(Arrays.asList(getSomeProjectIds()));
+        List<Long> projectIds = new ArrayList<>(asList(getSomeProjectIds()));
         List<Project> projects = rc.getDetailedProjects(projectIds);
         Long currencyId = projects.get(0).getCurrency().getObjref(); //GBP
 
@@ -187,7 +167,7 @@ public class XMLInterfaceTests {
     @Test
     public void canGetSimpleContacts() {
         Long[] array = getSomeAddressIds();
-        List<Long> contactIdsFromActiveTeamMembers = new ArrayList<>(Arrays.asList(array));
+        List<Long> contactIdsFromActiveTeamMembers = new ArrayList<>(asList(array));
 
         List<List<Long>> res = rc.getSimpleContactsandOrgs(contactIdsFromActiveTeamMembers);
 
@@ -215,7 +195,7 @@ public class XMLInterfaceTests {
     @Test
     public void canGetDetailedContacts() {
         Long[] array = getSomeContactIds();
-        List<Long> ids = new ArrayList<>(Arrays.asList(array));
+        List<Long> ids = new ArrayList<>(asList(array));
 
         List<VRAPI.ContainerDetailedContact.Contact> contacts = rc.getDetailedContacts(ids);
 
@@ -242,7 +222,7 @@ public class XMLInterfaceTests {
     @Test
     public void canGetDetailedOrganisations() {
         Long[] array = getSomeOrgIds();
-        List<Long> ids = new ArrayList<>(Arrays.asList(array));
+        List<Long> ids = new ArrayList<>(asList(array));
 
         List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs = rc.getOrganisations(ids);
 
@@ -541,7 +521,7 @@ public class XMLInterfaceTests {
 //    @Test
 //    public void testthiasandthat(){
 //        List<Long> teamids = rc.getZUKTeamMemberIds();
-//        List<Long> addrids = rc.getSupervisedAddresses(teamids);
+//        List<Long> addrids = rc.getAddressIdsSupervisedBy(teamids);
 //        List<List<Long>> CO = rc.getSimpleContactsandOrgs(addrids);
 //        List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs = rc.getOrganisations(CO.get(1));
 //
