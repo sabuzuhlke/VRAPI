@@ -1,4 +1,5 @@
 package VRAPI;
+import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.JSONContact;
 import VRAPI.ContainerOrganisationJSON.JSONOrganisation;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
@@ -32,13 +33,18 @@ import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
 import java.util.*;
 
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+@SuppressWarnings("WeakerAccess")
 @RestController
 public class ResourceController {
+    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.10.54";
+    public static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
 
-    public static final String VERTEX_SERVER_HOST = "172.18.10.54";
+    final private String VipAddress;
+    private final URI vertecURI;
     private String VportNr;
     private String OwnIpAddress;
     private String OwnPortNr; //To be used for querying Vertec --XML Marshaller
@@ -50,13 +56,17 @@ public class ResourceController {
 
     public ResourceController() {
         //IpAddress:portNum of VertecServer
-        this.VportNr = "8095";
+        this.VipAddress = DEFAULT_VERTEC_SERVER_HOST;
+        this.VportNr = DEFAULT_VERTEC_SERVER_PORT;
 
         this.OwnIpAddress = "localhost";
         this.OwnPortNr = "9999";
 
+
         //set resttemplate message converters
         this.rest = new RestTemplate();
+        vertecURI =   URI.create("http://" + VipAddress + ":" + VportNr + "/xml");
+
         List<HttpMessageConverter<?>> converters = new ArrayList<>();
         Jaxb2RootElementHttpMessageConverter jaxbMC = new Jaxb2RootElementHttpMessageConverter();
         List<MediaType> mediaTypes = new ArrayList<>();
@@ -99,13 +109,10 @@ public class ResourceController {
     })
     public String ping() {
 
-        RequestEntity<String> req;
-        String uri = "http://" + VERTEX_SERVER_HOST + ":" + VportNr + "/xml";
+        final RequestEntity<String> req = new RequestEntity<>(getXMLQuery_ping(), HttpMethod.POST, vertecURI);
         try {
             authorize();
-            String xmlQuery = getXMLQuery_ping();
-            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
-            ResponseEntity<VRAPI.ContainerTeam.Envelope> res = this.rest.exchange(req, VRAPI.ContainerTeam.Envelope.class);
+            final ResponseEntity<VRAPI.ContainerTeam.Envelope> res = this.rest.exchange(req, VRAPI.ContainerTeam.Envelope.class);
 
             checkResHasInfo(res.getBody());
 
@@ -115,8 +122,7 @@ public class ResourceController {
             try {
 
                 authorize();
-                req = new RequestEntity<>(getXMLQuery_ping(), HttpMethod.POST, new URI(uri));
-                ResponseEntity<VRAPI.ContainerError.Envelope> res = this.rest.exchange(req, VRAPI.ContainerError.Envelope.class);
+                final ResponseEntity<VRAPI.ContainerError.Envelope> res = this.rest.exchange(req, VRAPI.ContainerError.Envelope.class);
 
                 String errorDetail = res.getBody().getBody().getFault().getDetails().getDetailitem().get(0);
                 System.out.println(errorDetail);
@@ -161,7 +167,8 @@ public class ResourceController {
         return buildZUKOrganisationsResponse(
                 createFollowerMap(teamIds),
                 getDetailedContacts(contactIdsAndOrgsIds.get(0)),
-                getOrganisations(contactIdsAndOrgsIds.get(1))).toString();
+                getOrganisations(contactIdsAndOrgsIds.get(1)))
+                .toString();
     }
 
     @ApiOperation(value = "Get projects and nested phases")
@@ -175,82 +182,63 @@ public class ResourceController {
     })
     @RequestMapping(value = "/projects/ZUK", method = RequestMethod.GET, produces = "application/json")
     public String getZUKProjects() {
-        List<VRAPI.ContainerPhases.ProjectPhase> phasesForProject;
-        List<Long> typeIds;
-        List<ProjectType> projectTypes;
-
-        System.out.println("Populating team Map");
         populateTeamMap();
-
-        List<Long> teamIDs;
-        Set<Long> projectIds;
 
         try {
             authorize();
-            teamIDs = getZUKTeamMemberIds();
 
+            final ZUKProjectsResponse response = new ZUKProjectsResponse();
+            response.setProjects(projectsForTeam(getZUKTeamMemberIds()));
+            return response.toString();
         } catch (Exception e) {
             return e.toString();
         }
+    }
 
-        projectIds = getProjectsTeamAreWorkingOn(teamIDs);
+    private List<JSONProject> projectsForTeam(List<Long> teamMemberIDs) {
+        return getDetailedProjects(getProjectsTeamAreWorkingOn(teamMemberIDs)).stream()
+        .map(this::fromProject)
+        .filter(ProjectWithType::isInUK)
+        .map(this::asJsonProject)
+        .collect(toList());
+    }
 
-        Set<Long> projIdSet = new HashSet<>();
-        projIdSet.addAll(projectIds);
+    private class ProjectWithType {
+        private final Project project;
+        private final ProjectType projectType;
 
-        List<VRAPI.ContainerDetailedProjects.Project> projects = getDetailedProjects(projectIds);
-        System.out.println("Got " + projects.size() + " projects");
-
-        List<JSONProject> projectList = new ArrayList<>();
-
-        int phasecounter = 0;
-
-        for(VRAPI.ContainerDetailedProjects.Project project : projects) {
-            List<JSONPhase> phases = new ArrayList<>();
-            phasesForProject = getPhasesForProject(project.getPhases().getObjlist().getObjrefs());
-
-            if (phasesForProject != null) {
-                for (VRAPI.ContainerPhases.ProjectPhase ph : phasesForProject) {
-                    JSONPhase phaseToAdd = new JSONPhase(ph);
-                    phaseToAdd.setPersonResponsible(teamMap.get(ph.getPersonResponsible().getObjref()));
-                    phasecounter++;
-
-                    //ONLY ADD PHASE IF IT IS NOT "00_INTERN"
-                    if( ! phaseToAdd.getCode().contains("00_INTERN")){
-
-                        phases.add(phaseToAdd);
-                    }
-                }
-            }
-            //GET TYPE OF PROJECT
-            typeIds = new ArrayList<>();
-            typeIds.add(project.getType().getObjref());
-
-            projectTypes = getProjectTypes(typeIds);
-
-            //following if statement makes sure we only send projects done in the UK
-            if(projectTypes.get(0).getDescripton().contains("SGB_") || projectTypes.get(0).getDescripton().contains("EMS") || projectTypes.get(0).getDescripton().contains("DSI") || projectTypes.get(0).getDescripton().contains("CAP")){
-
-                //GET CURRENCY OF PROJECT
-                VRAPI.ContainerCurrency.Currency currency = getCurrency(project.getCurrency().getObjref());
-
-                JSONProject proj = new JSONProject(project);
-                proj.setPhases(phases);
-                proj.setType(projectTypes.get(0).getDescripton());
-                proj.setCurrency(currency.getName());
-
-                projectList.add(proj);
-            }
+        public ProjectWithType(VRAPI.ContainerDetailedProjects.Project project, ProjectType projectType) {
+            this.project = project;
+            this.projectType = projectType;
         }
 
-        System.out.println("Got " + projectList.size() + " ZUK projects");
-        System.out.println("GOt " + phasecounter + " phases in total");
+        private boolean isInUK() {
+            final String descripton = projectType.getDescripton();
+            return descripton.contains("SGB_") || descripton.contains("EMS") || descripton.contains("DSI") || descripton.contains("CAP");
+        }
 
-        ZUKProjectsResponse response = new ZUKProjectsResponse();
-        response.setProjects(projectList);
+        private Long currencyId() {
+            return project.getCurrency().getObjref();
+        }
+    }
 
-        return response.toString();
+    private JSONProject asJsonProject(ProjectWithType pwt) {
+        JSONProject proj = new JSONProject(pwt.project);
+        proj.setPhases(phasesFor(pwt.project));
+        proj.setType(pwt.projectType.getDescripton());
+        proj.setCurrency(getCurrency(pwt.currencyId()).getName());
+        return proj;
+    }
 
+    public ProjectWithType fromProject(VRAPI.ContainerDetailedProjects.Project project) {
+        return new ProjectWithType(project, getProjectType(project.getType().getObjref()));
+    }
+
+    private List<JSONPhase> phasesFor(Project project) {
+        return getPhasesForProject(project.getPhases().getObjlist().getObjrefs()).stream()
+                .filter(phase -> ! phase.getCode().contains("00_INTERN"))
+                .map(phase -> new JSONPhase(phase, teamMap.get(phase.getPersonResponsible().getObjref())))
+                .collect(toList());
     }
 
     private void authorize() throws Exception {
@@ -279,88 +267,38 @@ public class ResourceController {
 
     }
 
+
     public List<VRAPI.ContainerDetailedProjects.Project> getDetailedProjects(Set<Long> projectIds) {
-
-        RequestEntity<String> req;
-        ResponseEntity<VRAPI.ContainerDetailedProjects.Envelope> res;
-        List<VRAPI.ContainerDetailedProjects.Project> projectList = new ArrayList<>();
-        String xmlQuery = getXMLQuery_GetProjectDetails(projectIds);
-        String uri = "http://" + VERTEX_SERVER_HOST + ":" + VportNr + "/xml";
-
-        try {
-            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
-            res = rest.exchange(req, VRAPI.ContainerDetailedProjects.Envelope.class);
-            //TODO: filter inactive projects, if necessary
-            projectList = res.getBody().getBody().getQueryResponse().getProjects();
-
-        } catch (Exception e) {
-            System.out.println("EXCEPTION GETTING DETAILED PROJECTS: " +  e);
-        }
-
-        return projectList;
+        return callVertec(
+                getXMLQuery_GetProjectDetails(projectIds),
+                VRAPI.ContainerDetailedProjects.Envelope.class).getBody().getQueryResponse().getProjects();
     }
 
     public List<VRAPI.ContainerPhases.ProjectPhase> getPhasesForProject(List<Long> phaseIds){
-        RequestEntity<String> req;
-        ResponseEntity<VRAPI.ContainerPhases.Envelope> res;
-        List<VRAPI.ContainerPhases.ProjectPhase> phaseList = new ArrayList<>();
-        String xmlQuery = getXMLQuery_GetProjectPhases(phaseIds);
-
-
-        String uri = "http://" + VERTEX_SERVER_HOST + ":" + VportNr + "/xml";
-        try {
-
-            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
-            res = rest.exchange(req, VRAPI.ContainerPhases.Envelope.class);
-
-            //TODO: filter inactive projects, if necessary
-            phaseList = res.getBody().getBody().getQueryResponse().getPhases();
-
-        } catch (Exception e) {
-            System.out.println("EXCEPTION GETTING DETAILED PROJECT_PHASES: " +  e);
-        }
-
-        return phaseList;
+        // TODO filter out inactive projects?
+        return callVertec(
+                getXMLQuery_GetProjectPhases(phaseIds),
+                VRAPI.ContainerPhases.Envelope.class).getBody().getQueryResponse().getPhases();
     }
 
-    public List<ProjectType> getProjectTypes(List<Long> ids){
-        RequestEntity<String> req;
-        ResponseEntity<VRAPI.ContainerProjectType.Envelope> res;
-        String xmlQuery = getXMLQuery_GetProjectTypes(ids);
+    public ProjectType getProjectType(Long projectID){
+        return callVertec(
+                getXMLQuery_GetProjectTypes(singletonList(projectID)),
+                VRAPI.ContainerProjectType.Envelope.class).getBody().getQueryResponse().getProjectTypes().get(0);
 
-        List<ProjectType> projectTypes = new ArrayList<>();
-
-        String uri = "http://" + VERTEX_SERVER_HOST + ":" + VportNr + "/xml";
-        try{
-            req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
-            res = rest.exchange(req, VRAPI.ContainerProjectType.Envelope.class);
-            projectTypes.addAll(res.getBody().getBody().getQueryResponse().getProjectTypes());
-        } catch (Exception e){
-            System.out.println("Exception in getting Project Types");
-        }
-        return projectTypes;
     }
 
     public VRAPI.ContainerCurrency.Currency getCurrency(Long id) {
-        String xmlQuery = getXMLQuery_GetCurrency(id);
-        VRAPI.ContainerCurrency.Currency currency = null;
+        return callVertec(
+                getXMLQuery_GetCurrency(id),
+                VRAPI.ContainerCurrency.Envelope.class).getBody().getQueryResponse().getCurrency();
 
-        String uri = "http://" + VERTEX_SERVER_HOST + ":" + VportNr + "/xml";
-        try {
-            final RequestEntity<String> req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
-            final ResponseEntity<VRAPI.ContainerCurrency.Envelope>  res = rest.exchange(req, VRAPI.ContainerCurrency.Envelope.class);
-
-            currency = res.getBody().getBody().getQueryResponse().getCurrency();
-        } catch (Exception e) {
-            System.out.println("Exception in getting Currency");
-        }
-        return currency;
     }
 
     public Set<Long> getProjectsTeamAreWorkingOn(Collection<Long> teamIds)  {
 
         String xmlQuery = getXMLQuery_GetProjectIds(Lists.newArrayList(teamIds));
-        String uri = "http://" + VERTEX_SERVER_HOST + ":" + VportNr + "/xml";
+        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
 
         final RequestEntity<String> req = new RequestEntity<>(xmlQuery, HttpMethod.POST, URI.create(uri));
         final ResponseEntity<VRAPI.ContainerProjects.Envelope> res = rest.exchange(req, VRAPI.ContainerProjects.Envelope.class);
@@ -377,7 +315,7 @@ public class ResourceController {
         ResponseEntity<VRAPI.ContainerTeam.Envelope> res;
 
         String xmlQuery = getXMLQuery_LeadersTeam();
-        String uri = "http://" + VERTEX_SERVER_HOST + ":" + VportNr + "/xml";
+        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
 
         req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
 
@@ -424,7 +362,7 @@ public class ResourceController {
         try {
 
             String xmlQuery = getXMLQuery_SupervisedAddresses(supervisorIds);
-            String uri = "http://" + VERTEX_SERVER_HOST + ":" + VportNr + "/xml";
+            String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
             RequestEntity<String> req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
             ResponseEntity<VRAPI.ContainerAddresses.Envelope> res = rest.exchange(req, VRAPI.ContainerAddresses.Envelope.class);
             VRAPI.ContainerAddresses.Envelope env = res.getBody();
@@ -458,7 +396,7 @@ public class ResourceController {
         try {
 
             String xmlQuery = getXMLQuery_GetContacts(contactIds);
-            String uri = "http://" + VERTEX_SERVER_HOST + ":" + VportNr + "/xml";
+            String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
             req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
             ResponseEntity<VRAPI.ContainerSimpleContactOrganisation.Envelope> res = this.rest.exchange(req, VRAPI.ContainerSimpleContactOrganisation.Envelope.class);
             VRAPI.ContainerSimpleContactOrganisation.Envelope env = res.getBody();
@@ -488,7 +426,7 @@ public class ResourceController {
         List<VRAPI.ContainerDetailedContact.Contact> contacts = new ArrayList<>();
         try {
             String xmlQuery = getXMLQuery_GetContactDetails(ids);
-            String uri = "http://" + VERTEX_SERVER_HOST + ":" + VportNr + "/xml";
+            String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
             req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
             ResponseEntity<VRAPI.ContainerDetailedContact.Envelope> res = this.rest.exchange(req, VRAPI.ContainerDetailedContact.Envelope.class);
 
@@ -512,7 +450,7 @@ public class ResourceController {
         List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs = new ArrayList<>();
         try {
             String xmlQuery = getXMLQuery_GetOrganisationDetails(ids);
-            String uri = "http://" + VERTEX_SERVER_HOST + ":" + VportNr + "/xml";
+            String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
             req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
             res = this.rest.exchange(req, VRAPI.ContainerDetailedOrganisation.Envelope.class);
 
@@ -573,7 +511,7 @@ public class ResourceController {
         String xmlQuery = getXMLQuery_FromContainers(ids);
         RequestEntity<String> req;
         ResponseEntity<VRAPI.FromContainer.Envelope> res = null;
-        String uri = "http://" + VERTEX_SERVER_HOST + ":" + VportNr + "/xml";
+        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
 
         try {
 
@@ -592,7 +530,7 @@ public class ResourceController {
         RequestEntity<String> req;
         ResponseEntity<VRAPI.ContainerFollower.Envelope> res = null;
 
-        String uri = "http://" + VERTEX_SERVER_HOST + ":" + VportNr + "/xml";
+        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
         try {
 
             req = new RequestEntity<>(xmlQuery, HttpMethod.POST, new URI(uri));
@@ -1050,8 +988,16 @@ public class ResourceController {
         }
     }
 
+    private <T> T callVertec(String query, Class<T> responseType) {
+        return rest.exchange(
+                new RequestEntity<>(query, HttpMethod.POST, vertecURI),
+                responseType).getBody();
+    }
+
+
 //------------------------------------------------------------------------------------------------------------Comparator
 
+    @SuppressWarnings("WeakerAccess")
     public class ContactComparator implements Comparator<VRAPI.ContainerDetailedContact.Contact> {
 
         @Override

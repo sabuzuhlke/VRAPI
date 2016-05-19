@@ -1,5 +1,6 @@
 package VRAPI.ContainerProjectJSON;
 
+import VRAPI.ContainerPhases.ProjectPhase;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.text.DecimalFormat;
@@ -42,10 +43,11 @@ public class JSONPhase {
     @JsonProperty("created")
     private String creationDate;
 
+    @SuppressWarnings("unused")
     public JSONPhase() {
     }
 
-    public JSONPhase (VRAPI.ContainerPhases.ProjectPhase ph){
+    public JSONPhase (VRAPI.ContainerPhases.ProjectPhase ph, String personResponsible){
         this.v_id = ph.getObjid();
         this.active = ph.getActive();
         this.description = ph.getDescription();
@@ -61,7 +63,7 @@ public class JSONPhase {
         this.modifiedDate = ph.getModifiedDate();
         this.creationDate = ph.getCreationDate();
         //this.grantedDate = ph
-        //set personResponsible outside
+        this.personResponsible = personResponsible;
     }
 
     public Long getV_id() {

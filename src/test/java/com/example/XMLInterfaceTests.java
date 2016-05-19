@@ -10,6 +10,7 @@ import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
 import VRAPI.ContainerProjectType.ProjectType;
 import VRAPI.ResourceController;
+import org.hamcrest.MatcherAssert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -132,17 +133,8 @@ public class XMLInterfaceTests {
 
     @Test
     public void canGetProjectType(){
-        List<Long> typeIds = new ArrayList<>(asList(getSomeTypeids()));
-
-        List<ProjectType> projTypes = rc.getProjectTypes(typeIds);
-
-        for(int i = 0; i < projTypes.size(); i++){
-            System.out.println(projTypes.get(i));
-        }
-
-        assertTrue(projTypes.get(0).getDescripton().contains("UK"));
-        assertTrue(projTypes.get(1).getDescripton().contains("SGB_"));
-        assertTrue(projTypes.get(2).getDescripton().contains("SGB_"));
+        assertThat(rc.getProjectType(26540859L).getDescripton(),
+                   containsString("UK"));
 
     }
 

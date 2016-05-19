@@ -1,14 +1,15 @@
 package VRAPI.ContainerPhases;
 
 import javax.xml.bind.annotation.XmlElement;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
-/**
- * Created by sabu on 13/05/2016.
- */
+import static java.util.Collections.emptyList;
+
 public class QueryResponse {
 
-    private List<ProjectPhase> phases;
+    private List<ProjectPhase> phases = emptyList();
 
     public QueryResponse() {
     }
