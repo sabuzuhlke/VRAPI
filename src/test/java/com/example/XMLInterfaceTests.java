@@ -22,6 +22,7 @@ import java.util.*;
 import static java.util.Arrays.asList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -67,7 +68,7 @@ public class XMLInterfaceTests {
 
     @Test
     public void canGetDetailedProjects() {
-        List<Long> projectsIds = new ArrayList<>(asList(getSomeProjectIds()));
+        Set<Long> projectsIds = new HashSet<>(asList(getSomeProjectIds()));
 
         List<VRAPI.ContainerDetailedProjects.Project> projects = rc.getDetailedProjects(projectsIds);
 
@@ -121,9 +122,9 @@ public class XMLInterfaceTests {
     @Test
     public void canGetTeamsProjectIds() {
 
-        List<Long> teamMemberIds = new ArrayList<>(asList(new Long[]{504419L, 504749L, 1795374L, 6574798L, 8619482L, 8904906L, 10301189L, 12456812L}));
+        Set<Long> teamMemberIds = new HashSet<>(asList(new Long[]{504419L, 504749L, 1795374L, 6574798L, 8619482L, 8904906L, 10301189L, 12456812L}));
 
-        List<Long> projectIds = rc.getProjectsTeamAreWorkingOn(teamMemberIds);
+        Set<Long> projectIds = rc.getProjectsTeamAreWorkingOn(teamMemberIds);
 
         assertTrue( ! projectIds.isEmpty());
         assertTrue(projectIds.size() > 10);
@@ -146,20 +147,19 @@ public class XMLInterfaceTests {
     }
 
     public Long[] getSomeTypeids(){
-        Long[] a = {26540859L, 592903L, 26540856L};
-        return a;
+        return new Long[]{26540859L, 592903L, 26540856L};
     }
 
     @Test
     public void canGetProjectCurrency(){
 
-        List<Long> projectIds = new ArrayList<>(asList(getSomeProjectIds()));
+        Set<Long> projectIds = new HashSet<>(asList(getSomeProjectIds()));
         List<Project> projects = rc.getDetailedProjects(projectIds);
         Long currencyId = projects.get(0).getCurrency().getObjref(); //GBP
 
         VRAPI.ContainerCurrency.Currency currency = rc.getCurrency(currencyId);
 
-        assertTrue(currency.getName().equals("GBP"));
+        assertEquals("GBP", currency.getName());
 
     }
 
