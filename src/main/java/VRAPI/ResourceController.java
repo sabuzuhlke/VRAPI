@@ -109,9 +109,9 @@ public class ResourceController {
     })
     public String ping() {
 
-        final RequestEntity<String> req = new RequestEntity<>(getXMLQuery_ping(), HttpMethod.POST, vertecURI);
         try {
             authorize();
+            RequestEntity<String> req = new RequestEntity<>(getXMLQuery_ping(), HttpMethod.POST, vertecURI);
             final ResponseEntity<VRAPI.ContainerTeam.Envelope> res = this.rest.exchange(req, VRAPI.ContainerTeam.Envelope.class);
 
             checkResHasInfo(res.getBody());
@@ -122,6 +122,7 @@ public class ResourceController {
             try {
 
                 authorize();
+                RequestEntity<String> req = new RequestEntity<>(getXMLQuery_ping(), HttpMethod.POST, vertecURI);
                 final ResponseEntity<VRAPI.ContainerError.Envelope> res = this.rest.exchange(req, VRAPI.ContainerError.Envelope.class);
 
                 String errorDetail = res.getBody().getBody().getFault().getDetails().getDetailitem().get(0);
@@ -195,7 +196,7 @@ public class ResourceController {
         }
     }
 
-    private List<JSONProject> projectsForTeam(List<Long> teamMemberIDs) {
+    private List<JSONProject>     projectsForTeam(List<Long> teamMemberIDs) {
         return getDetailedProjects(getProjectsTeamAreWorkingOn(teamMemberIDs)).stream()
         .map(this::fromProject)
         .filter(ProjectWithType::isInUK)

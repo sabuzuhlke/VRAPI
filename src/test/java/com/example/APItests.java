@@ -32,8 +32,6 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(Application.class)
 @WebIntegrationTest
-
-@Ignore
 public class APItests {
     private ResourceController rc;
 
@@ -57,13 +55,7 @@ public class APItests {
                 });
     }
 
-
     @Test
-    public void test() {
-        assertTrue(true);
-    }
-    @Test
-
     public void apiIsUP(){
 
         RestTemplate rt = new RestTemplate();
@@ -79,7 +71,7 @@ public class APItests {
         headers.add("Authorization", username + ':' + pwd);
         try{
 
-            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+            req = new RequestEntity<>(headers, HttpMethod.GET, new URI(url));
         }
         catch(Exception e){
             System.out.println("Could not create ping Request");
@@ -157,7 +149,7 @@ public class APItests {
 
     }
 
-    @Test @Ignore
+    @Test
     public void canGetZUK(){
 
         RestTemplate rt = new RestTemplate();

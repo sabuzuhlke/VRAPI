@@ -9,9 +9,10 @@ import static java.util.Collections.emptyList;
 
 public class QueryResponse {
 
-    private List<ProjectPhase> phases = emptyList();
+    private List<ProjectPhase> phases;
 
     public QueryResponse() {
+        this.phases = new ArrayList<>();
     }
 
     @XmlElement(name = "ProjektPhase")

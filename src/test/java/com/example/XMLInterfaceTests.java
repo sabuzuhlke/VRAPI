@@ -29,8 +29,6 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(Application.class)
 @WebIntegrationTest
-
-@Ignore
 public class XMLInterfaceTests {
 
     public static final List<Long> KNOWN_SUPERVISOR_IDS = asList(504419L, 504749L, 1795374L, 6574798L, 8619482L, 8904906L, 10301189L, 12456812L);
@@ -82,7 +80,7 @@ public class XMLInterfaceTests {
         assertTrue(projects.get(0).getCode().equals("C19066"));
         assertTrue(projects.get(0).getId() == 23207688L);
         assertTrue(projects.get(0).getClient().getObjref() == 1882164);
-        assertTrue(projects.get(0).getLeader().getObjref() == 11563550);
+        assertTrue(projects.get(0).getLeader().getObjref() == 5295L);
         assertTrue( ! projects.get(0).getPhases().getObjlist().getObjrefs().isEmpty());
         assertTrue(projects.get(0).getCustomer() != null);
         assertTrue(projects.get(0).getType().getObjref() == 26540859L);
@@ -134,7 +132,7 @@ public class XMLInterfaceTests {
     @Test
     public void canGetProjectType(){
         assertThat(rc.getProjectType(26540859L).getDescripton(),
-                   containsString("UK"));
+                   containsString("SGB_"));
 
     }
 
