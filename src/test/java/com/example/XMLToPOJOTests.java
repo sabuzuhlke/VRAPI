@@ -4,6 +4,7 @@ import VRAPI.ContainerAddresses.Envelope;
 import org.junit.Test;
 
 import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Unmarshaller;
 import java.io.StringReader;
 
@@ -61,11 +62,9 @@ public class XMLToPOJOTests{
     }
 
     @Test
-    public void canParseBetreuteAdressen(){
+    public void canParseBetreuteAdressen() throws JAXBException {
 
-        Envelope env = null;
-
-        String xml = "<Envelope>" +
+        String supervisedAddressesResponse = "<Envelope>" +
                 "   <Body>" +
                 "        <QueryResponse>" +
                 "           <Projektbearbeiter>" +
@@ -94,18 +93,10 @@ public class XMLToPOJOTests{
                 "   </Body>" +
                 "</Envelope>";
 
-        try{
+        JAXBContext jc = JAXBContext.newInstance(Envelope.class);
+        Unmarshaller u = jc.createUnmarshaller();
+        Envelope env = (Envelope) u.unmarshal(new StringReader(supervisedAddressesResponse));
 
-            JAXBContext jc = JAXBContext.newInstance(Envelope.class);
-            Unmarshaller u = jc.createUnmarshaller();
-            StringReader reader = new StringReader(xml);
-            env = (Envelope) u.unmarshal(reader);
-
-        }
-        catch(Exception e){
-            System.out.println("ERROR in Unmarshall Addresses test: " + e);
-        }
-        assertTrue(env != null);
         assertTrue(env.getBody() != null);
         assertTrue(env.getBody().getQueryResponse() != null);
         assertTrue(env.getBody().getQueryResponse().getWorkers() != null);

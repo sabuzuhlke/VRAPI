@@ -11,6 +11,7 @@ import VRAPI.ContainerProjectJSON.JSONProject;
 import VRAPI.ContainerProjectJSON.ZUKProjectsResponse;
 import VRAPI.MyAccessCredentials;
 import VRAPI.MyLimitedCredentials;
+import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
@@ -31,9 +32,6 @@ import static org.junit.Assert.assertTrue;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(Application.class)
 @WebIntegrationTest
-/**
- * Created by gebo on 25/04/2016.
- */
 public class APItests {
     private ResourceController rc;
 
@@ -56,6 +54,7 @@ public class APItests {
                     }
                 });
     }
+
     @Test
     public void apiIsUP(){
 
@@ -72,7 +71,7 @@ public class APItests {
         headers.add("Authorization", username + ':' + pwd);
         try{
 
-            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+            req = new RequestEntity<>(headers, HttpMethod.GET, new URI(url));
         }
         catch(Exception e){
             System.out.println("Could not create ping Request");
@@ -149,36 +148,36 @@ public class APItests {
                 .contains("Ping Failed: Wrong Username or Password recieved in request header"));
 
     }
-//
-//    @Test
-//    public void canGetZUK(){
-//
-//        RestTemplate rt = new RestTemplate();
-//        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK/";
-//        RequestEntity<String> req = null;
-//        ResponseEntity<ZUKOrganisationResponse> res;
-//        MyAccessCredentials creds = new MyAccessCredentials();
-//        try{
-//
-//
-//            //add authentication header to headers object
-//            MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-//            headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
-//
-//            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
-//        }
-//        catch(Exception e){
-//            System.out.println("Could not create Request for ZUK");
-//        }
-//        assertTrue(req != null);
-//
-//        res = rt.exchange(req,ZUKOrganisationResponse.class);
-//
-//        assertTrue(res != null);
-//        assertTrue(res.getStatusCode() == HttpStatus.OK);
-//        assertTrue(res.getBody() != null);
-//        System.out.println(res.getBody().toPrettyString());
-//    }
+
+    @Test
+    public void canGetZUK(){
+
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK/";
+        RequestEntity<String> req = null;
+        ResponseEntity<ZUKOrganisationResponse> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+        try{
+
+
+            //add authentication header to headers object
+            MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+            headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+        }
+        catch(Exception e){
+            System.out.println("Could not create Request for ZUK");
+        }
+        assertTrue(req != null);
+
+        res = rt.exchange(req,ZUKOrganisationResponse.class);
+
+        assertTrue(res != null);
+        assertTrue(res.getStatusCode() == HttpStatus.OK);
+        assertTrue(res.getBody() != null);
+        System.out.println(res.getBody().toPrettyString());
+    }
 
     @Test
     public void canGetZUKProjects() {
