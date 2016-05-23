@@ -12,7 +12,6 @@ import VRAPI.ContainerProjectJSON.ZUKProjectsResponse;
 import VRAPI.ContainerProjectType.ProjectType;
 import VRAPI.ContainerProjects.ProjectWorker;
 import VRAPI.FromContainer.GenericLinkContainer;
-import io.swagger.annotations.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -24,7 +23,6 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 
@@ -97,16 +95,7 @@ public class ResourceController {
 
     //TODO: add appropriate response codes
 
-    @ApiOperation(value = "Test access", nickname = "notping")
-    @RequestMapping(value = "/ping", method = RequestMethod.GET, produces = "text/plain")
-//    @ApiResponses(value = {
-//            @ApiResponse(code = 200, message = "Success"),
-//            @ApiResponse(code = 401, message = "Insufficient Access Credentials"),
-//            @ApiResponse(code = 403, message = "Forbidden")
-//    })
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
-    })
+    @RequestMapping(value = "/ping", method = RequestMethod.GET)
     public String ping() {
 
         RequestEntity<String> req;
@@ -144,16 +133,36 @@ public class ResourceController {
         return "Success!";
     }
 
-    @ApiOperation(value = "Get organisations and nested contacts")
-//    @ApiResponses(value = {
-//            @ApiResponse(code = 200, message = "Success"),
-//            @ApiResponse(code = 401, message = "Insufficient Access Credentials"),
-//            @ApiResponse(code = 403, message = "Forbidden")
-//    })
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
-    })
-    @RequestMapping(value = "/organisations/ZUK", method = RequestMethod.GET, produces = "application/json")
+
+
+    private void checkResHasInfo(VRAPI.ContainerTeam.Envelope envelope) throws Exception {
+        if (envelope.getBody().getQueryResponse() == null) {
+            throw new XMLFailureException();
+        }
+    }
+
+    private class XMLFailureException extends Exception {
+        private XMLFailureException() {
+
+        }
+
+        public XMLFailureException(String message) {
+            super(message);
+        }
+    }
+
+    private void authorize() throws Exception {
+        try {
+            String userpwd = request.getHeader("Authorization");
+            String[] both = userpwd.split(":");
+            this.username = both[0];
+            this.password = both[1];
+        } catch (Exception e) {
+             throw new Exception("Request failed: Authorization header incorrectly set");
+        }
+    }
+
+    @RequestMapping(value = "/organisations/ZUK", method = RequestMethod.GET)
     public String getZUKOrganisations() {
         List<Long> teamIds;
         List<Long> addressIds;
@@ -193,16 +202,19 @@ public class ResourceController {
         return zuk.toString();
     }
 
-    @ApiOperation(value = "Get projects and nested phases")
-//    @ApiResponses(value = {
-//            @ApiResponse(code = 200, message = "Success"),
-//            @ApiResponse(code = 401, message = "Insufficient Access Credentials"),
-//            @ApiResponse(code = 403, message = "Forbidden")
-//    })
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
-    })
-    @RequestMapping(value = "/projects/ZUK", method = RequestMethod.GET, produces = "application/json")
+    public void populateTeamMap() {
+        List<Long> teamIds = new ArrayList<>();
+        try {
+            authorize();
+            teamIds = getZUKTeamMemberIds();
+        } catch (Exception e) {
+            System.out.println("EXCEPTION POPULATING TEAM MAP: " + e);
+        }
+        getSupervisedAddresses(teamIds);
+
+    }
+
+    @RequestMapping(value = "/projects/ZUK", method = RequestMethod.GET)
     public String getZUKProjects() {
         List<VRAPI.ContainerPhases.ProjectPhase> phasesForProject;
         List<Long> typeIds;
@@ -286,33 +298,6 @@ public class ResourceController {
 
     }
 
-    private void authorize() throws Exception {
-        try {
-            String userpwd = request.getHeader("Authorization");
-            System.out.println(userpwd);
-            String[] both = userpwd.split(":");
-            this.username = both[0];
-            this.password = both[1];
-        } catch (Exception e) {
-            throw new Exception("Request failed: Authorization header incorrectly set");
-        }
-    }
-
-    //------------------------------------------------------------------------------------------------------------Helper Methods
-    //TODO: make xml access methods private, adjust tests: http://stackoverflow.com/questions/34571/how-to-test-a-class-that-has-private-methods-fields-or-inner-classes
-
-    public void populateTeamMap() {
-        List<Long> teamIds = new ArrayList<>();
-        try {
-            authorize();
-            teamIds = getZUKTeamMemberIds();
-        } catch (Exception e) {
-            System.out.println("EXCEPTION POPULATING TEAM MAP: " + e);
-        }
-        getSupervisedAddresses(teamIds);
-
-    }
-
     public List<VRAPI.ContainerDetailedProjects.Project> getDetailedProjects(List<Long> projectIds) {
 
         RequestEntity<String> req;
@@ -333,6 +318,7 @@ public class ResourceController {
 
         return projectList;
     }
+
 
     public List<VRAPI.ContainerPhases.ProjectPhase> getPhasesForProject(List<Long> phaseIds){
         RequestEntity<String> req;
@@ -395,6 +381,7 @@ public class ResourceController {
         return currency;
     }
 
+
     public List<Long> getProjectsTeamAreWorkingOn(List<Long> teamIds) {
 
         RequestEntity<String> req;
@@ -426,6 +413,9 @@ public class ResourceController {
 
     }
 
+
+    //------------------------------------------------------------------------------------------------------------Helper Methods
+    //TODO: make xml access methods private, adjust tests: http://stackoverflow.com/questions/34571/how-to-test-a-class-that-has-private-methods-fields-or-inner-classes
     public List<Long> getZUKTeamMemberIds() throws Exception {
         RequestEntity<String> req;
         List<Long> ids = new ArrayList<>();
@@ -1003,7 +993,6 @@ public class ResourceController {
 
         return header + bodyStart + bodyEnd;
     }
-
     private String getXMLQuery_GetProjectPhases(List<Long> ids){
         String header = "<Envelope>\n" +
                 "  <Header>\n" +
@@ -1097,22 +1086,6 @@ public class ResourceController {
 
 
         return header + bodyStart + bodyEnd;
-    }
-
-    private void checkResHasInfo(VRAPI.ContainerTeam.Envelope envelope) throws Exception {
-        if (envelope.getBody().getQueryResponse() == null) {
-            throw new XMLFailureException();
-        }
-    }
-
-    private class XMLFailureException extends Exception {
-        private XMLFailureException() {
-
-        }
-
-        public XMLFailureException(String message) {
-            super(message);
-        }
     }
 
 //------------------------------------------------------------------------------------------------------------Comparator
