@@ -5,6 +5,7 @@ package com.example;
  */
 
 import VRAPI.Application;
+import VRAPI.ContainerActivitiesJSON.ZUKActivitiesResponse;
 import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
 import VRAPI.ContainerProjectJSON.JSONProject;
@@ -141,11 +142,10 @@ public class APItests {
         }
         assertTrue(req != null);
         res = rt.exchange(req,String.class);
-
         assertTrue(res != null);
         assertTrue(res.getBody() != null);
         assertTrue(res.getBody()
-                .contains("Ping Failed: Wrong Username or Password recieved in request header"));
+                .contains("Ping Failed: Wrong Username or Password received in request header"));
 
     }
 
@@ -212,6 +212,38 @@ public class APItests {
             assertTrue(p.getType().contains("SGB_") || p.getType().contains("EMS") || p.getType().contains("DSI") || p.getType().contains("CAP"));
         }
         //System.out.println(res.getBody().toString());
+
+    }
+
+    @Test
+    public void canGetZUKActivities(){
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/activities/ZUK/";
+        RequestEntity<String> req = null;
+        ResponseEntity<String> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+        try{
+
+
+            //add authentication header to headers object
+            MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+            headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+        }
+        catch(Exception e){
+            System.out.println("Could not create Request for ZUK Activities");
+        }
+        assertTrue(req != null);
+
+        res = rt.exchange(req, String.class);
+
+        System.out.println(res);
+        assertTrue(res.getStatusCode() == HttpStatus.OK);
+        assertTrue( ! res.getBody().contains("26376851"));
+        assertTrue( ! res.getBody().contains("28013137"));
+        System.out.println(res);
+        //System.out.println("Size: " + res.getBody().getActivities().size());
 
     }
 

@@ -1,5 +1,8 @@
 package com.example;
 import VRAPI.Application;
+import VRAPI.ContainerActivitiesJSON.ZUKActivitiesResponse;
+import VRAPI.ContainerActivity.Activity;
+import VRAPI.ContainerActivityType.ActivityType;
 import VRAPI.ContainerDetailedContact.Contact;
 import VRAPI.ContainerDetailedContact.Organisation;
 import VRAPI.ContainerDetailedContact.PersonResponsible;
@@ -8,9 +11,7 @@ import VRAPI.ContainerDetailedOrganisation.Objlist;
 import VRAPI.ContainerDetailedOrganisation.ParentFirm;
 import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
-import VRAPI.ContainerProjectType.ProjectType;
 import VRAPI.ResourceController;
-import org.hamcrest.MatcherAssert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +22,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import java.util.*;
 
 import static java.util.Arrays.asList;
+import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
@@ -65,6 +67,7 @@ public class XMLInterfaceTests {
         return new Long[]{23207688L, 24276335L, 26437983L, 26661642L};
     }
 
+//==============================================================================================================PROJECTS
     @Test
     public void canGetDetailedProjects() {
         Set<Long> projectsIds = new HashSet<>(asList(getSomeProjectIds()));
@@ -153,6 +156,7 @@ public class XMLInterfaceTests {
 
     }
 
+//==============================================================================================================CONTACTS
     @Test
     public void canGetSimpleContacts() {
         Long[] array = getSomeAddressIds();
@@ -208,30 +212,7 @@ public class XMLInterfaceTests {
         return a;
     }
 
-    @Test
-    public void canGetDetailedOrganisations() {
-        Long[] array = getSomeOrgIds();
-        List<Long> ids = new ArrayList<>(asList(array));
 
-        List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs = rc.getOrganisations(ids);
-
-        assertTrue( ! orgs.isEmpty());
-        assertTrue(orgs.size() == 3);
-        assertTrue(orgs.get(0).getActive());
-        assertTrue(orgs.get(0).getAdditionalAddressName().equals(""));
-        assertTrue(orgs.get(0).getCity().equals("London"));
-        assertTrue(orgs.get(0).getCountry().equals("United Kingdom"));
-        assertTrue(orgs.get(0).getName().equals("Zuhlke Engineering Ltd"));
-        assertTrue(orgs.get(0).getStreetAddress().equals("80 Great Eastern Street"));
-        assertTrue(orgs.get(0).getZip().equals("EC2A 3JL"));
-        assertTrue(orgs.get(0).getObjId() == 37358L);
-        assertTrue(orgs.get(0).getPersonResponsible().getObjref() == 5295L);
-        assertTrue(orgs.get(1).getActive());
-        assertTrue(orgs.get(2).getActive());
-        assertTrue(orgs.get(1).getZip().equals("EC2Y 9AQ"));
-        assertTrue(orgs.get(2).getZip().equals("E14 4QJ"));
-
-    }
 
     public Long[] getSomeOrgIds(){
         Long[] a = {37358L, 710369L, 710627L};
@@ -253,22 +234,22 @@ public class XMLInterfaceTests {
         b.setOrganisation(new VRAPI.ContainerDetailedContact.Organisation(null));
         c.setOrganisation(new VRAPI.ContainerDetailedContact.Organisation(3L));
 
-        r = rc.comparator.compare(a,a);
+        r = rc.contactComparator.compare(a,a);
         assertTrue(r == 0);
 
-        r = rc.comparator.compare(a,b);
+        r = rc.contactComparator.compare(a,b);
         assertTrue(r == 1);
 
-        r = rc.comparator.compare(a,c);
+        r = rc.contactComparator.compare(a,c);
         assertTrue(r == -1);
 
-        r = rc.comparator.compare(b,a);
+        r = rc.contactComparator.compare(b,a);
         assertTrue(r == -1);
 
-        r = rc.comparator.compare(b,b);
+        r = rc.contactComparator.compare(b,b);
         assertTrue(r == 0);
 
-        r = rc.comparator.compare(c,a);
+        r = rc.contactComparator.compare(c,a);
         assertTrue(r == 1);
 
     }
@@ -312,7 +293,7 @@ public class XMLInterfaceTests {
         contacts.add(g);
         contacts.add(h);
 
-        Collections.sort(contacts, rc.comparator);
+        Collections.sort(contacts, rc.contactComparator);
 
         assertTrue(contacts.get(4).getOrganisation().getObjref() == 1L);
         assertTrue(contacts.get(5).getOrganisation().getObjref() == 1L);
@@ -444,9 +425,35 @@ public class XMLInterfaceTests {
         contacts.add(c);
         contacts.add(d);
 
-        Collections.sort(contacts, rc.comparator);
+        Collections.sort(contacts, rc.contactComparator);
 
         return contacts;
+    }
+//=========================================================================================================ORGANISATIONS
+
+    @Test
+    public void canGetDetailedOrganisations() {
+        Long[] array = getSomeOrgIds();
+        List<Long> ids = new ArrayList<>(asList(array));
+
+        List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs = rc.getOrganisations(ids);
+
+        assertTrue( ! orgs.isEmpty());
+        assertTrue(orgs.size() == 3);
+        assertTrue(orgs.get(0).getActive());
+        assertTrue(orgs.get(0).getAdditionalAddressName().equals(""));
+        assertTrue(orgs.get(0).getCity().equals("London"));
+        assertTrue(orgs.get(0).getCountry().equals("United Kingdom"));
+        assertTrue(orgs.get(0).getName().equals("Zuhlke Engineering Ltd"));
+        assertTrue(orgs.get(0).getStreetAddress().equals("80 Great Eastern Street"));
+        assertTrue(orgs.get(0).getZip().equals("EC2A 3JL"));
+        assertTrue(orgs.get(0).getObjId() == 37358L);
+        assertTrue(orgs.get(0).getPersonResponsible().getObjref() == 5295L);
+        assertTrue(orgs.get(1).getActive());
+        assertTrue(orgs.get(2).getActive());
+        assertTrue(orgs.get(1).getZip().equals("EC2Y 9AQ"));
+        assertTrue(orgs.get(2).getZip().equals("E14 4QJ"));
+
     }
 
     public List<VRAPI.ContainerDetailedOrganisation.Organisation> getsomeOrgs(){
@@ -519,6 +526,7 @@ public class XMLInterfaceTests {
 //
 //    }
 
+//=============================================================================================================FOLLOWERS
     @Test
     public void GivenTeamListCanBuildMapOfFollowedObjects() {
         List<Long> teamIds = new ArrayList<>();
@@ -541,8 +549,79 @@ public class XMLInterfaceTests {
 
     }
 
+//============================================================================================================ACTIVITIES
+    @Test
+    public void canGetActivitiesOfUsers(){
+        List<Long> teamMembers = new ArrayList<>();
+        teamMembers.add(5295L);
+        teamMembers.add(8619482L);
+        List<Long> activityRefs = rc.getActivityIds(teamMembers);
+
+        List<VRAPI.ContainerActivity.Activity> actList = rc.getActivities(activityRefs);
+
+        assertTrue(actList.size() >= 10);
+        System.out.println(actList.get(1));
+
+    }
+
+    @Test
+    public void canGetActivityType(){
+        List<Long> activityIds = new ArrayList<>();
+        activityIds.add(24541514L);
+        activityIds.add(26395314L);
 
 
+        List<Activity> activities = rc.getActivities(activityIds);
+
+        List<ActivityType> activityTypes = rc.getActivityTypes(activities);
+
+        assertTrue(activityTypes.size() == 2);
+        assertTrue(activityTypes.get(1).getObjid() == 573113L);
+        assertTrue(activityTypes.get(1).getTypename().contains("Order Confirmation"));
+    }
+
+    @Test @Ignore
+    public void displayAllActivityTypes(){
+        List<Long> teamIds = new ArrayList<>();
+        try{
+            teamIds = rc.getZUKTeamMemberIds();
+        } catch (Exception e){
+            System.out.println("Exception in getting all activity types: " + e + "}");
+        }
+
+        List<Long> activityIds = rc.getActivityIds(teamIds);
+        List<Activity> activities = rc.getActivities(activityIds);
+        Set<ActivityType> types =  new HashSet<>(rc.getActivityTypes(activities));
+
+        for(ActivityType t : types){
+            System.out.println("{" + t.getObjid() + " : " + t.getTypename());
+        }
+    }
+
+
+    @Test
+    public void canBuildActivitiesResponse(){
+        List<Long> teamIds = new ArrayList<>();
+        teamIds.add(504749L);
+        teamIds.add(16887415L);
+        try{
+
+            rc.getAddressIdsSupervisedBy(rc.getZUKTeamMemberIds()); // For building up team Map
+        } catch (Exception e){
+            System.out.println("Could not construct teammap in \'canbuildActivitesResponse\': " + e);
+        }
+
+        List<Long> aIds = rc.getActivityIds(teamIds);
+        List<Activity> activities = rc.getActivities(aIds);
+        List<ActivityType> aTypes = rc.getActivityTypes(activities);
+
+        ZUKActivitiesResponse aRes = rc.buildJSONActivitiesResponse(activities, aTypes);
+
+        System.out.println(aRes);
+
+        //TODO: make assertions
+
+    }
 
 }
 

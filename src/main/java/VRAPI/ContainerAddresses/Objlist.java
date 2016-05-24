@@ -23,4 +23,5 @@ public class Objlist {
     public void setObjects(List<Long> objects) {
         this.objects = objects;
     }
+
 }
