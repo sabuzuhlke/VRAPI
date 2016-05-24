@@ -359,7 +359,7 @@ public class ResourceController {
                 .filter(VRAPI.ContainerAddresses.ProjectWorker::getActive)
                 .forEach(w -> {
                     ids.addAll(w.getAddresses().getList().getObjects());
-                    teamMap.put(w.getObjid(), w.getEmail());
+                    teamMap.put(w.getObjid(), w.getEmail().toLowerCase());
                 });
         uniqueIds.addAll(ids);
         ids.clear();
@@ -475,7 +475,7 @@ public class ResourceController {
 
                 if(vo.getObjId().longValue() == a.getOrganisation().getObjref().longValue()) {
                     JSONContact c = new JSONContact(a);
-                    c.setOwner(teamMap.get(a.getPersonResponsible().getObjref()).toLowerCase());
+                    c.setOwner(teamMap.get(a.getPersonResponsible().getObjref()));
                     c.setFollowers(followerMap.get(c.getObjid()));
                     if(c.getFollowers() == null) c.setFollowers(new ArrayList<>());
 
