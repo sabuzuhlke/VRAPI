@@ -250,7 +250,7 @@ public class ResourceController {
     }
 
     private JSONProject asJsonProject(ProjectWithType pwt) {
-        JSONProject proj = new JSONProject(pwt.project);
+        JSONProject proj = new JSONProject(pwt.project, teamMap.get(pwt.project.getLeader().getObjref()));
         proj.setPhases(phasesFor(pwt.project));
         proj.setType(pwt.projectType.getDescripton());
         proj.setCurrency(getCurrency(pwt.currencyId()).getName());
