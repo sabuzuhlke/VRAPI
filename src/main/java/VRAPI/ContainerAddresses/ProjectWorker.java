@@ -12,6 +12,7 @@ public class ProjectWorker {
     private Long objid;
     private Boolean active;
     private String email;
+    private Activities activities;
     public ProjectWorker() {
     }
 
@@ -48,5 +49,14 @@ public class ProjectWorker {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    @XmlElement(name = "pendAktivitaeten")
+    public Activities getActivities() {
+        return activities;
+    }
+
+    public void setActivities(Activities activities) {
+        this.activities = activities;
     }
 }
