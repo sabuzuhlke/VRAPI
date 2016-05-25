@@ -20,7 +20,7 @@ public class JSONProject {
     @JsonProperty("client_ref")
     private Long clientRef;
     @JsonProperty("leader_ref")
-    private Long leaderRef;
+    private String leaderRef;
     @JsonProperty("customer_ref")
     private Long customerId;
     @JsonProperty("type")
@@ -38,13 +38,13 @@ public class JSONProject {
     public JSONProject() {
     }
 
-    public JSONProject(VRAPI.ContainerDetailedProjects.Project pr) {
+    public JSONProject(VRAPI.ContainerDetailedProjects.Project pr, String leaderEmail) {
         this.title = pr.getTitle();
         this.v_id = pr.getId();
         this.active = pr.getActive();
         this.code = pr.getCode();
         this.clientRef = pr.getClient().getObjref();
-        this.leaderRef = pr.getLeader().getObjref();
+        this.leaderRef = leaderEmail;
         this.customerId = pr.getCustomer().getObjref();
         this.modifiedDate = pr.getModifiedDate();
         this.creationDate = pr.getCreationDate();
@@ -94,11 +94,11 @@ public class JSONProject {
         this.clientRef = clientRef;
     }
 
-    public Long getLeaderRef() {
+    public String getLeaderRef() {
         return leaderRef;
     }
 
-    public void setLeaderRef(Long leaderRef) {
+    public void setLeaderRef(String leaderRef) {
         this.leaderRef = leaderRef;
     }
 
