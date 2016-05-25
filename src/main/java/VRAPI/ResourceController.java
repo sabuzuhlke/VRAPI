@@ -250,7 +250,11 @@ public class ResourceController {
     }
 
     private JSONProject asJsonProject(ProjectWithType pwt) {
-        JSONProject proj = new JSONProject(pwt.project, teamMap.get(pwt.project.getLeader().getObjref()));
+        String leaderEmail = teamMap.get(pwt.project.getLeader().getObjref());
+        if (leaderEmail == null) {
+            System.out.println("Null leader email, id:" + pwt.project.getLeader().getObjref());
+        }
+        JSONProject proj = new JSONProject(pwt.project, leaderEmail);
         proj.setPhases(phasesFor(pwt.project));
         proj.setType(pwt.projectType.getDescripton());
         proj.setCurrency(getCurrency(pwt.currencyId()).getName());
@@ -878,8 +882,8 @@ public class ResourceController {
         String bodyEnd = "</Selection>\n" +
                 "      <Resultdef>\n" +
                 "           <member>aktiv</member>\n" +
-                "           <member>SumWertInt</member>\n" +
-                "           <member>SumWertExt</member>\n" +
+                "           <member>SumWertInt</member>\n" + //TODO:delete dude
+                "           <member>PlanWertExt</member>\n" +
                 "           <member>Status</member>\n" +
                 "           <member>Code</member>\n" +
                 "           <member>Beschreibung</member>\n" +

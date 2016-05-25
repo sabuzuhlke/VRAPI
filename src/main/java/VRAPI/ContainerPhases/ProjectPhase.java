@@ -74,7 +74,7 @@ public class ProjectPhase {
         this.status = status;
     }
 
-    @XmlElement(name = "sumWertExt")
+    @XmlElement(name = "planWertExt")
     public String getExternalValue() {
         return externalValue;
     }
