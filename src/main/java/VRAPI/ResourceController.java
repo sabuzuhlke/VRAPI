@@ -226,6 +226,7 @@ public class ResourceController {
         return getDetailedProjects(getProjectsTeamAreWorkingOn(teamMemberIDs)).stream()
                 .map(this::fromProject)
                 .filter(ProjectWithType::isInUK)
+                .filter(ProjectWithType::isExternal)
                 .map(this::asJsonProject)
                 .collect(toList());
     }
@@ -242,6 +243,11 @@ public class ResourceController {
         private boolean isInUK() {
             final String descripton = projectType.getDescripton();
             return descripton.contains("SGB_") || descripton.contains("EMS") || descripton.contains("DSI") || descripton.contains("CAP");
+        }
+
+        private boolean isExternal(){
+            final String code = project.getCode();
+            return code.contains("C");
         }
 
         private Long currencyId() {
