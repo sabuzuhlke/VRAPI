@@ -211,7 +211,7 @@ public class APItests {
         for(JSONProject p : res.getBody().getProjects()){
             assertTrue(p.getType().contains("SGB_") || p.getType().contains("EMS") || p.getType().contains("DSI") || p.getType().contains("CAP"));
         }
-        //System.out.println(res.getBody().toString());
+        System.out.println(res.getBody().toString());
 
     }
 
@@ -243,8 +243,8 @@ public class APItests {
         assertTrue( ! res.getBody().contains("26376851"));
         assertTrue( ! res.getBody().contains("28013137"));
         System.out.println(res);
-        //System.out.println("Size: " + res.getBody().getActivities().size());
-
+//        System.out.println("Size: " + res.getBody().getActivities().size());
+//
     }
 
 

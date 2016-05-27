@@ -2,6 +2,7 @@ package VRAPI.ContainerActivitiesJSON;
 
 import VRAPI.ContainerActivity.Activity;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
  * Created by gebo on 24/05/2016.
@@ -63,6 +64,9 @@ public class JSONActivity {
         this(activity);
         this.assignee = assignee;
         this.type = typeName;
+        if (customer_link == null && phase_link == null && project_link == null) {
+            System.out.println("Found activity not attached to anything: " + toPrettyJSON());
+        }
     }
 
     @JsonProperty("id")
@@ -155,4 +159,16 @@ public class JSONActivity {
         this.type = type;
     }
 
+    public String toPrettyJSON() {
+        String retStr = null;
+        ObjectMapper m = new ObjectMapper();
+        try{
+
+            retStr = m.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+        }
+        catch(Exception e){
+            System.out.println("Could not build JSON Projects: " + e.toString());
+        }
+        return retStr;
+    }
 }
