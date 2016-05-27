@@ -42,6 +42,10 @@ public class JSONPhase {
     private String modifiedDate;
     @JsonProperty("created")
     private String creationDate;
+    @JsonProperty("creation_date")
+    private String completionDate;
+    @JsonProperty("rejectionDate")
+    private String rejectionDate;
 
     @SuppressWarnings("unused")
     public JSONPhase() {
@@ -64,6 +68,8 @@ public class JSONPhase {
         this.creationDate = ph.getCreationDate();
         //this.grantedDate = ph
         this.personResponsible = personResponsible;
+        this.completionDate = ph.getCompletionDate();
+        this.rejectionDate = ph.getRejectionDate();
     }
 
     public Long getV_id() {
@@ -194,5 +200,21 @@ public class JSONPhase {
 
     public void setCreationDate(String creationDate) {
         this.creationDate = creationDate;
+    }
+
+    public String getCompletionDate() {
+        return completionDate;
+    }
+
+    public void setCompletionDate(String completionDate) {
+        this.completionDate = completionDate;
+    }
+
+    public String getRejectionDate() {
+        return rejectionDate;
+    }
+
+    public void setRejectionDate(String rejectionDate) {
+        this.rejectionDate = rejectionDate;
     }
 }

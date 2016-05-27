@@ -20,6 +20,8 @@ public class ProjectPhase {
     private PersonResponsible personResponsible;
     private String startDate;
     private String endDate;
+    private String completionDate;
+    private String rejectionDate;
     private String offeredDate;
     private String salesStatus;
     private String lostReason;
@@ -161,5 +163,23 @@ public class ProjectPhase {
 
     public void setCreationDate(String creationDate) {
         this.creationDate = creationDate;
+    }
+
+    @XmlElement(name = "abschlussDatum")
+    public String getCompletionDate() {
+        return completionDate;
+    }
+
+    public void setCompletionDate(String completionDate) {
+        this.completionDate = completionDate;
+    }
+
+    @XmlElement(name = "abgelehntDatum")
+    public String getRejectionDate() {
+        return rejectionDate;
+    }
+
+    public void setRejectionDate(String rejectionDate) {
+        this.rejectionDate = rejectionDate;
     }
 }

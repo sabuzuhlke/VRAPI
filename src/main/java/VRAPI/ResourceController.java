@@ -890,6 +890,7 @@ public class ResourceController {
                 "           <member>Code</member>\n" +
                 "           <member>Beschreibung</member>\n" +
                 "           <member>AbschlussDatum</member>\n" +
+                "           <member>abgelehntDatum</member>\n" +
                 "           <member>Verantwortlicher</member>\n" +
                 "           <member>offertdatum</member>\n" +
                 "           <member>startDatum</member>\n" +
