@@ -2,6 +2,7 @@ package VRAPI.ContainerProjectJSON;
 
 import VRAPI.ContainerPhases.ProjectPhase;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.text.DecimalFormat;
 
@@ -216,5 +217,18 @@ public class JSONPhase {
 
     public void setRejectionDate(String rejectionDate) {
         this.rejectionDate = rejectionDate;
+    }
+
+    public String toJSONString(){
+        String retStr = null;
+        ObjectMapper m = new ObjectMapper();
+        try{
+
+            retStr = m.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+        }
+        catch(Exception e){
+            System.out.println("Could not convert XML Envelope to JSON: " + e.toString());
+        }
+        return retStr;
     }
 }

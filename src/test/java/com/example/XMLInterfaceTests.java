@@ -106,7 +106,6 @@ public class XMLInterfaceTests {
         assertTrue( ! phases.get(1).getActive());
         assertTrue(phases.get(1).getCode().equals("10_ALPHA"));
         assertTrue(phases.get(1).getDescription().equals("CA Alpha"));
-        assertTrue(phases.get(1).getExternalValue().equals("353,290.32"));
         assertTrue(phases.get(1).getInternalValue().equals("353,290.32"));
         assertTrue(phases.get(1).getStatus() == 1);
         assertTrue(phases.get(1).getPersonResponsible().getObjref() == 504354);
@@ -580,7 +579,7 @@ public class XMLInterfaceTests {
         assertTrue(activityTypes.get(1).getTypename().contains("Order Confirmation"));
     }
 
-    @Test @Ignore
+    @Test
     public void displayAllActivityTypes(){
         List<Long> teamIds = new ArrayList<>();
         try{

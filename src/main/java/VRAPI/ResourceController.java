@@ -36,6 +36,8 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import java.net.URI;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 import static java.util.Collections.singletonList;
@@ -99,7 +101,6 @@ public class ResourceController {
         this.teamMap = teamMap;
     }
 
-    //TODO Build Activity Response
     //------------------------------------------------------------------------------------------------------------Paths
     @Autowired
     private HttpServletRequest request;
@@ -225,6 +226,7 @@ public class ResourceController {
     private List<JSONProject> projectsForTeam(List<Long> teamMemberIDs) {
         return getDetailedProjects(getProjectsTeamAreWorkingOn(teamMemberIDs)).stream()
                 .map(this::fromProject)
+                .filter(ProjectWithType::isAfterCutOffDate)
                 .filter(ProjectWithType::isInUK)
                 .filter(ProjectWithType::isExternal)
                 .map(this::asJsonProject)
@@ -253,10 +255,18 @@ public class ResourceController {
         private Long currencyId() {
             return project.getCurrency().getObjref();
         }
+
+        public boolean isAfterCutOffDate() {
+            DateTimeFormatter v = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+            LocalDateTime vt = LocalDateTime.from(v.parse(project.getCreationDate()));
+            LocalDateTime cutoff = LocalDateTime.from(v.parse("2008-01-01T00:00:00"));
+            return vt.isAfter(cutoff);
+        }
     }
 
     private JSONProject asJsonProject(ProjectWithType pwt) {
-        JSONProject proj = new JSONProject(pwt.project, teamMap.get(pwt.project.getLeader().getObjref()));
+        String leaderEmail = teamMap.get(pwt.project.getLeader().getObjref());
+        JSONProject proj = new JSONProject(pwt.project, leaderEmail);
         proj.setPhases(phasesFor(pwt.project));
         proj.setType(pwt.projectType.getDescripton());
         proj.setCurrency(getCurrency(pwt.currencyId()).getName());
@@ -270,7 +280,10 @@ public class ResourceController {
     private List<JSONPhase> phasesFor(Project project) {
         return getPhasesForProject(project.getPhases().getObjlist().getObjrefs()).stream()
                 .filter(phase -> !phase.getCode().contains("00_INTERN"))
-                .map(phase -> new JSONPhase(phase, teamMap.get(phase.getPersonResponsible().getObjref())))
+                .map(phase -> {
+                    String responsibleEmail = teamMap.get(project.getLeader().getObjref());
+                    return new JSONPhase(phase, responsibleEmail);
+                })
                 .collect(toList());
     }
 
@@ -306,7 +319,6 @@ public class ResourceController {
     }
 
     public List<VRAPI.ContainerPhases.ProjectPhase> getPhasesForProject(List<Long> phaseIds) {
-        // TODO filter out inactive projects?
         return callVertec(
                 getXMLQuery_GetProjectPhases(phaseIds),
                 VRAPI.ContainerPhases.Envelope.class).getBody().getQueryResponse().getPhases();
@@ -507,7 +519,6 @@ public class ResourceController {
             JSONContact c = new JSONContact(a);
             c.setOwner(teamMap.get(a.getPersonResponsible().getObjref()));
             c.setFollowers(followerMap.get(c.getObjid()));
-
             if (c.getFollowers() == null) c.setFollowers(new ArrayList<>());
             dangle.add(c);
         }
@@ -567,18 +578,23 @@ public class ResourceController {
 
         return new ZUKActivitiesResponse(
                 activities.stream()
-                        .map(activity -> {
-                            JSONActivity ja = new JSONActivity(
-                                    activity,
-                                    teamMap.get(activity.getAssignee().getObjref()),
-                                    typeMap.get(activity.getType().getObjref()));
-                            ja.setAssignee(teamMap.get(activity.getAssignee().getObjref()));
-                            ja.setType(typeMap.get(activity.getType().getObjref()));
-                            return ja;
-                        })
+                        .map(activity ->
+                                new JSONActivity(
+                                        activity,
+                                        teamMap.get(activity.getAssignee().getObjref()),
+                                        typeMap.get(activity.getType().getObjref()))
+                        )
+                        .filter(activity -> (
+                                activity.getCustomer_link() != null
+                                || activity.getPhase_link() != null
+                                || activity.getProject_link() != null))
                         .filter(activity ->
                                 ofNullable(activity.getType())
-                                .map(type -> !(type.contains("Contract") || type.contains("Document")))
+                                .map(type -> !(type.contains("Contract")
+                                        || type.contains("Document")
+                                        || type.contains("Organizational Chart")
+                                        || type.contains("Order Confirmation")
+                                        || type.contains("Offer")))
                                 .orElse(true))
                         .collect(toList()));
     }
@@ -820,7 +836,7 @@ public class ResourceController {
                 "        <member>Aktiv</member>\n" +
                 "        <member>Phasen</member>\n" +
                 "        <member>projektnummer</member>\n" +
-                "        <member>projektleiter</member>\n" +
+                "        <member>hb</member>\n" +
                 "        <member>code</member>\n" +
                 "        <member>auftraggeber</member>\n" +
                 "        <member>typ</member>\n" +
@@ -884,8 +900,8 @@ public class ResourceController {
         String bodyEnd = "</Selection>\n" +
                 "      <Resultdef>\n" +
                 "           <member>aktiv</member>\n" +
-                "           <member>SumWertInt</member>\n" +
-                "           <member>SumWertExt</member>\n" +
+                "           <member>SumWertInt</member>\n" + //TODO:delete dude
+                "           <member>PlanWertExt</member>\n" +
                 "           <member>Status</member>\n" +
                 "           <member>Code</member>\n" +
                 "           <member>Beschreibung</member>\n" +
