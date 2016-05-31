@@ -1,0 +1,35 @@
+<Envelope>
+    <Body>
+        <QueryResponse>
+            <Projektbearbeiter>
+                <objid>5295</objid>
+                <team>
+                    <objlist>
+                        <objref>5726</objref>
+                        <objref>504354</objref>
+                        <objref>504419</objref>
+                        <objref>504749</objref>
+                        <objref>1795374</objref>
+                        <objref>6574798</objref>
+                        <objref>8619482</objref>
+                        <objref>8904906</objref>
+                        <objref>10301189</objref>
+                        <objref>12456812</objref>
+                        <objref>15948308</objref>
+                        <objref>16400137</objref>
+                        <objref>16887415</objref>
+                        <objref>17739496</objref>
+                        <objref>18010762</objref>
+                        <objref>18635504</objref>
+                        <objref>21741030</objref>
+                        <objref>22501574</objref>
+                        <objref>23560788</objref>
+                        <objref>23605860</objref>
+                        <objref>24807265</objref>
+                        <objref>24907657</objref>
+                    </objlist>
+                </team>
+            </Projektbearbeiter>
+        </QueryResponse>
+    </Body>
+</Envelope>

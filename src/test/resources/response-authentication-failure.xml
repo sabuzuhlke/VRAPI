@@ -1,0 +1,15 @@
+<Envelope>
+    <Body>
+        <Fault>
+            <faultcode>Client</faultcode>
+            <faultstring>Error(s) in XML input</faultstring>
+            <details>
+                <detailitem>Error: Authentication failure. Wrong User Name or Password. on line 9 col 15</detailitem>
+                <detailitem>Error: Authentication failure. Wrong User Name or Password. on line 10 col 21</detailitem>
+                <detailitem>Error: Authentication failure. Wrong User Name or Password. on line 11 col 9</detailitem>
+                <detailitem>Error: Authentication failure. Wrong User Name or Password. on line 13 col 21</detailitem>
+                <detailitem>Error: Authentication failure. Wrong User Name or Password. on line 14 col 12</detailitem>
+            </details>
+        </Fault>
+    </Body>
+</Envelope>

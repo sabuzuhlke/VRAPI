@@ -1,0 +1,11 @@
+<Envelope>
+    <Body>
+        <Fault>
+            <faultcode>Client</faultcode>
+            <faultstring>Error(s) in XML input</faultstring>
+            <details>
+                <detailitem>Error: read access denied on ocl expression projektBearbeiter->select(loginName='wje') on line 12 col 22</detailitem>
+            </details>
+        </Fault>
+    </Body>
+</Envelope>

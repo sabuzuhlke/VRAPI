@@ -33,17 +33,32 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.w3c.dom.Node.ELEMENT_NODE;
 
 @SuppressWarnings("WeakerAccess")
 @RestController
@@ -53,6 +68,7 @@ public class ResourceController {
 
     final private String VipAddress;
     private final URI vertecURI;
+    private final DocumentBuilder documentBuilder;
     private String VportNr;
     private String OwnIpAddress;
     private String OwnPortNr; //To be used for querying Vertec --XML Marshaller
@@ -63,7 +79,7 @@ public class ResourceController {
     public ActivityComparator activityComparator;
     private Map<Long, String> teamMap;
 
-    public ResourceController() {
+    public ResourceController() throws ParserConfigurationException {
         //IpAddress:portNum of VertecServer
         this.VipAddress = DEFAULT_VERTEC_SERVER_HOST;
         this.VportNr = DEFAULT_VERTEC_SERVER_PORT;
@@ -95,6 +111,7 @@ public class ResourceController {
         this.contactComparator = new ContactComparator();
         this.activityComparator = new ActivityComparator();
         this.teamMap = new HashMap<>();
+        this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
     }
 
     public void setTeamMap(Map<Long, String> teamMap) {
@@ -347,32 +364,62 @@ public class ResourceController {
                 .collect(toSet());
     }
 
-    public List<Long> getZUKTeamMemberIds() throws XMLFailureException {
-        RequestEntity<String> req;
-        ResponseEntity<VRAPI.ContainerTeam.Envelope> res;
+    public List<Long> getZUKTeamMemberIds()  {
 
         String xmlQuery = getXMLQuery_LeadersTeam();
         String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
 
-        req = new RequestEntity<>(xmlQuery, HttpMethod.POST, URI.create(uri));
+        queryResponseIn(responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, URI.create(uri))))
+                .map(queryResponse -> queryResponse.getElementsByTagName("objref"))
+                .map(ResourceController::asIdList)
+                .orElse(emptyList());
 
+
+        // try {
+
+            //checkResHasInfo(res.getBody());
+            //return res.getBody().getBody().getQueryResponse().getWorkers().get(0).getTeam().getList().getObjects();
+
+            return emptyList();
+
+//        } catch (XMLFailureException e) {
+//            System.out.println("XMLException thrown by getZUKTeamMemberIds");
+//            System.out.println("Did not receive Team, attempting to receive error message");
+//            ResponseEntity<VRAPI.ContainerError.Envelope> rese = this.rest.exchange(req, VRAPI.ContainerError.Envelope.class);
+//
+//            String errorDetail = rese.getBody().getBody().getFault().getDetails().getDetailitem().get(0);
+//
+//            if (errorDetail.contains("Error: Authentication failure. Wrong User Name or Password")) {
+//                throw new XMLFailureException("Ping Failed: Wrong Username or Password received in request header");
+//            } else {
+//                throw new XMLFailureException("Partial Failure: Username and Password provided do not have sufficient permissions to access all Vertec Data. Some queries may return missing or no information");
+//            }
+//        }
+    }
+
+    private static List<Long> asIdList(NodeList nodeList) {
+        return asStream(nodeList).map(Long::parseLong).collect(toList());
+    }
+
+    private static Stream<String> asStream(NodeList nodeList) {
+        return IntStream.range(0, nodeList.getLength())
+                .mapToObj(nodeList::item)
+                .map(Node::getTextContent);
+    }
+
+    private static Optional<Element> queryResponseIn(Document document) {
+        final NodeList queryResponses = document.getElementsByTagName("QueryResponse");
+        return queryResponses.getLength() == 1 && queryResponses.item(0).getNodeType() == ELEMENT_NODE
+                ? Optional.of((Element) queryResponses.item(0))
+                : Optional.empty();
+    }
+
+    private Document responseFor(RequestEntity<String> req)  {
         try {
-            res = this.rest.exchange(req, VRAPI.ContainerTeam.Envelope.class);
-            checkResHasInfo(res.getBody());
-            return res.getBody().getBody().getQueryResponse().getWorkers().get(0).getTeam().getList().getObjects();
-
-        } catch (XMLFailureException e) {
-            System.out.println("XMLException thrown by getZUKTeamMemberIds");
-            System.out.println("Did not receive Team, attempting to receive error message");
-            ResponseEntity<VRAPI.ContainerError.Envelope> rese = this.rest.exchange(req, VRAPI.ContainerError.Envelope.class);
-
-            String errorDetail = rese.getBody().getBody().getFault().getDetails().getDetailitem().get(0);
-
-            if (errorDetail.contains("Error: Authentication failure. Wrong User Name or Password")) {
-                throw new XMLFailureException("Ping Failed: Wrong Username or Password received in request header");
-            } else {
-                throw new XMLFailureException("Partial Failure: Username and Password provided do not have sufficient permissions to access all Vertec Data. Some queries may return missing or no information");
-            }
+            final ResponseEntity<String> res = this.rest.exchange(req, String.class);
+            return documentBuilder.parse(new ByteArrayInputStream(res.getBody().getBytes(UTF_8)));
+        } catch (SAXException| IOException e) {
+            throw new HttpInternalServerError(e);
         }
     }
 
