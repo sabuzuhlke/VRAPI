@@ -36,82 +36,52 @@ import static org.junit.Assert.assertTrue;
 @WebIntegrationTest
 public class APItests {
     private ResourceController rc;
+    private String username;
+    private String password;
+    private RestTemplate rt;
 
     @Before
     public void setUp(){
         this.rc = new ResourceController();
+        MyAccessCredentials mac = new MyAccessCredentials();
+        this.username = mac.getUserName();
+        this.password = mac.getPass();
+        this.rt = new RestTemplate();
     }
 
     static {
         //for localhost testing only
         javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(
-                new javax.net.ssl.HostnameVerifier() {
+                (hostname, sslSession) -> hostname.equals("localhost"));
+    }
 
-                    public boolean verify(String hostname,
-                                          javax.net.ssl.SSLSession sslSession) {
-                        if (hostname.equals("localhost")) {
-                            return true;
-                        }
-                        return false;
-                    }
-                });
+    private <RES> ResponseEntity<RES> getFromVertec(String uri, Class<RES> responseType) {
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", username + ':' + password);
+        return rt.exchange(
+                new RequestEntity<>(headers, HttpMethod.GET, URI.create(uri)),
+                responseType);
     }
 
     @Test
     public void apiIsUP(){
-
-        RestTemplate rt = new RestTemplate();
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/ping";
-        RequestEntity<String> req = null;
-        ResponseEntity<String> res;
-
-        MyAccessCredentials mac = new MyAccessCredentials();
-        String username = mac.getUserName();
-        String pwd = mac.getPass();
-
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("Authorization", username + ':' + pwd);
-        try{
-
-            req = new RequestEntity<>(headers, HttpMethod.GET, new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create ping Request");
-        }
-        assertTrue(req != null);
-
-        res = rt.exchange(req,String.class);
+        ResponseEntity<String> res = getFromVertec(url, String.class);
 
         assertTrue(res != null);
         assertTrue(res.getStatusCode() == HttpStatus.OK);
         assertTrue(res.getBody() != null);
         assertTrue(res.getBody().equals("Success!"));
-
     }
 
 
     @Test
     public void canNotGetZUKWithLimitedAccess(){
-        RestTemplate rt = new RestTemplate();
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK";
-        RequestEntity<String> req = null;
-        ResponseEntity<String> res;
-
         MyLimitedCredentials mlc = new MyLimitedCredentials();
-        String username = mlc.getUserName();
-        String pwd = mlc.getPass();
-
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("Authorization", username + ':' + pwd);
-        try{
-
-            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create ping Request");
-        }
-        assertTrue(req != null);
-        res = rt.exchange(req,String.class);
+        this.username = mlc.getUserName();
+        this.password = mlc.getPass();
+        ResponseEntity<String> res = getFromVertec(url, String.class);
 
         System.out.println("res: " + res);
 
@@ -122,27 +92,16 @@ public class APItests {
                         "do not have sufficient permissions to access all " +
                         "Vertec Data. Some queries may return missing or no " +
                         "information"));
-
     }
 
     @Test
     public void canNotGetZUKWithNoAccess(){
-        RestTemplate rt = new RestTemplate();
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK";
-        RequestEntity<String> req = null;
-        ResponseEntity<String> res;
-
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("Authorization", "blah" + ':' + "blah");
-        try{
-
-            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create ping Request");
-        }
-        assertTrue(req != null);
-        res = rt.exchange(req,String.class);
+        this.username = "blah";
+        this.password = "blah";
+        
+        ResponseEntity<String> res = getFromVertec(url, String.class);
+        
         assertTrue(res != null);
         assertTrue(res.getBody() != null);
         assertTrue(res.getBody()
@@ -150,29 +109,10 @@ public class APItests {
 
     }
 
-    @Test
+    @Test @Ignore
     public void canGetZUK(){
-
-        RestTemplate rt = new RestTemplate();
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK/";
-        RequestEntity<String> req = null;
-        ResponseEntity<ZUKOrganisationResponse> res;
-        MyAccessCredentials creds = new MyAccessCredentials();
-        try{
-
-
-            //add authentication header to headers object
-            MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-            headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
-
-            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create Request for ZUK");
-        }
-        assertTrue(req != null);
-
-        res = rt.exchange(req,ZUKOrganisationResponse.class);
+        ResponseEntity<ZUKOrganisationResponse> res = getFromVertec(url, ZUKOrganisationResponse.class);
 
         assertTrue(res != null);
         assertTrue(res.getStatusCode() == HttpStatus.OK);
@@ -180,29 +120,10 @@ public class APItests {
         System.out.println(res.getBody().toPrettyString());
     }
 
-    @Test
+    @Test @Ignore
     public void canGetZUKProjects() {
-
-        RestTemplate rt = new RestTemplate();
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/projects/ZUK/";
-        RequestEntity<String> req = null;
-        ResponseEntity<ZUKProjectsResponse> res;
-        MyAccessCredentials creds = new MyAccessCredentials();
-        try{
-
-
-            //add authentication header to headers object
-            MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-            headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
-
-            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create Request for ZUK Projects");
-        }
-        assertTrue(req != null);
-
-        res = rt.exchange(req, ZUKProjectsResponse.class);
+        ResponseEntity<ZUKProjectsResponse> res = getFromVertec(url, ZUKProjectsResponse.class);
 
         System.out.println(res);
         assertTrue(res != null);
@@ -216,30 +137,11 @@ public class APItests {
 
     }
 
-    @Test
+    @Test @Ignore
     public void canGetZUKActivities(){
-        RestTemplate rt = new RestTemplate();
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/activities/ZUK/";
-        RequestEntity<String> req = null;
-        ResponseEntity<String> res;
-        MyAccessCredentials creds = new MyAccessCredentials();
-        try{
+        ResponseEntity<String> res = getFromVertec(url, String.class);
 
-
-            //add authentication header to headers object
-            MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-            headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
-
-            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create Request for ZUK Activities");
-        }
-        assertTrue(req != null);
-
-        res = rt.exchange(req, String.class);
-
-        System.out.println(res);
         assertTrue(res.getStatusCode() == HttpStatus.OK);
         assertTrue( ! res.getBody().contains("26376851"));
         assertTrue( ! res.getBody().contains("28013137"));
@@ -248,19 +150,8 @@ public class APItests {
 
     @Test
     public void singleInstancePerRequest() throws Exception {
-        RestTemplate rt = new RestTemplate();
-
-        MyAccessCredentials mac = new MyAccessCredentials();
-        String username = mac.getUserName();
-        String pwd = mac.getPass();
-
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("Authorization", username + ':' + pwd);
-        RequestEntity<String> req = new RequestEntity<>(
-                headers,
-                HttpMethod.GET,
-                URI.create("https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/singleInstance"));
-        assertEquals(rt.exchange(req, String.class), rt.exchange(req, String.class));
+        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/singleInstance";
+        assertEquals(getFromVertec(url, String.class), getFromVertec(url, String.class));
     }
 
 
