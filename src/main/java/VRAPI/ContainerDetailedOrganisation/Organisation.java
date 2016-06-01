@@ -20,6 +20,7 @@ public class Organisation {
     private String creationTime;
     private ParentFirm parentFirm;
     private DaughterFirms daughterFirm;
+    private Contacts contacts;
 
     @XmlElement(name = "mutterfirma")
     public ParentFirm getParentFirm() {
@@ -139,5 +140,14 @@ public class Organisation {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    @XmlElement(name = "kontakte")
+    public Contacts getContacts() {
+        return contacts;
+    }
+
+    public void setContacts(Contacts contacts) {
+        this.contacts = contacts;
     }
 }

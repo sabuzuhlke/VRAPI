@@ -7,6 +7,8 @@ package com.example;
 import VRAPI.Application;
 import VRAPI.ContainerActivitiesJSON.ZUKActivitiesResponse;
 import VRAPI.ContainerDetailedProjects.Project;
+import VRAPI.ContainerOrganisationJSON.JSONContact;
+import VRAPI.ContainerOrganisationJSON.JSONOrganisation;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
 import VRAPI.ContainerProjectJSON.JSONProject;
 import VRAPI.ContainerProjectJSON.ZUKProjectsResponse;
@@ -26,7 +28,9 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.net.URI;
+import java.net.URISyntaxException;
 
 import static org.junit.Assert.assertTrue;
 
@@ -38,7 +42,11 @@ public class APItests {
 
     @Before
     public void setUp(){
-        this.rc = new ResourceController();
+        try {
+            this.rc = new ResourceController();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        }
     }
 
     static {
@@ -117,10 +125,7 @@ public class APItests {
         assertTrue(res != null);
         assertTrue(res.getBody() != null);
         assertTrue(res.getBody()
-                .contains("Partial Failure: Username and Password provided " +
-                        "do not have sufficient permissions to access all " +
-                        "Vertec Data. Some queries may return missing or no " +
-                        "information"));
+                .contains("Forbidden"));
 
     }
 
@@ -145,7 +150,7 @@ public class APItests {
         assertTrue(res != null);
         assertTrue(res.getBody() != null);
         assertTrue(res.getBody()
-                .contains("Ping Failed: Wrong Username or Password received in request header"));
+                .contains("Unauthorized"));
 
     }
 
@@ -245,6 +250,61 @@ public class APItests {
         System.out.println(res);
 //        System.out.println("Size: " + res.getBody().getActivities().size());
 //
+    }
+
+    @Test
+    public void canGetOrganisationById() throws URISyntaxException {
+        Long id = 709814L;
+
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/" + id ;
+        RequestEntity<String> req = null;
+        ResponseEntity<JSONOrganisation> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+            //add authentication header to headers object
+            MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+            headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+        req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+
+        res = rt.exchange(req, JSONOrganisation.class);
+
+        assertTrue(res.getStatusCode() == HttpStatus.OK);
+        assertTrue(res.getBody().getName().equals("Deutsche Telekom"));
+        assertTrue(res.getBody().getCountry().equals("United Kingdom"));
+        assertTrue(res.getBody().getContacts() != null);
+        assertTrue(res.getBody().getContacts().size() == 16);
+
+        assertTrue(res.getBody().getContacts().get(0).getFirstName().equals("Anthony"));
+        assertTrue(res.getBody().getContacts().get(0).getOwner().equals("Wolfgang.Emmerich@zuhlke.com"));
+        assertTrue(res.getBody().getOwner().equals("Wolfgang.Emmerich@zuhlke.com"));
+
+    }
+
+    @Test
+    public void canGetContactById() throws URISyntaxException {
+        Long id = 240238L; //Immo
+
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/contacts/" + id ;
+        RequestEntity<String> req = null;
+        ResponseEntity<JSONContact> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+        //add authentication header to headers object
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+        req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+
+        res = rt.exchange(req, JSONContact.class);
+
+        assertTrue(res.getStatusCode() == HttpStatus.OK);
+        assertTrue(res.getBody().getFirstName().equals("Immo"));
+        assertTrue(res.getBody().getSurname().equals("Hueneke"));
+        assertTrue(res.getBody().getPhone().equals("+44 870 777 2337"));
+        assertTrue(res.getBody().getOwner().equals("David.Levin@zuhlke.com"));
+        assertTrue(res.getBody().getCreationTime().equals("1900-01-01"));
+
     }
 
 

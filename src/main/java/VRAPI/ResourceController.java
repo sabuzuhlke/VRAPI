@@ -29,6 +29,7 @@ import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -49,11 +50,11 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.emptyList;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
@@ -78,6 +79,8 @@ public class ResourceController {
     public ContactComparator contactComparator;
     public ActivityComparator activityComparator;
     private Map<Long, String> teamMap;
+    private Map<Long, List<String>> followerMap;
+
 
     public ResourceController() throws ParserConfigurationException {
         //IpAddress:portNum of VertecServer
@@ -111,6 +114,7 @@ public class ResourceController {
         this.contactComparator = new ContactComparator();
         this.activityComparator = new ActivityComparator();
         this.teamMap = new HashMap<>();
+        this.followerMap = new HashMap<>();
         this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
     }
 
@@ -169,11 +173,6 @@ public class ResourceController {
     }
 
     @ApiOperation(value = "Get organisations and nested contacts")
-//    @ApiResponses(value = {
-//            @ApiResponse(code = 200, message = "Success"),
-//            @ApiResponse(code = 401, message = "Insufficient Access Credentials"),
-//            @ApiResponse(code = 403, message = "Forbidden")
-//    })
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
     })
@@ -192,11 +191,68 @@ public class ResourceController {
 
         List<List<Long>> contactIdsAndOrgsIds = getSimpleContactsandOrgs(getAddressIdsSupervisedBy(teamIds));
 
+        this.followerMap = createFollowerMap(teamIds);
+
         return buildZUKOrganisationsResponse(
-                createFollowerMap(teamIds),
-                getDetailedContacts(contactIdsAndOrgsIds.get(0)),
+                getActiveDetailedContacts(contactIdsAndOrgsIds.get(0)),
                 getOrganisations(contactIdsAndOrgsIds.get(1)))
                 .toString();
+    }
+
+
+    @ApiOperation(value = "Get an organisation by id")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
+    })
+    @RequestMapping(value = "/organisations/{id}", method = RequestMethod.GET, produces = "application/json")
+    public JSONOrganisation getOrganisationById(@PathVariable Long id){
+        List<Long> ids = new ArrayList<>();
+        ids.add(id);
+
+        VRAPI.ContainerDetailedOrganisation.Organisation org = getOrganisations(ids).get(0);
+
+        JSONOrganisation jOrg = new JSONOrganisation(org);
+
+        jOrg.setContacts(getContactsAsJSONContact(org));
+
+        jOrg.setOwner(getUserEmail(org.getPersonResponsible().getObjref()));
+
+        return jOrg;
+    }
+
+    private List<JSONContact> getContactsAsJSONContact(VRAPI.ContainerDetailedOrganisation.Organisation org) {
+        List<VRAPI.ContainerDetailedContact.Contact> conts = getDetailedContacts(org.getContacts().getObjlist().getObjref());
+        return conts.stream()
+                .map(contact -> {
+                    JSONContact jCont = new JSONContact(contact);
+                    jCont.setOwner(getUserEmail(contact.getPersonResponsible().getObjref()));
+                    return jCont;
+                })
+                .collect(toList());
+    }
+    public String getUserEmail(Long id){
+        return callVertec(getXMLQuery_GetUserEmail(id),
+                VRAPI.ContainerAddresses.Envelope.class)
+                .getBody().getQueryResponse().getWorkers().get(0).getEmail();
+    }
+
+    @ApiOperation(value = "Get an contact by id")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
+    })
+    @RequestMapping(value = "/contacts/{id}", method = RequestMethod.GET, produces = "application/json")
+
+    public JSONContact getContactbyId(@PathVariable Long id){
+        List<Long> ids = new ArrayList<>();
+        ids.add(id);
+
+        VRAPI.ContainerDetailedContact.Contact cont = getDetailedContacts(ids).get(0);
+
+        JSONContact jc = new JSONContact(cont);
+        jc.setOwner(getUserEmail(cont.getPersonResponsible().getObjref()));
+        jc.setFollowers(followerMap.get(jc.getObjid()));
+
+        return jc;
     }
 
     @ApiOperation(value = "Get projects and nested phases")
@@ -233,7 +289,7 @@ public class ResourceController {
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
     })
     @RequestMapping(value = "/activities/ZUK", method = RequestMethod.GET, produces = "application/json")
-    public ZUKActivitiesResponse getZUKActivities() throws HttpBadRequest, XMLFailureException {
+    public ZUKActivitiesResponse getZUKActivities() throws Exception {
         authorize();
 
         final List<Activity> activities = getActivities(getActivityIds(getZUKTeamMemberIds()));
@@ -364,23 +420,22 @@ public class ResourceController {
                 .collect(toSet());
     }
 
-    public List<Long> getZUKTeamMemberIds()  {
+    public List<Long> getZUKTeamMemberIds() throws Exception {
 
         String xmlQuery = getXMLQuery_LeadersTeam();
         String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
 
-        queryResponseIn(responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, URI.create(uri))))
+        final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, URI.create(uri)));
+        return elementIn(response, "QueryResponse")
                 .map(queryResponse -> queryResponse.getElementsByTagName("objref"))
                 .map(ResourceController::asIdList)
-                .orElse(emptyList());
+                .orElseThrow(() -> failureFrom(response));
 
 
         // try {
 
             //checkResHasInfo(res.getBody());
-            //return res.getBody().getBody().getQueryResponse().getWorkers().get(0).getTeam().getList().getObjects();
-
-            return emptyList();
+            //return res.getBody().getBody().getQueryResp
 
 //        } catch (XMLFailureException e) {
 //            System.out.println("XMLException thrown by getZUKTeamMemberIds");
@@ -397,6 +452,28 @@ public class ResourceController {
 //        }
     }
 
+    private Exception failureFrom(Document document) {
+        return elementIn(document, "Fault")
+                .map(fault -> fault.getElementsByTagName("detailitem"))
+                .map(detailItems -> asStream(detailItems).findFirst())
+                .map(this::asFailure)
+                .orElse(new HttpInternalServerError("no detailItem"));
+    }
+
+    private Exception asFailure(Optional<String> maybeItem) {
+        return maybeItem
+                .map(item -> {
+                            if (item.contains("read access denied")) {
+                                return new XMLFailureException("Forbidden");
+                            } else if (item.contains("Authentication failure")) {
+                                return new XMLFailureException("Unauthorized");
+                            } else {
+                                return new HttpInternalServerError(item);
+                            }
+                        }
+                ).orElse(new HttpInternalServerError("missing fault"));
+    }
+
     private static List<Long> asIdList(NodeList nodeList) {
         return asStream(nodeList).map(Long::parseLong).collect(toList());
     }
@@ -407,8 +484,8 @@ public class ResourceController {
                 .map(Node::getTextContent);
     }
 
-    private static Optional<Element> queryResponseIn(Document document) {
-        final NodeList queryResponses = document.getElementsByTagName("QueryResponse");
+    private static Optional<Element> elementIn(Document document, String tagname) {
+        final NodeList queryResponses = document.getElementsByTagName(tagname);
         return queryResponses.getLength() == 1 && queryResponses.item(0).getNodeType() == ELEMENT_NODE
                 ? Optional.of((Element) queryResponses.item(0))
                 : Optional.empty();
@@ -458,12 +535,16 @@ public class ResourceController {
         rIds.add(oIds);
         return rIds;
     }
+    public List<VRAPI.ContainerDetailedContact.Contact> getActiveDetailedContacts(List<Long> ids){
+        return getDetailedContacts(ids).stream()
+                .filter(VRAPI.ContainerDetailedContact.Contact::getActive)
+                .collect(toList());
+    }
 
     public List<VRAPI.ContainerDetailedContact.Contact> getDetailedContacts(List<Long> ids) {
         List<VRAPI.ContainerDetailedContact.Contact> contacts = new ArrayList<>();
         contacts.addAll(
                 callVertec(getXMLQuery_GetContactDetails(ids), VRAPI.ContainerDetailedContact.Envelope.class).getBody().getQueryResponse().getContactList().stream()
-                        .filter(VRAPI.ContainerDetailedContact.Contact::getActive)
                         .collect(toList()));
 
         Collections.sort(contacts, this.contactComparator);
@@ -496,18 +577,16 @@ public class ResourceController {
 
                 for (GenericLinkContainer glc : genericLinkContainers) {
                     Long objref = glc.getFromContainer().getObjref();
-                    try {
 
+                    if(map.containsKey(objref)){
                         List<String> idsFollowing = map.get(objref);
                         idsFollowing.add(leader.getBody().getQueryResponse().getProjectWorker().getEmail().toLowerCase());
                         map.replace(objref, idsFollowing);
-
-                    } catch (Exception e) {
+                    } else {
 
                         List<String> idsFollowing = new ArrayList<>();
                         idsFollowing.add(leader.getBody().getQueryResponse().getProjectWorker().getEmail().toLowerCase());
                         map.put(objref, idsFollowing);
-
                     }
                 }
             }
@@ -525,7 +604,7 @@ public class ResourceController {
         return callVertec(getXMLQuery_LeadersFromLinks(id), VRAPI.ContainerFollower.Envelope.class);
     }
 
-    public ZUKOrganisationResponse buildZUKOrganisationsResponse(Map<Long, List<String>> followerMap, List<VRAPI.ContainerDetailedContact.Contact> contacts, List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs) {
+    public ZUKOrganisationResponse buildZUKOrganisationsResponse(List<VRAPI.ContainerDetailedContact.Contact> contacts, List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs) {
         ZUKOrganisationResponse res = new ZUKOrganisationResponse();
         List<JSONContact> dangle = new ArrayList<>();
 
@@ -852,6 +931,7 @@ public class ResourceController {
                 "        <member>creationDateTime</member>\n" +
                 "        <member>mutterfirma</member>\n" +
                 "        <member>tochterfirmen</member>\n" +
+                "        <member>kontakte</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +
@@ -1116,6 +1196,32 @@ public class ResourceController {
         return header + bodyStart + bodyEnd;
     }
 
+    private String getXMLQuery_GetUserEmail(Long id){
+        String header = "<Envelope>\n" +
+                "  <Header>\n" +
+                "    <BasicAuth>\n" +
+                "      <Name>" + this.username + "</Name>\n" +
+                "      <Password>" + this.password + "</Password>\n" +
+                "      </BasicAuth>\n" +
+                "  </Header>\n";
+
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
+
+            bodyStart += "<objref>" + id + "</objref>\n";
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "        <member>briefEmail</member>\n" + //will return Email address of team member
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + bodyStart + bodyEnd;
+    }
+
     private void checkResHasInfo(VRAPI.ContainerTeam.Envelope envelope) throws XMLFailureException {
         if (envelope.getBody().getQueryResponse() == null) {
             throw new XMLFailureException("missing query response");
@@ -1186,5 +1292,13 @@ public class ResourceController {
     }
     public String getOwnPortNr() {
         return OwnPortNr;
+    }
+
+    public Map<Long, List<String>> getFollowerMap() {
+        return followerMap;
+    }
+
+    public void setFollowerMap(Map<Long, List<String>> followerMap) {
+        this.followerMap = followerMap;
     }
 }

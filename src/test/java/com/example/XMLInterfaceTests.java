@@ -12,17 +12,16 @@ import VRAPI.ContainerDetailedOrganisation.ParentFirm;
 import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
 import VRAPI.ResourceController;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import javax.xml.parsers.ParserConfigurationException;
 import java.util.*;
 
 import static java.util.Arrays.asList;
-import static java.util.stream.Collectors.toList;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertEquals;
@@ -36,6 +35,9 @@ public class XMLInterfaceTests {
     public static final List<Long> KNOWN_SUPERVISOR_IDS = asList(504419L, 504749L, 1795374L, 6574798L, 8619482L, 8904906L, 10301189L, 12456812L);
     public static final long ADDRESS_BELONGING_TO_INACTIVE_TEAM_MEMBER = 1307942L;
     private final ResourceController rc = new ResourceController();
+
+    public XMLInterfaceTests() throws ParserConfigurationException {
+    }
 
     @Test
     public void canGetZUKTeamMembers() {
@@ -189,7 +191,7 @@ public class XMLInterfaceTests {
         Long[] array = getSomeContactIds();
         List<Long> ids = new ArrayList<>(asList(array));
 
-        List<VRAPI.ContainerDetailedContact.Contact> contacts = rc.getDetailedContacts(ids);
+        List<VRAPI.ContainerDetailedContact.Contact> contacts = rc.getActiveDetailedContacts(ids);
 
         assertTrue( ! contacts.isEmpty());
         assertTrue(contacts.size() == 4);
@@ -319,7 +321,9 @@ public class XMLInterfaceTests {
 
         followers.put(2L, followerlist);
 
-        ZUKOrganisationResponse res = rc.buildZUKOrganisationsResponse(followers, getsomeContacts(),getsomeOrgs());
+        rc.setFollowerMap(followers);
+
+        ZUKOrganisationResponse res = rc.buildZUKOrganisationsResponse(getsomeContacts(),getsomeOrgs());
 
         assertTrue(res.getDanglingContacts().size() == 2);
         assertTrue(res.getDanglingContacts().get(0).getFirstName().equals("The King"));
@@ -620,6 +624,15 @@ public class XMLInterfaceTests {
 
         //TODO: make assertions
 
+    }
+
+    @Test
+    public void canGetUserEmail(){
+        Long id = 5295L;
+
+        String eMail = rc.getUserEmail(id);
+
+        assertTrue(eMail.equals("Wolfgang.Emmerich@zuhlke.com"));
     }
 
 }
