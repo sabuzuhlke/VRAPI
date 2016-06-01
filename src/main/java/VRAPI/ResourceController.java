@@ -21,6 +21,7 @@ import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -63,6 +64,7 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 
 @SuppressWarnings("WeakerAccess")
 @RestController
+@Scope("prototype")
 public class ResourceController {
     public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.10.54";
     public static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
@@ -125,6 +127,14 @@ public class ResourceController {
     //------------------------------------------------------------------------------------------------------------Paths
     @Autowired
     private HttpServletRequest request;
+
+    private int counter = 0;
+
+    @RequestMapping(value = "/singleInstance", method = RequestMethod.GET, produces = "text/plain")
+    public String singleInstance() {
+        counter++;
+        return "" + counter;
+    }
 
     //TODO: add appropriate response codes
 

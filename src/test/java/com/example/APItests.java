@@ -32,6 +32,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -39,6 +41,9 @@ import static org.junit.Assert.assertTrue;
 @WebIntegrationTest
 public class APItests {
     private ResourceController rc;
+    private String username;
+    private String password;
+    private RestTemplate rt;
 
     @Before
     public void setUp(){
@@ -47,83 +52,52 @@ public class APItests {
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         }
+        MyAccessCredentials mac = new MyAccessCredentials();
+        this.username = mac.getUserName();
+        this.password = mac.getPass();
+        this.rt = new RestTemplate();
     }
 
     static {
         //for localhost testing only
         javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(
-                new javax.net.ssl.HostnameVerifier() {
+                (hostname, sslSession) -> hostname.equals("localhost"));
+    }
 
-                    public boolean verify(String hostname,
-                                          javax.net.ssl.SSLSession sslSession) {
-                        if (hostname.equals("localhost")) {
-                            return true;
-                        }
-                        return false;
-                    }
-                });
+    private <RES> ResponseEntity<RES> getFromVertec(String uri, Class<RES> responseType) {
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", username + ':' + password);
+        return rt.exchange(
+                new RequestEntity<>(headers, HttpMethod.GET, URI.create(uri)),
+                responseType);
     }
 
     @Test
     public void apiIsUP(){
-
-        RestTemplate rt = new RestTemplate();
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/ping";
-        RequestEntity<String> req = null;
-        ResponseEntity<String> res;
+        ResponseEntity<String> res = getFromVertec(url, String.class);
 
-        MyAccessCredentials mac = new MyAccessCredentials();
-        String username = mac.getUserName();
-        String pwd = mac.getPass();
-
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("Authorization", username + ':' + pwd);
-        try{
-
-            req = new RequestEntity<>(headers, HttpMethod.GET, new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create ping Request");
-        }
-        assertTrue(req != null);
-
-        res = rt.exchange(req,String.class);
-
-        assertTrue(res != null);
-        assertTrue(res.getStatusCode() == HttpStatus.OK);
-        assertTrue(res.getBody() != null);
-        assertTrue(res.getBody().equals("Success!"));
-
+        assertNotNull("Response returned as null", res);
+        assertEquals("Response status code not OK",
+                res.getStatusCode(),
+                HttpStatus.OK);
+        assertNotNull("Response body is null", res.getBody());
+        assertEquals("Response body doesnt not equal 'Success!'", res.getBody(), "Success!");
     }
 
 
     @Test
     public void canNotGetZUKWithLimitedAccess(){
-        RestTemplate rt = new RestTemplate();
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK";
-        RequestEntity<String> req = null;
-        ResponseEntity<String> res;
-
         MyLimitedCredentials mlc = new MyLimitedCredentials();
-        String username = mlc.getUserName();
-        String pwd = mlc.getPass();
-
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("Authorization", username + ':' + pwd);
-        try{
-
-            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create ping Request");
-        }
-        assertTrue(req != null);
-        res = rt.exchange(req,String.class);
+        this.username = mlc.getUserName();
+        this.password = mlc.getPass();
+        ResponseEntity<String> res = getFromVertec(url, String.class);
 
         System.out.println("res: " + res);
 
-        assertTrue(res != null);
-        assertTrue(res.getBody() != null);
+        assertNotNull("Response returned as null", res);
+        assertNotNull("Response body is null", res.getBody());
         assertTrue(res.getBody()
                 .contains("Forbidden"));
 
@@ -131,125 +105,72 @@ public class APItests {
 
     @Test
     public void canNotGetZUKWithNoAccess(){
-        RestTemplate rt = new RestTemplate();
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK";
-        RequestEntity<String> req = null;
-        ResponseEntity<String> res;
+        this.username = "blah";
+        this.password = "blah";
 
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("Authorization", "blah" + ':' + "blah");
-        try{
+        ResponseEntity<String> res = getFromVertec(url, String.class);
 
-            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create ping Request");
-        }
-        assertTrue(req != null);
-        res = rt.exchange(req,String.class);
-        assertTrue(res != null);
-        assertTrue(res.getBody() != null);
+        assertNotNull("Response returned as null", res);
+        assertNotNull("Response body is null", res.getBody());
         assertTrue(res.getBody()
                 .contains("Unauthorized"));
 
     }
 
-    @Test
+    @Test @Ignore("Takes too long")
     public void canGetZUK(){
-
-        RestTemplate rt = new RestTemplate();
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK/";
-        RequestEntity<String> req = null;
-        ResponseEntity<ZUKOrganisationResponse> res;
-        MyAccessCredentials creds = new MyAccessCredentials();
-        try{
+        ResponseEntity<ZUKOrganisationResponse> res = getFromVertec(url, ZUKOrganisationResponse.class);
 
-
-            //add authentication header to headers object
-            MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-            headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
-
-            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create Request for ZUK");
-        }
-        assertTrue(req != null);
-
-        res = rt.exchange(req,ZUKOrganisationResponse.class);
-
-        assertTrue(res != null);
-        assertTrue(res.getStatusCode() == HttpStatus.OK);
-        assertTrue(res.getBody() != null);
+        assertNotNull("Response returned as null", res);
+        assertEquals("Response status code not OK",
+                res.getStatusCode(),
+                HttpStatus.OK);
+        assertNotNull("Response body is null", res.getBody());
         System.out.println(res.getBody().toPrettyString());
     }
 
-    @Test
+    @Test @Ignore("Takes too long")
     public void canGetZUKProjects() {
-
-        RestTemplate rt = new RestTemplate();
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/projects/ZUK/";
-        RequestEntity<String> req = null;
-        ResponseEntity<ZUKProjectsResponse> res;
-        MyAccessCredentials creds = new MyAccessCredentials();
-        try{
-
-
-            //add authentication header to headers object
-            MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-            headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
-
-            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create Request for ZUK Projects");
-        }
-        assertTrue(req != null);
-
-        res = rt.exchange(req, ZUKProjectsResponse.class);
+        ResponseEntity<ZUKProjectsResponse> res = getFromVertec(url, ZUKProjectsResponse.class);
 
         System.out.println(res);
-        assertTrue(res != null);
-        assertTrue(res.getStatusCode() == HttpStatus.OK);
-        assertTrue(res.getBody() != null);
+        assertNotNull("Response returned as null", res);
+        assertEquals("Response status code not OK",
+                res.getStatusCode(),
+                HttpStatus.OK);
+        assertNotNull("Response body is null", res.getBody());
 
         for(JSONProject p : res.getBody().getProjects()){
-            assertTrue(p.getType().contains("SGB_") || p.getType().contains("EMS") || p.getType().contains("DSI") || p.getType().contains("CAP"));
+            assertTrue("Project recieved has type not from UK",
+                    p.getType().contains("SGB_")
+                            || p.getType().contains("EMS")
+                            || p.getType().contains("DSI")
+                            || p.getType().contains("CAP"));
         }
         System.out.println(res.getBody().toString());
 
     }
 
-    @Test
+    @Test @Ignore("Takes too long")
     public void canGetZUKActivities(){
-        RestTemplate rt = new RestTemplate();
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/activities/ZUK/";
-        RequestEntity<String> req = null;
-        ResponseEntity<String> res;
-        MyAccessCredentials creds = new MyAccessCredentials();
-        try{
+        ResponseEntity<String> res = getFromVertec(url, String.class);
 
-
-            //add authentication header to headers object
-            MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-            headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
-
-            req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
-        }
-        catch(Exception e){
-            System.out.println("Could not create Request for ZUK Activities");
-        }
-        assertTrue(req != null);
-
-        res = rt.exchange(req, String.class);
-
+        assertTrue("Response status code not OK", res.getStatusCode() == HttpStatus.OK);
+        assertTrue("Activities were filtered out incorrectly", ! res.getBody().contains("26376851"));
+        assertTrue("Activities were filtered out incorrectly", ! res.getBody().contains("28013137"));
         System.out.println(res);
-        assertTrue(res.getStatusCode() == HttpStatus.OK);
-        assertTrue( ! res.getBody().contains("26376851"));
-        assertTrue( ! res.getBody().contains("28013137"));
-        System.out.println(res);
-//        System.out.println("Size: " + res.getBody().getActivities().size());
-//
+    }
+
+    @Test
+    public void singleInstancePerRequest() throws Exception {
+        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/singleInstance";
+        assertEquals("Two requests made in succession do not access different instances of ResourceController class",
+                getFromVertec(url, String.class),
+                getFromVertec(url, String.class));
     }
 
     @Test
