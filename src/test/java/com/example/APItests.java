@@ -28,6 +28,7 @@ import org.springframework.web.client.RestTemplate;
 
 import java.net.URI;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -243,8 +244,23 @@ public class APItests {
         assertTrue( ! res.getBody().contains("26376851"));
         assertTrue( ! res.getBody().contains("28013137"));
         System.out.println(res);
-//        System.out.println("Size: " + res.getBody().getActivities().size());
-//
+    }
+
+    @Test
+    public void singleInstancePerRequest() throws Exception {
+        RestTemplate rt = new RestTemplate();
+
+        MyAccessCredentials mac = new MyAccessCredentials();
+        String username = mac.getUserName();
+        String pwd = mac.getPass();
+
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", username + ':' + pwd);
+        RequestEntity<String> req = new RequestEntity<>(
+                headers,
+                HttpMethod.GET,
+                URI.create("https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/singleInstance"));
+        assertEquals(rt.exchange(req, String.class), rt.exchange(req, String.class));
     }
 
 
