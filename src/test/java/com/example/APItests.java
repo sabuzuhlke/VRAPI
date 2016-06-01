@@ -29,6 +29,7 @@ import org.springframework.web.client.RestTemplate;
 import java.net.URI;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -68,10 +69,10 @@ public class APItests {
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/ping";
         ResponseEntity<String> res = getFromVertec(url, String.class);
 
-        assertTrue(res != null);
-        assertTrue(res.getStatusCode() == HttpStatus.OK);
-        assertTrue(res.getBody() != null);
-        assertTrue(res.getBody().equals("Success!"));
+        assertNotNull("Response returned as null", res);
+        assertTrue("Response status code not OK", res.getStatusCode() == HttpStatus.OK);
+        assertNotNull("Response body is null", res.getBody());
+        assertEquals("Response body doesnt not equal 'Success!'", res.getBody(), "Success!");
     }
 
 
@@ -85,8 +86,8 @@ public class APItests {
 
         System.out.println("res: " + res);
 
-        assertTrue(res != null);
-        assertTrue(res.getBody() != null);
+        assertNotNull("Response returned as null", res);
+        assertNotNull("Response body is null", res.getBody());
         assertTrue(res.getBody()
                 .contains("Partial Failure: Username and Password provided " +
                         "do not have sufficient permissions to access all " +
@@ -101,57 +102,63 @@ public class APItests {
         this.password = "blah";
         
         ResponseEntity<String> res = getFromVertec(url, String.class);
-        
-        assertTrue(res != null);
-        assertTrue(res.getBody() != null);
+
+        assertNotNull("Response returned as null", res);
+        assertNotNull("Response body is null", res.getBody());
         assertTrue(res.getBody()
                 .contains("Ping Failed: Wrong Username or Password received in request header"));
 
     }
 
-    @Test @Ignore
+    @Test @Ignore("Takes too long")
     public void canGetZUK(){
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK/";
         ResponseEntity<ZUKOrganisationResponse> res = getFromVertec(url, ZUKOrganisationResponse.class);
 
-        assertTrue(res != null);
-        assertTrue(res.getStatusCode() == HttpStatus.OK);
-        assertTrue(res.getBody() != null);
+        assertNotNull("Response returned as null", res);
+        assertTrue("Response status code not OK", res.getStatusCode() == HttpStatus.OK);
+        assertNotNull("Response body is null", res.getBody());
         System.out.println(res.getBody().toPrettyString());
     }
 
-    @Test @Ignore
+    @Test @Ignore("Takes too long")
     public void canGetZUKProjects() {
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/projects/ZUK/";
         ResponseEntity<ZUKProjectsResponse> res = getFromVertec(url, ZUKProjectsResponse.class);
 
         System.out.println(res);
-        assertTrue(res != null);
-        assertTrue(res.getStatusCode() == HttpStatus.OK);
-        assertTrue(res.getBody() != null);
+        assertNotNull("Response returned as null", res);
+        assertTrue("Response status code not OK", res.getStatusCode() == HttpStatus.OK);
+        assertNotNull("Response body is null", res.getBody());
 
         for(JSONProject p : res.getBody().getProjects()){
-            assertTrue(p.getType().contains("SGB_") || p.getType().contains("EMS") || p.getType().contains("DSI") || p.getType().contains("CAP"));
+            assertTrue("Project recieved has type not from UK",
+                    p.getType().contains("SGB_")
+                            || p.getType().contains("EMS")
+                            || p.getType().contains("DSI")
+                            || p.getType().contains("CAP"));
         }
         System.out.println(res.getBody().toString());
 
     }
 
-    @Test @Ignore
+    @Test @Ignore("Takes too long")
     public void canGetZUKActivities(){
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/activities/ZUK/";
         ResponseEntity<String> res = getFromVertec(url, String.class);
 
-        assertTrue(res.getStatusCode() == HttpStatus.OK);
-        assertTrue( ! res.getBody().contains("26376851"));
-        assertTrue( ! res.getBody().contains("28013137"));
+        assertTrue("Response status code not OK", res.getStatusCode() == HttpStatus.OK);
+        assertTrue("Activities were filtered out incorrectly", ! res.getBody().contains("26376851"));
+        assertTrue("Activities were filtered out incorrectly", ! res.getBody().contains("28013137"));
         System.out.println(res);
     }
 
     @Test
     public void singleInstancePerRequest() throws Exception {
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/singleInstance";
-        assertEquals(getFromVertec(url, String.class), getFromVertec(url, String.class));
+        assertEquals("Two requests made in succession do not access different instances of ResourceController class",
+                getFromVertec(url, String.class),
+                getFromVertec(url, String.class));
     }
 
 
