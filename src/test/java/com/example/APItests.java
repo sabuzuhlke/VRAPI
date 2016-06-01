@@ -70,7 +70,9 @@ public class APItests {
         ResponseEntity<String> res = getFromVertec(url, String.class);
 
         assertNotNull("Response returned as null", res);
-        assertTrue("Response status code not OK", res.getStatusCode() == HttpStatus.OK);
+        assertEquals("Response status code not OK",
+                res.getStatusCode(),
+                HttpStatus.OK);
         assertNotNull("Response body is null", res.getBody());
         assertEquals("Response body doesnt not equal 'Success!'", res.getBody(), "Success!");
     }
@@ -116,7 +118,9 @@ public class APItests {
         ResponseEntity<ZUKOrganisationResponse> res = getFromVertec(url, ZUKOrganisationResponse.class);
 
         assertNotNull("Response returned as null", res);
-        assertTrue("Response status code not OK", res.getStatusCode() == HttpStatus.OK);
+        assertEquals("Response status code not OK",
+                res.getStatusCode(),
+                HttpStatus.OK);
         assertNotNull("Response body is null", res.getBody());
         System.out.println(res.getBody().toPrettyString());
     }
@@ -128,7 +132,9 @@ public class APItests {
 
         System.out.println(res);
         assertNotNull("Response returned as null", res);
-        assertTrue("Response status code not OK", res.getStatusCode() == HttpStatus.OK);
+        assertEquals("Response status code not OK",
+                res.getStatusCode(),
+                HttpStatus.OK);
         assertNotNull("Response body is null", res.getBody());
 
         for(JSONProject p : res.getBody().getProjects()){
