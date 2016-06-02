@@ -4,7 +4,7 @@ package com.example;
  * Created by gebo on 28/04/2016.
  */
 
-import VRAPI.Application;
+import VRAPI.*;
 import VRAPI.ContainerActivitiesJSON.ZUKActivitiesResponse;
 import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.JSONContact;
@@ -12,8 +12,6 @@ import VRAPI.ContainerOrganisationJSON.JSONOrganisation;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
 import VRAPI.ContainerProjectJSON.JSONProject;
 import VRAPI.ContainerProjectJSON.ZUKProjectsResponse;
-import VRAPI.MyAccessCredentials;
-import VRAPI.MyLimitedCredentials;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -21,11 +19,11 @@ import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.*;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import VRAPI.ResourceController;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -92,14 +90,16 @@ public class APItests {
         MyLimitedCredentials mlc = new MyLimitedCredentials();
         this.username = mlc.getUserName();
         this.password = mlc.getPass();
-        ResponseEntity<String> res = getFromVertec(url, String.class);
+        ResponseEntity<String> res;
 
-        System.out.println("res: " + res);
+        try {
+            res = getFromVertec(url, String.class);
+        } catch (HttpClientErrorException e) {
+            assertEquals("Wrong Status code returned", e.getStatusCode(), HttpStatus.FORBIDDEN);
+            return;
+        }
+        assertTrue("No Exception caught", false);
 
-        assertNotNull("Response returned as null", res);
-        assertNotNull("Response body is null", res.getBody());
-        assertTrue(res.getBody()
-                .contains("Forbidden"));
 
     }
 
@@ -108,14 +108,15 @@ public class APItests {
         String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK";
         this.username = "blah";
         this.password = "blah";
+        ResponseEntity<String> res = null;
 
-        ResponseEntity<String> res = getFromVertec(url, String.class);
-
-        assertNotNull("Response returned as null", res);
-        assertNotNull("Response body is null", res.getBody());
-        assertTrue(res.getBody()
-                .contains("Unauthorized"));
-
+        try {
+            res = getFromVertec(url, String.class);
+        } catch (HttpClientErrorException e) {
+            assertEquals("Wrong StatusCode Returned", e.getStatusCode(), HttpStatus.UNAUTHORIZED);
+            return;
+        }
+        assertTrue("No Exception caught", false);
     }
 
     @Test @Ignore("Takes too long")

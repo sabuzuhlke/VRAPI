@@ -22,18 +22,12 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -51,7 +45,6 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -118,6 +111,8 @@ public class ResourceController {
         this.teamMap = new HashMap<>();
         this.followerMap = new HashMap<>();
         this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+
+        StaticMaps.INSTANCE.getTeamIDMap();
     }
 
     public void setTeamMap(Map<Long, String> teamMap) {
@@ -187,21 +182,18 @@ public class ResourceController {
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
     })
     @RequestMapping(value = "/organisations/ZUK", method = RequestMethod.GET, produces = "application/json")
-    public String getZUKOrganisations() {
+    public String getZUKOrganisations()  {
         List<Long> teamIds;
+        authorize();
 
-        try {
-            authorize();
-            teamIds = getZUKTeamMemberIds();
+        this.teamMap = createTeamIdMap();
+        this.followerMap = createFollowerMap();
 
-        } catch (Exception e) {
-            //hopefully will only happen when response returns Fault from XML Interface, then test to see whether incorret username and pwd, or limited access
-            return e.toString();
-        }
+
+        teamIds = new ArrayList<>(teamMap.keySet());
+
 
         List<List<Long>> contactIdsAndOrgsIds = getSimpleContactsandOrgs(getAddressIdsSupervisedBy(teamIds));
-
-        this.followerMap = createFollowerMap(teamIds);
 
         return buildZUKOrganisationsResponse(
                 getActiveDetailedContacts(contactIdsAndOrgsIds.get(0)),
@@ -210,14 +202,21 @@ public class ResourceController {
     }
 
 
+
     @ApiOperation(value = "Get an organisation by id")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
     })
     @RequestMapping(value = "/organisations/{id}", method = RequestMethod.GET, produces = "application/json")
-    public JSONOrganisation getOrganisationById(@PathVariable Long id){
+    public JSONOrganisation getOrganisationById(@PathVariable Long id)  {
         List<Long> ids = new ArrayList<>();
         ids.add(id);
+
+        authorize();
+
+        this.teamMap = createTeamIdMap();
+        this.followerMap = createFollowerMap();
+
 
         VRAPI.ContainerDetailedOrganisation.Organisation org = getOrganisations(ids).get(0);
 
@@ -252,9 +251,12 @@ public class ResourceController {
     })
     @RequestMapping(value = "/contacts/{id}", method = RequestMethod.GET, produces = "application/json")
 
-    public JSONContact getContactbyId(@PathVariable Long id){
+    public JSONContact getContactbyId(@PathVariable Long id) {
         List<Long> ids = new ArrayList<>();
         ids.add(id);
+        authorize();
+        this.teamMap = createTeamIdMap();
+        this.followerMap = createFollowerMap();
 
         VRAPI.ContainerDetailedContact.Contact cont = getDetailedContacts(ids).get(0);
 
@@ -275,18 +277,12 @@ public class ResourceController {
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
     })
     @RequestMapping(value = "/projects/ZUK", method = RequestMethod.GET, produces = "application/json")
-    public String getZUKProjects() {
-        populateTeamMap();
-
-        try {
+    public ZUKProjectsResponse getZUKProjects() {
             authorize();
-
+            this.teamMap = createTeamIdMap();
             final ZUKProjectsResponse response = new ZUKProjectsResponse();
             response.setProjects(projectsForTeam(getZUKTeamMemberIds()));
-            return response.toString();
-        } catch (Exception e) {
-            return e.toString();
-        }
+            return response;
     }
 
     @ApiOperation(value = "Get Activities")
@@ -299,8 +295,9 @@ public class ResourceController {
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
     })
     @RequestMapping(value = "/activities/ZUK", method = RequestMethod.GET, produces = "application/json")
-    public ZUKActivitiesResponse getZUKActivities() throws Exception {
+    public ZUKActivitiesResponse getZUKActivities() {
         authorize();
+        this.teamMap = createTeamIdMap();
 
         final List<Activity> activities = getActivities(getActivityIds(getZUKTeamMemberIds()));
         return buildJSONActivitiesResponse(activities, getActivityTypes(activities));
@@ -370,7 +367,7 @@ public class ResourceController {
                 .collect(toList());
     }
 
-    private void authorize() throws HttpBadRequest {
+    private void authorize() {
         final String[] nameAndPassword = request.getHeader("Authorization").split(":");
         if (nameAndPassword.length != 2) {
             throw new HttpBadRequest("Misssing name or password");
@@ -382,17 +379,6 @@ public class ResourceController {
     //------------------------------------------------------------------------------------------------------------Helper Methods
     //TODO: make xml access methods private, adjust tests: http://stackoverflow.com/questions/34571/how-to-test-a-class-that-has-private-methods-fields-or-inner-classes
 
-    private void populateTeamMap() {
-        List<Long> teamIds = new ArrayList<>();
-        try {
-            authorize();
-            teamIds = getZUKTeamMemberIds();
-        } catch (Exception e) {
-            System.out.println("EXCEPTION POPULATING TEAM MAP: " + e);
-        }
-        getAddressIdsSupervisedBy(teamIds);
-
-    }
 
 
     public List<VRAPI.ContainerDetailedProjects.Project> getDetailedProjects(Set<Long> projectIds) {
@@ -430,17 +416,93 @@ public class ResourceController {
                 .collect(toSet());
     }
 
-    public List<Long> getZUKTeamMemberIds() throws Exception {
+    /**
+     * called to build teamMap on each request
+     * @return
+     * @throws Exception
+     * TODO: build teamMap on application start up and make accessible from RC for each request
+     */
+    public Map<Long, String> createTeamIdMap()  {
+        Map<Long, String> teamMap = new HashMap<>();
+        List<Long> ids = getZUKTeamMemberIds();
+        String xmlQuery = getXMLQuery_TeamIdsAndEmails(ids);
+        String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
+        final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, URI.create(uri)));
+        NodeList teamMembers = response.getElementsByTagName("Projektbearbeiter");
+        IntStream.range(0, teamMembers.getLength())
+                .mapToObj(index -> (Element) teamMembers.item(index))
+                .forEach(teamMemberElement -> {
+                    final NodeList active = teamMemberElement.getElementsByTagName("aktiv");
+                    if (toBoolean(active.item(0).getTextContent())) {
+                        final NodeList briefEmail = teamMemberElement.getElementsByTagName("briefEmail");
+                        String email = briefEmail.item(0).getTextContent();
+                        if(briefEmail.getLength(
+                        ) != 1) {
+                            throw new RuntimeException("XML Document parse for briefEmail went wrong"); //for debugging
+                        }
+                        final NodeList objid = teamMemberElement.getElementsByTagName("objid");
+                        Long id = Long.parseLong(objid.item(0).getTextContent());
+                        teamMap.put(id, email.toLowerCase());
+                    }
+                });
+
+
+        return teamMap;
+    }
+
+    private Boolean toBoolean(String s) {
+        return s.equals("1");
+    }
+
+    private String getXMLQuery_TeamIdsAndEmails(List<Long> ids) {
+
+        String header = "<Envelope>\n" +
+                "  <Header>\n" +
+                "    <BasicAuth>\n" +
+                "      <Name>" + this.username + "</Name>\n" +
+                "      <Password>" + this.password + "</Password>\n" +
+                "      </BasicAuth>\n" +
+                "  </Header>\n";
+
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n" +
+                "        <objref>5295</objref>\n";
+
+        for (Long id : ids) {
+            bodyStart += "<objref>" + id + "</objref>\n";
+        }
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "        <member>Aktiv</member>\n" +
+                "        <member>briefEmail</member>\n" + //will return Email address of team member
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + bodyStart + bodyEnd;
+    }
+
+
+    public List<Long> getZUKTeamMemberIds() {
 
         String xmlQuery = getXMLQuery_LeadersTeam();
         String uri = "http://" + VipAddress + ":" + VportNr + "/xml";
 
         final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, URI.create(uri)));
-        return elementIn(response, "QueryResponse")
+        List<Long> list = elementIn(response, "QueryResponse")
                 .map(queryResponse -> queryResponse.getElementsByTagName("objref"))
                 .map(ResourceController::asIdList)
-                .orElseThrow(() -> failureFrom(response));
+                .orElse(new ArrayList<>());
+        if (list.size() == 0) {
+            failureFrom(response);
+        }
 
+        //TODO: check this is what we actually want to do
+
+        return list;
 
         // try {
 
@@ -462,26 +524,28 @@ public class ResourceController {
 //        }
     }
 
-    private Exception failureFrom(Document document) {
-        return elementIn(document, "Fault")
+    private void failureFrom(Document document) {
+        elementIn(document, "Fault")
                 .map(fault -> fault.getElementsByTagName("detailitem"))
-                .map(detailItems -> asStream(detailItems).findFirst())
-                .map(this::asFailure)
-                .orElse(new HttpInternalServerError("no detailItem"));
+                .map(detailItems -> {
+                    asFailure(asStream(detailItems).findFirst());
+                    return 0;
+                })
+                .orElseThrow(() -> new HttpInternalServerError("no detailItem"));
     }
 
-    private Exception asFailure(Optional<String> maybeItem) {
-        return maybeItem
+    private void asFailure(Optional<String> maybeItem) {
+         maybeItem
                 .map(item -> {
                             if (item.contains("read access denied")) {
-                                return new XMLFailureException("Forbidden");
+                                throw new HttpForbiddenException("You have got limited access to the Vertec database, and were not authorised for this query!");
                             } else if (item.contains("Authentication failure")) {
-                                return new XMLFailureException("Unauthorized");
+                                throw new HttpUnauthorisedException("Wrong username or password");
                             } else {
-                                return new HttpInternalServerError(item);
+                                throw new HttpInternalServerError(item);
                             }
                         }
-                ).orElse(new HttpInternalServerError("missing fault"));
+                ).orElseThrow(() ->  new HttpInternalServerError("missing fault"));
     }
 
     private static List<Long> asIdList(NodeList nodeList) {
@@ -501,7 +565,7 @@ public class ResourceController {
                 : Optional.empty();
     }
 
-    private Document responseFor(RequestEntity<String> req)  {
+    private Document responseFor(RequestEntity<String> req) throws HttpInternalServerError {
         try {
             final ResponseEntity<String> res = this.rest.exchange(req, String.class);
             return documentBuilder.parse(new ByteArrayInputStream(res.getBody().getBytes(UTF_8)));
@@ -509,6 +573,8 @@ public class ResourceController {
             throw new HttpInternalServerError(e);
         }
     }
+
+
 
     public List<Long> getAddressIdsSupervisedBy(List<Long> supervisorIds) {
         List<Long> ids = new ArrayList<>();
@@ -567,9 +633,13 @@ public class ResourceController {
                 .collect(toList());
     }
 
-    public Map<Long, List<String>> createFollowerMap(List<Long> teamIds) {
+    public Map<Long, List<String>> createFollowerMap() {
         Map<Long, List<String>> map = new HashMap<>();
         VRAPI.ContainerFollower.Envelope leader;
+
+        authorize();
+
+        List<Long> teamIds = getZUKTeamMemberIds();
 
         for (Long id : teamIds) {
 
@@ -734,6 +804,27 @@ public class ResourceController {
                                 .orElse(true))
                         .collect(toList()));
     }
+
+//
+//    @ExceptionHandler(HttpBadRequest.class)
+//    @ResponseStatus(value = HttpStatus.BAD_REQUEST, reason = "Missing username or password")
+//    public String handleBadRequestException(HttpBadRequest e) {
+//        return  e.toString();
+//    }
+
+//    @ExceptionHandler(HttpInternalServerError.class)
+//    @ResponseStatus(value = HttpStatus.INTERNAL_SERVER_ERROR, reason = "An error occured on the server, the dev team is working day and night to resolve the issue! Have a cookie and try again tomorrow.")
+//    public String handleInternalServerErrorException(HttpInternalServerError e) {return e.toString();}
+//
+//    @ExceptionHandler(HttpForbiddenException.class)
+//    @ResponseStatus(value = HttpStatus.FORBIDDEN, reason = "You have limited access to the Vertec database. You were not authorised to carry out this request.")
+//    public String handleForbiddenException(HttpForbiddenException e) {return e.toString();}
+
+//    @ExceptionHandler(HttpUnauthorisedException.class)
+//    @ResponseStatus(value = HttpStatus.UNAUTHORIZED, reason = "Wrong username or password")
+//    public String handleUnauthorisedException(HttpUnauthorisedException e) {return "tufycvgjhb"+e.toString();}
+
+
 
 
     private String getXMLQuery_FromContainers(List<Long> containerIds) {
@@ -1310,5 +1401,13 @@ public class ResourceController {
 
     public void setFollowerMap(Map<Long, List<String>> followerMap) {
         this.followerMap = followerMap;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

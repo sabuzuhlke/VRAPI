@@ -11,7 +11,10 @@ import VRAPI.ContainerDetailedOrganisation.Objlist;
 import VRAPI.ContainerDetailedOrganisation.ParentFirm;
 import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
+import VRAPI.HttpBadRequest;
+import VRAPI.MyAccessCredentials;
 import VRAPI.ResourceController;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -530,20 +533,16 @@ public class XMLInterfaceTests {
 //    }
 
 //=============================================================================================================FOLLOWERS
-    @Test
-    public void GivenTeamListCanBuildMapOfFollowedObjects() {
-        List<Long> teamIds = new ArrayList<>();
-        try {
-
-            teamIds = rc.getZUKTeamMemberIds();
-
-        } catch (Exception e) {
-
-            assertTrue(false);
-        }
+    @Test @Ignore
+    public void GivenTeamListCanBuildMapOfFollowedObjects() throws Exception {
+        List<Long> teamIds = rc.getZUKTeamMemberIds();
 
         assertTrue(!teamIds.isEmpty());
-        Map<Long, List<String>> map = rc.createFollowerMap(teamIds);
+
+        MyAccessCredentials mac = new MyAccessCredentials();
+        rc.setUsername(mac.getUserName());
+        rc.setPassword(mac.getPass());
+        Map<Long, List<String>> map = rc.createFollowerMap();
 
         assertTrue(map.get(13030752L).contains("justin.cowling@zuhlke.com"));
         assertTrue(map.get(22285081L).contains("justin.cowling@zuhlke.com"));
@@ -633,6 +632,17 @@ public class XMLInterfaceTests {
         String eMail = rc.getUserEmail(id);
 
         assertTrue(eMail.equals("Wolfgang.Emmerich@zuhlke.com"));
+    }
+
+    @Test
+    public void canCreateTeamIdMap(){
+        MyAccessCredentials mac = new MyAccessCredentials();
+        rc.setPassword(mac.getPass());
+        rc.setUsername(mac.getUserName());
+
+        Map<Long, String> map = rc.createTeamIdMap();
+
+        assertEquals(map.get(5295L), "wolfgang.emmerich@zuhlke.com");
     }
 
 }
