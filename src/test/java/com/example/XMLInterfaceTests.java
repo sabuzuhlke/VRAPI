@@ -11,9 +11,12 @@ import VRAPI.ContainerDetailedOrganisation.Objlist;
 import VRAPI.ContainerDetailedOrganisation.ParentFirm;
 import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
-import VRAPI.HttpBadRequest;
 import VRAPI.MyAccessCredentials;
-import VRAPI.ResourceController;
+import VRAPI.ResourceController.QueryBuilder;
+import VRAPI.ResourceController.ResourceController;
+import VRAPI.ResourceController.StaticMaps;
+import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,9 +40,28 @@ public class XMLInterfaceTests {
 
     public static final List<Long> KNOWN_SUPERVISOR_IDS = asList(504419L, 504749L, 1795374L, 6574798L, 8619482L, 8904906L, 10301189L, 12456812L);
     public static final long ADDRESS_BELONGING_TO_INACTIVE_TEAM_MEMBER = 1307942L;
-    private final ResourceController rc = new ResourceController();
+    private static ResourceController rc = null;
+
+    static {
+        try {
+            rc = new ResourceController();
+            MyAccessCredentials mac = new MyAccessCredentials();
+            rc.setPassword(mac.getPass());
+            rc.setUsername(mac.getUserName());
+            rc.queryBuilder = new QueryBuilder(mac.getUserName(), mac.getPass());
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static StaticMaps staticMaps;
 
     public XMLInterfaceTests() throws ParserConfigurationException {
+    }
+
+    @BeforeClass
+    public static void before() {
+        staticMaps = StaticMaps.INSTANCE;
     }
 
     @Test
@@ -542,7 +564,7 @@ public class XMLInterfaceTests {
         MyAccessCredentials mac = new MyAccessCredentials();
         rc.setUsername(mac.getUserName());
         rc.setPassword(mac.getPass());
-        Map<Long, List<String>> map = rc.createFollowerMap();
+        Map<Long, List<String>> map = staticMaps.getFollowerMap();
 
         assertTrue(map.get(13030752L).contains("justin.cowling@zuhlke.com"));
         assertTrue(map.get(22285081L).contains("justin.cowling@zuhlke.com"));
@@ -585,6 +607,7 @@ public class XMLInterfaceTests {
     @Test
     public void displayAllActivityTypes(){
         List<Long> teamIds = new ArrayList<>();
+
         try{
             teamIds = rc.getZUKTeamMemberIds();
         } catch (Exception e){
@@ -606,12 +629,6 @@ public class XMLInterfaceTests {
         List<Long> teamIds = new ArrayList<>();
         teamIds.add(504749L);
         teamIds.add(16887415L);
-        try{
-
-            rc.getAddressIdsSupervisedBy(rc.getZUKTeamMemberIds()); // For building up team Map
-        } catch (Exception e){
-            System.out.println("Could not construct teammap in \'canbuildActivitesResponse\': " + e);
-        }
 
         List<Long> aIds = rc.getActivityIds(teamIds);
         List<Activity> activities = rc.getActivities(aIds);
@@ -635,12 +652,12 @@ public class XMLInterfaceTests {
     }
 
     @Test
-    public void canCreateTeamIdMap(){
+    public void canCreateTeamIdMap() throws ParserConfigurationException {
         MyAccessCredentials mac = new MyAccessCredentials();
-        rc.setPassword(mac.getPass());
-        rc.setUsername(mac.getUserName());
+        //rc.setPassword(mac.getPass());
+        //rc.setUsername(mac.getUserName());
 
-        Map<Long, String> map = rc.createTeamIdMap();
+        Map<Long, String> map = staticMaps.getTeamIDMap();
 
         assertEquals(map.get(5295L), "wolfgang.emmerich@zuhlke.com");
     }

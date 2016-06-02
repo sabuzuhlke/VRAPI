@@ -27,7 +27,7 @@ public class ZUKActivitiesResponse {
             retStr = m.writerWithDefaultPrettyPrinter().writeValueAsString(this);
         }
         catch(Exception e){
-            System.out.println("Could not build JSON Projects: " + e.toString());
+            System.out.println("Could not build JSON Activities: " + e.toString());
         }
         return retStr;
     }

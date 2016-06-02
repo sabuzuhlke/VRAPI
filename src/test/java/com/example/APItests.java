@@ -5,13 +5,12 @@ package com.example;
  */
 
 import VRAPI.*;
-import VRAPI.ContainerActivitiesJSON.ZUKActivitiesResponse;
-import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.JSONContact;
 import VRAPI.ContainerOrganisationJSON.JSONOrganisation;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
 import VRAPI.ContainerProjectJSON.JSONProject;
 import VRAPI.ContainerProjectJSON.ZUKProjectsResponse;
+import VRAPI.ResourceController.ResourceController;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -42,6 +41,9 @@ public class APItests {
     private String username;
     private String password;
     private RestTemplate rt;
+    
+    public static final String DEFAULT_OWN_IP = "localhost";
+    public static final String DEFAULT_OWN_PORT = "9999";
 
     @Before
     public void setUp(){
@@ -72,7 +74,7 @@ public class APItests {
 
     @Test
     public void apiIsUP(){
-        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/ping";
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/ping";
         ResponseEntity<String> res = getFromVertec(url, String.class);
 
         assertNotNull("Response returned as null", res);
@@ -86,7 +88,7 @@ public class APItests {
 
     @Test
     public void canNotGetZUKWithLimitedAccess(){
-        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK";
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/organisations/ZUK";
         MyLimitedCredentials mlc = new MyLimitedCredentials();
         this.username = mlc.getUserName();
         this.password = mlc.getPass();
@@ -105,7 +107,7 @@ public class APItests {
 
     @Test
     public void canNotGetZUKWithNoAccess(){
-        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK";
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/organisations/ZUK";
         this.username = "blah";
         this.password = "blah";
         ResponseEntity<String> res = null;
@@ -121,7 +123,7 @@ public class APItests {
 
     @Test @Ignore("Takes too long")
     public void canGetZUK(){
-        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/ZUK/";
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/organisations/ZUK/";
         ResponseEntity<ZUKOrganisationResponse> res = getFromVertec(url, ZUKOrganisationResponse.class);
 
         assertNotNull("Response returned as null", res);
@@ -134,7 +136,7 @@ public class APItests {
 
     @Test @Ignore("Takes too long")
     public void canGetZUKProjects() {
-        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/projects/ZUK/";
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/projects/ZUK/";
         ResponseEntity<ZUKProjectsResponse> res = getFromVertec(url, ZUKProjectsResponse.class);
 
         System.out.println(res);
@@ -157,7 +159,7 @@ public class APItests {
 
     @Test @Ignore("Takes too long")
     public void canGetZUKActivities(){
-        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/activities/ZUK/";
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/activities/ZUK/";
         ResponseEntity<String> res = getFromVertec(url, String.class);
 
         assertTrue("Response status code not OK", res.getStatusCode() == HttpStatus.OK);
@@ -167,19 +169,11 @@ public class APItests {
     }
 
     @Test
-    public void singleInstancePerRequest() throws Exception {
-        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/singleInstance";
-        assertEquals("Two requests made in succession do not access different instances of ResourceController class",
-                getFromVertec(url, String.class),
-                getFromVertec(url, String.class));
-    }
-
-    @Test
     public void canGetOrganisationById() throws URISyntaxException {
         Long id = 709814L;
 
         RestTemplate rt = new RestTemplate();
-        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/organisations/" + id ;
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/organisations/" + id ;
         RequestEntity<String> req = null;
         ResponseEntity<JSONOrganisation> res;
         MyAccessCredentials creds = new MyAccessCredentials();
@@ -208,7 +202,7 @@ public class APItests {
         Long id = 240238L; //Immo
 
         RestTemplate rt = new RestTemplate();
-        String url = "https://" + rc.getOwnIpAddress() + ":" + rc.getOwnPortNr() + "/contacts/" + id ;
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/contacts/" + id ;
         RequestEntity<String> req = null;
         ResponseEntity<JSONContact> res;
         MyAccessCredentials creds = new MyAccessCredentials();

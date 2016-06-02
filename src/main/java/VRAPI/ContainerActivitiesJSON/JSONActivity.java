@@ -167,7 +167,7 @@ public class JSONActivity {
             retStr = m.writerWithDefaultPrettyPrinter().writeValueAsString(this);
         }
         catch(Exception e){
-            System.out.println("Could not build JSON Projects: " + e.toString());
+            System.out.println("Could not build JSON activity: " + e.toString());
         }
         return retStr;
     }
