@@ -8,6 +8,7 @@ import VRAPI.*;
 import VRAPI.ContainerOrganisationJSON.JSONContact;
 import VRAPI.ContainerOrganisationJSON.JSONOrganisation;
 import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
+import VRAPI.ContainerProjectJSON.JSONPhase;
 import VRAPI.ContainerProjectJSON.JSONProject;
 import VRAPI.ContainerProjectJSON.ZUKProjectsResponse;
 import VRAPI.ResourceController.ResourceController;
@@ -23,6 +24,7 @@ import org.junit.Test;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.xml.parsers.ParserConfigurationException;
@@ -221,6 +223,202 @@ public class APItests {
         assertTrue(res.getBody().getOwner().equals("David.Levin@zuhlke.com"));
         assertTrue(res.getBody().getCreationTime().equals("1900-01-01"));
 
+    }
+
+
+    @Test
+    public void canGetProjectByCode() throws URISyntaxException {
+        String code = "c15823";
+
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/projects/" + code ;
+        RequestEntity<String> req = null;
+        ResponseEntity<JSONProject> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+        //add authentication header to headers object
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+        req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+
+        res = rt.exchange(req, JSONProject.class);
+
+        assertEquals(res.getStatusCode(), HttpStatus.OK);
+        assertEquals(res.getBody().getPhases().size(),3);
+        assertEquals(res.getBody().getTitle(), "HSBC HSS off-line demo");
+        assertEquals(res.getBody().getClientRef().longValue(), 710229);
+        assertEquals(res.getBody().getCurrency(),"GBP");
+        assertEquals(res.getBody().getType(),"BU CAP");
+
+        JSONPhase phase = res.getBody().getPhases().get(0);
+
+        assertTrue( ! phase.getActive());
+        assertEquals(phase.getCode(), "10_INITIAL_BUILD");
+        assertEquals(phase.getPersonResponsible(), "keith.braithwaite@zuhlke.com");
+
+        System.out.println(res.getBody().toJSONString());
+    }
+    @Test
+    public void cannotGetNonExistingProjectCode() throws URISyntaxException {
+        String code  = "sbdapidf";
+
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/projects/" + code ;
+        RequestEntity<String> req = null;
+        ResponseEntity<JSONProject> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+        //add authentication header to headers object
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+        req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+
+        try{
+
+            res = rt.exchange(req, JSONProject.class);
+        } catch (HttpStatusCodeException e){
+            assertTrue(e.getStatusCode() == HttpStatus.NOT_FOUND);
+            return;
+        }
+
+        assertTrue(false);
+    }
+
+    @Test
+    public void canGetProjectById() throws URISyntaxException {
+        Long id = 12065530L;
+
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/projects/" + id ;
+        RequestEntity<String> req = null;
+        ResponseEntity<JSONProject> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+        //add authentication header to headers object
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+        req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+
+        res = rt.exchange(req, JSONProject.class);
+
+        assertEquals(res.getStatusCode(), HttpStatus.OK);
+        assertEquals(res.getBody().getPhases().size(),3);
+        assertEquals(res.getBody().getTitle(), "HSBC HSS off-line demo");
+        assertEquals(res.getBody().getClientRef().longValue(), 710229);
+        assertEquals(res.getBody().getCurrency(),"GBP");
+        assertEquals(res.getBody().getType(),"BU CAP");
+
+        JSONPhase phase = res.getBody().getPhases().get(0);
+
+        assertTrue( ! phase.getActive());
+        assertEquals(phase.getCode(), "10_INITIAL_BUILD");
+        assertEquals(phase.getPersonResponsible(), "keith.braithwaite@zuhlke.com");
+
+        System.out.println(res.getBody().toJSONString());
+    }
+
+    @Test
+    public void cannotGetNonExistingProjectId() throws URISyntaxException {
+        Long code  = 201L;
+
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/projects/" + code ;
+        RequestEntity<String> req = null;
+        ResponseEntity<JSONProject> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+        //add authentication header to headers object
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+        req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+
+        try{
+
+            res = rt.exchange(req, JSONProject.class);
+        } catch (HttpStatusCodeException e){
+            assertTrue(e.getStatusCode() == HttpStatus.NOT_FOUND);
+            return;
+        }
+
+        assertTrue(false);
+    }
+    @Test
+    public void canGetOrgAsAddressEntry() throws URISyntaxException {
+        Long id = 709814L;
+
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/addressEntry/" + id ;
+        RequestEntity<String> req = null;
+        ResponseEntity<JSONOrganisation> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+        //add authentication header to headers object
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+        req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+
+        res = rt.exchange(req, JSONOrganisation.class);
+
+        assertTrue(res.getStatusCode() == HttpStatus.OK);
+        assertTrue(res.getBody().getName().equals("Deutsche Telekom"));
+        assertTrue(res.getBody().getCountry().equals("United Kingdom"));
+        assertTrue(res.getBody().getContacts() != null);
+        assertTrue(res.getBody().getContacts().size() == 16);
+
+        assertTrue(res.getBody().getContacts().get(0).getFirstName().equals("Anthony"));
+        assertTrue(res.getBody().getContacts().get(0).getOwner().equals("Wolfgang.Emmerich@zuhlke.com"));
+        assertTrue(res.getBody().getOwner().equals("Wolfgang.Emmerich@zuhlke.com"));
+    }
+
+    @Test
+    public void canGetGontactAsAddressentry() throws URISyntaxException {
+        Long id = 240238L; //Immo
+
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/addressEntry/" + id ;
+        RequestEntity<String> req = null;
+        ResponseEntity<JSONContact> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+        //add authentication header to headers object
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+        req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+
+        res = rt.exchange(req, JSONContact.class);
+
+        assertTrue(res.getStatusCode() == HttpStatus.OK);
+        assertTrue(res.getBody().getFirstName().equals("Immo"));
+        assertTrue(res.getBody().getSurname().equals("Hueneke"));
+        assertTrue(res.getBody().getPhone().equals("+44 870 777 2337"));
+        assertTrue(res.getBody().getOwner().equals("David.Levin@zuhlke.com"));
+        assertTrue(res.getBody().getCreationTime().equals("1900-01-01"));
+    }
+
+    @Test
+    public void cannotGetPersonAsAddressEntry() {
+        Long code  = 234L;
+
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/addressEntry/" + code ;
+        RequestEntity<String> req = null;
+        ResponseEntity<String> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+        //add authentication header to headers object
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+        req = new RequestEntity<>(headers, HttpMethod.GET, URI.create(url));
+
+        try{
+
+            res = rt.exchange(req, String.class);
+        } catch (HttpStatusCodeException e){
+            assertTrue(e.getStatusCode() == HttpStatus.NOT_FOUND);
+            return;
+        }
+
+        assertTrue(false);
     }
 
 

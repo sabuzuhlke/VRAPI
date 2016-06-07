@@ -1,5 +1,7 @@
 package VRAPI.ContainerDetailedContact;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.xml.bind.annotation.XmlElement;
 
 /**
@@ -122,5 +124,19 @@ public class Contact {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    @Override
+    public String toString() {
+        String retStr = null;
+        ObjectMapper m = new ObjectMapper();
+        try{
+
+            retStr = m.writeValueAsString(this);
+        }
+        catch(Exception e){
+            System.out.println("Could not convert XML Envelope to JSON: " + e.toString());
+        }
+        return retStr;
     }
 }

@@ -313,6 +313,7 @@ public class QueryBuilder {
                 "           <member>adresseintrag</member>\n" +
                 "           <member>titel</member>\n" +
                 "           <member>zustaendig</member>\n" +
+                "           <member>erledigtdatum</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +
@@ -358,4 +359,29 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    public String getProjectByCode(String code) {
+        String body = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n" +
+                "         <ocl>projekt->select(code=\'" + code + "\')</ocl>" +
+                "      </Selection>\n" +
+                "      <Resultdef>\n" +
+                "        <member>Kunde</member>\n" + //will return list of obj ref for each company
+                "        <member>Aktiv</member>\n" +
+                "        <member>Phasen</member>\n" +
+                "        <member>projektnummer</member>\n" +
+                "        <member>hb</member>\n" +
+                "        <member>code</member>\n" +
+                "        <member>auftraggeber</member>\n" +
+                "        <member>typ</member>\n" +
+                "        <member>waehrung</member>\n" +
+                "        <member>modifieddatetime</member>\n" +
+                "        <member>creationdatetime</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+     return header + body;
+    }
 }

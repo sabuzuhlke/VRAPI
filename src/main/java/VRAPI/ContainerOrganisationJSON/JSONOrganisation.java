@@ -1,6 +1,7 @@
 package VRAPI.ContainerOrganisationJSON;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -176,5 +177,17 @@ public class JSONOrganisation {
 
     public void setChildOrganisationList(List<Long> childOrganisationList) {
         this.childOrganisationList = childOrganisationList;
+    }
+
+    public String toPrettyJSON() {
+        String retStr = null;
+        ObjectMapper m = new ObjectMapper();
+        try{
+            retStr = m.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+        }
+        catch(Exception e){
+            System.out.println("Could not convert XML Envelope to JSON: " + e.toString());
+        }
+        return retStr;
     }
 }

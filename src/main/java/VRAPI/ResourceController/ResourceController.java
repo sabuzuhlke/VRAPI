@@ -4,6 +4,7 @@ import VRAPI.ContainerActivitiesJSON.ZUKActivitiesResponse;
 import VRAPI.ContainerActivity.Activity;
 import VRAPI.ContainerActivity.Type;
 import VRAPI.ContainerActivityType.ActivityType;
+import VRAPI.ContainerAddresses.Envelope;
 import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerOrganisationJSON.JSONContact;
 import VRAPI.ContainerOrganisationJSON.JSONOrganisation;
@@ -15,10 +16,7 @@ import VRAPI.ContainerProjectType.ProjectType;
 import VRAPI.ContainerProjects.ProjectWorker;
 import VRAPI.ContainerSimpleContactOrganisation.Contact;
 import VRAPI.ContainerSimpleContactOrganisation.Organisation;
-import VRAPI.Exceptions.HttpBadRequest;
-import VRAPI.Exceptions.HttpForbiddenException;
-import VRAPI.Exceptions.HttpInternalServerError;
-import VRAPI.Exceptions.HttpUnauthorisedException;
+import VRAPI.Exceptions.*;
 import com.google.common.collect.Lists;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -45,11 +43,18 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.validation.constraints.Null;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Marshaller;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -126,11 +131,6 @@ public class ResourceController {
 
     @ApiOperation(value = "Test access", nickname = "notping")
     @RequestMapping(value = "/ping", method = RequestMethod.GET, produces = "text/plain")
-//    @ApiResponses(value = {
-//            @ApiResponse(code = 200, message = "Success"),
-//            @ApiResponse(code = 401, message = "Insufficient Access Credentials"),
-//            @ApiResponse(code = 403, message = "Forbidden")
-//    })
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
     })
@@ -177,13 +177,14 @@ public class ResourceController {
         this.followerMap = StaticMaps.INSTANCE.getFollowerMap();
 
 
-        VRAPI.ContainerDetailedOrganisation.Organisation org = getOrganisations(ids).get(0);
+        VRAPI.ContainerDetailedOrganisation.Organisation org = getOrganisationsWithInactive(ids).get(0);
+
 
         JSONOrganisation jOrg = new JSONOrganisation(org);
 
-        jOrg.setContacts(getContactsAsJSONContact(org));
-
         jOrg.setOwner(getUserEmail(org.getPersonResponsible().getObjref()));
+
+        jOrg.setContacts(getContactsAsJSONContact(org));
 
         return jOrg;
     }
@@ -209,12 +210,20 @@ public class ResourceController {
         return jc;
     }
 
+    @ApiOperation(value = "Get an contact/org/etc... by id")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
+    })
+    @RequestMapping(value = "/addressEntry/{id}", method = RequestMethod.GET, produces = "application/json")
+    public String getAddressEntryById(@PathVariable Long id){
+        try{
+            return getOrganisationById(id).toPrettyJSON();
+        } catch (HttpNotFoundException nfe){
+            return getContactbyId(id).toPrettyJSON();
+        }
+    }
+
     @ApiOperation(value = "Get projects and nested phases")
-//    @ApiResponses(value = {
-//            @ApiResponse(code = 200, message = "Success"),
-//            @ApiResponse(code = 401, message = "Insufficient Access Credentials"),
-//            @ApiResponse(code = 403, message = "Forbidden")
-//    })
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
     })
@@ -227,12 +236,60 @@ public class ResourceController {
             return response;
     }
 
+    @ApiOperation(value = "Get project and nested phases, by specifying a project code or vertec id in the url")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
+    })
+    @RequestMapping(value = "/projects/{code}", method = RequestMethod.GET, produces = "application/json")
+    public JSONProject getSingleProject(@PathVariable String code){
+//                                                                  This endpoint accepts both, queries by project v_id
+//                                                                  And by project code
+        checkUserAndPW();
+        this.teamMap = StaticMaps.INSTANCE.getTeamIDMap();
+        try{
+            Long id = Long.parseLong(code);
+
+            return getProjectById(id);
+
+        } catch (NumberFormatException e){
+            return getProjectByCode(code);
+        }
+    }
+
+    private JSONProject getProjectById(Long id) {
+        Set<Long> ids = new HashSet<>();
+        ids.add(id);
+        VRAPI.ContainerDetailedProjects.Project project = null;
+        try{
+                 project = callVertec(this.queryBuilder.getProjectDetails(ids),
+                    VRAPI.ContainerDetailedProjects.Envelope.class).getBody().getQueryResponse().getProjects().get(0);
+
+
+        } catch (NullPointerException e){
+            throw new HttpNotFoundException("Project with id " + id + "does not exist");
+        }
+
+        return asJsonProject((fromProject(project)));
+    }
+
+    public JSONProject getProjectByCode(String code) {
+        VRAPI.ContainerDetailedProjects.Project project = null;
+
+        try{
+            project = callVertec(this.queryBuilder.getProjectByCode(code),
+                    VRAPI.ContainerDetailedProjects.Envelope.class)
+                    .getBody().getQueryResponse().getProjects().get(0);
+
+        } catch (NullPointerException e){
+            throw new HttpNotFoundException("Project with code " + code + " does not exist");
+        }
+
+
+        return asJsonProject(fromProject(project));
+
+    }
+
     @ApiOperation(value = "Get Activities")
-//    @ApiResponses(value = {
-//            @ApiResponse(code = 200, message = "Success"),
-//            @ApiResponse(code = 401, message = "Insufficient Access Credentials"),
-//            @ApiResponse(code = 403, message = "Forbidden")
-//    })
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
     })
@@ -322,20 +379,43 @@ public class ResourceController {
     //------------------------------------------------------------------------------------------------------------Helper Methods
 
     private List<JSONContact> getContactsAsJSONContact(VRAPI.ContainerDetailedOrganisation.Organisation org) {
-        List<VRAPI.ContainerDetailedContact.Contact> conts = getDetailedContacts(org.getContacts().getObjlist().getObjref());
-        return conts.stream()
-                .map(contact -> {
-                    JSONContact jCont = new JSONContact(contact);
-                    jCont.setOwner(getUserEmail(contact.getPersonResponsible().getObjref()));
-                    return jCont;
-                })
-                .collect(toList());
+       try {
+           if (org.getContacts().getObjlist() == null) {
+               System.out.println("Objlist null: " + org);
+               return new ArrayList<>();
+           }
+           if (org.getContacts().getObjlist().getObjref() == null) {
+               System.out.println("Objref null: " + org);
+               return new ArrayList<>();
+           }
+           List<VRAPI.ContainerDetailedContact.Contact> conts = getDetailedContacts(org.getContacts().getObjlist().getObjref());
+           if (conts == null || conts.isEmpty()) {
+               System.out.println("Empty contacts for: " + org);
+               return new ArrayList<>();
+           }
+           return conts.stream()
+                   .map(contact -> {
+                       JSONContact jCont = new JSONContact(contact);
+                       jCont.setOwner(getUserEmail(contact.getPersonResponsible().getObjref()));
+                       return jCont;
+                   })
+                   .collect(toList());
+       } catch (Exception e) {
+           System.out.println("Organisation not behaving itself: " + org);
+           System.out.println("Cause: " +  e);
+       }
+        return new ArrayList<>();
     }
 
     public String getUserEmail(Long id){
-        return callVertec(queryBuilder.getUserEmail(id),
-                VRAPI.ContainerAddresses.Envelope.class)
-                .getBody().getQueryResponse().getWorkers().get(0).getEmail();
+        try {
+            return callVertec(queryBuilder.getUserEmail(id),
+                    VRAPI.ContainerAddresses.Envelope.class)
+                    .getBody().getQueryResponse().getWorkers().get(0).getEmail();
+        } catch (Exception iobe){
+            System.out.println("Could not find email address for v_id: " + id);
+            return null;
+        }
     }
 
     public List<VRAPI.ContainerDetailedProjects.Project> getDetailedProjects(Set<Long> projectIds) {
@@ -486,19 +566,34 @@ public class ResourceController {
     }
 
     public List<VRAPI.ContainerDetailedContact.Contact> getDetailedContacts(List<Long> ids) {
-        List<VRAPI.ContainerDetailedContact.Contact> contacts = new ArrayList<>();
-        contacts.addAll(
-                callVertec(queryBuilder.getContactDetails(ids), VRAPI.ContainerDetailedContact.Envelope.class).getBody().getQueryResponse().getContactList().stream()
-                        .collect(toList()));
+    try {
+        return callVertec(queryBuilder.getContactDetails(ids), VRAPI.ContainerDetailedContact.Envelope.class)
+                .getBody()
+                .getQueryResponse()
+                .getContactList();
+        } catch (NullPointerException npe){
+        throw new HttpNotFoundException("None of the given contacts exsist " + ids);
+    }
 
-        Collections.sort(contacts, this.contactComparator);
-        return contacts;
     }
 
     public List<VRAPI.ContainerDetailedOrganisation.Organisation> getOrganisations(List<Long> ids) {
-        return callVertec(queryBuilder.getOrganisationDetails(ids), VRAPI.ContainerDetailedOrganisation.Envelope.class).getBody().getQueryResponse().getOrganisationList().stream()
-                .filter(VRAPI.ContainerDetailedOrganisation.Organisation::getActive)
-                .collect(toList());
+        try{
+            return callVertec(queryBuilder.getOrganisationDetails(ids), VRAPI.ContainerDetailedOrganisation.Envelope.class).getBody().getQueryResponse().getOrganisationList().stream()
+                    .filter(VRAPI.ContainerDetailedOrganisation.Organisation::getActive)
+                    .collect(toList());
+        } catch (NullPointerException npe) {
+            throw new HttpNotFoundException("Did not find any of the listed organisations:" + ids );
+        }
+    }
+
+    public List<VRAPI.ContainerDetailedOrganisation.Organisation> getOrganisationsWithInactive(List<Long> ids) {
+        try{
+            return callVertec(queryBuilder.getOrganisationDetails(ids), VRAPI.ContainerDetailedOrganisation.Envelope.class).getBody().getQueryResponse().getOrganisationList().stream()
+                    .collect(toList());
+        } catch (NullPointerException npe) {
+            throw new HttpNotFoundException("Did not find any of the listed organisations:" + ids );
+        }
     }
 
     public ZUKOrganisationResponse buildZUKOrganisationsResponse(List<VRAPI.ContainerDetailedContact.Contact> contacts, List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs) {
@@ -584,6 +679,7 @@ public class ResourceController {
                 .getBody()
                 .getQueryResponse()
                 .getActivityTypes();
+
     }
 
     public ZUKActivitiesResponse buildJSONActivitiesResponse(List<Activity> activities, List<ActivityType> types) {
@@ -617,7 +713,7 @@ public class ResourceController {
                         .collect(toList()));
     }
 
-    private <T> T callVertec(String query, Class<T> responseType) {
+    public <T> T callVertec(String query, Class<T> responseType) {
         return rest.exchange(
                 new RequestEntity<>(query, HttpMethod.POST, vertecURI),
                 responseType).getBody();

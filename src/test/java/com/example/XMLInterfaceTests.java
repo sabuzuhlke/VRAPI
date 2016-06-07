@@ -22,9 +22,13 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.RequestEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.web.client.RestTemplate;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.net.URI;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -604,7 +608,7 @@ public class XMLInterfaceTests {
         assertTrue(activityTypes.get(1).getTypename().contains("Order Confirmation"));
     }
 
-    @Test
+    @Test @Ignore
     public void displayAllActivityTypes(){
         List<Long> teamIds = new ArrayList<>();
 
@@ -660,6 +664,20 @@ public class XMLInterfaceTests {
         Map<Long, String> map = staticMaps.getTeamIDMap();
 
         assertEquals(map.get(5295L), "wolfgang.emmerich@zuhlke.com");
+    }
+
+    @Test
+    public void canGetProjectByCode(){
+        String code = "c15823";
+
+        VRAPI.ContainerDetailedProjects.Project project =  rc.callVertec(rc.queryBuilder.getProjectByCode(code),
+                                                                        VRAPI.ContainerDetailedProjects.Envelope.class)
+                                                                        .getBody().getQueryResponse().getProjects().get(0);
+
+        assertEquals(project.getId().longValue(), 12065530);
+        assertEquals(project.getLeader().getObjref().longValue(), 504354);
+        assertEquals(project.getPhases().getObjlist().getObjrefs().size(), 4);
+        assertEquals(project.getType().getObjref().longValue(), 505895);
     }
 
 }

@@ -1,5 +1,7 @@
 package VRAPI.ContainerDetailedOrganisation;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.xml.bind.annotation.XmlElement;
 
 /**
@@ -149,5 +151,19 @@ public class Organisation {
 
     public void setContacts(Contacts contacts) {
         this.contacts = contacts;
+    }
+
+    @Override
+    public String toString() {
+        String retStr = null;
+        ObjectMapper m = new ObjectMapper();
+        try{
+
+            retStr = m.writeValueAsString(this);
+        }
+        catch(Exception e){
+            System.out.println("Could not convert XML Envelope to JSON: " + e.toString());
+        }
+        return retStr;
     }
 }

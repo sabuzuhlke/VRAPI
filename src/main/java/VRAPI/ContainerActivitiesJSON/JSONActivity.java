@@ -18,6 +18,7 @@ public class JSONActivity {
     private Long project_link;
     private String date;
     private String type;
+    private String done_date;
 
     public JSONActivity() {
     }
@@ -58,6 +59,8 @@ public class JSONActivity {
 
         //set type outside
         this.type = null;
+
+        this.done_date = a.getDoneDate();
     }
 
     public JSONActivity(Activity activity, String assignee, String typeName) {
@@ -157,6 +160,15 @@ public class JSONActivity {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    @JsonProperty("done_date")
+    public String getDone_date() {
+        return done_date;
+    }
+
+    public void setDone_date(String done_date) {
+        this.done_date = done_date;
     }
 
     public String toPrettyJSON() {

@@ -1,7 +1,10 @@
 package VRAPI.ContainerActivityType;
 
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
+import java.io.StringWriter;
 
 /**
  * Created by gebo on 23/05/2016.
@@ -20,5 +23,21 @@ public class Envelope {
 
     public void setBody(Body body) {
         this.body = body;
+    }
+
+
+    @Override
+    public String toString(){
+        StringWriter writer = new StringWriter();
+
+        try {
+            JAXBContext jc = JAXBContext.newInstance(this.getClass());
+            Marshaller marshaller = jc.createMarshaller();
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+            marshaller.marshal(this, writer);
+        } catch (Exception e){
+            System.out.println("Could not marshall Detailed Project envelope to XML string");
+        }
+        return writer.toString();
     }
 }

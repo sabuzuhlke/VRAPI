@@ -17,6 +17,7 @@ public class Activity {
     private Type type;
     private String title;
     private Assignee assignee;
+    private String doneDate;
 
     public Activity() {
 
@@ -110,5 +111,14 @@ public class Activity {
 
     public void setAssignee(Assignee assignee) {
         this.assignee = assignee;
+    }
+
+    @XmlElement(name = "erledigtDatum")
+    public String getDoneDate() {
+        return doneDate;
+    }
+
+    public void setDoneDate(String doneDate) {
+        this.doneDate = doneDate;
     }
 }
