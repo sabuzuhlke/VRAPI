@@ -1,31 +1,8 @@
 package VRAPI;
-import VRAPI.ContainerActivitiesJSON.JSONActivity;
-import VRAPI.ContainerActivitiesJSON.ZUKActivitiesResponse;
-import VRAPI.ContainerActivity.Activity;
-import VRAPI.ContainerActivity.Type;
-import VRAPI.ContainerActivityType.ActivityType;
-import VRAPI.ContainerDetailedProjects.Project;
-import VRAPI.ContainerOrganisationJSON.JSONContact;
-import VRAPI.ContainerOrganisationJSON.JSONOrganisation;
-import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
-import VRAPI.ContainerProjectJSON.JSONPhase;
-import VRAPI.ContainerProjectJSON.JSONProject;
-import VRAPI.ContainerProjectJSON.ZUKProjectsResponse;
-import VRAPI.ContainerProjectType.ProjectType;
-import VRAPI.ContainerProjects.ProjectWorker;
-import VRAPI.ContainerSimpleContactOrganisation.Contact;
-import VRAPI.ContainerSimpleContactOrganisation.Organisation;
-import VRAPI.Exceptions.HttpBadRequest;
 import VRAPI.Exceptions.HttpForbiddenException;
 import VRAPI.Exceptions.HttpInternalServerError;
 import VRAPI.Exceptions.HttpUnauthorisedException;
 import VRAPI.FromContainer.GenericLinkContainer;
-import com.google.common.collect.Lists;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -34,10 +11,6 @@ import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
 import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -45,24 +18,18 @@ import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.Collections.singletonList;
-import static java.util.Optional.ofNullable;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
 public class MapBuilder {
@@ -182,9 +149,6 @@ public class MapBuilder {
         if (list.size() == 0) {
             failureFrom(response);
         }
-
-        //TODO: check this is what we actually want to do
-
         return list;
     }
 

@@ -208,7 +208,6 @@ public class QueryBuilder {
         String bodyEnd = "</Selection>\n" +
                 "      <Resultdef>\n" +
                 "           <member>aktiv</member>\n" +
-                "           <member>SumWertInt</member>\n" + //TODO:delete dude
                 "           <member>PlanWertExt</member>\n" +
                 "           <member>Status</member>\n" +
                 "           <member>Code</member>\n" +

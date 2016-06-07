@@ -1,17 +1,16 @@
 package VRAPI.ResourceController;
-import VRAPI.ContainerActivitiesJSON.JSONActivity;
-import VRAPI.ContainerActivitiesJSON.ZUKActivitiesResponse;
+import VRAPI.JSONContainerActivities.JSONActivity;
+import VRAPI.JSONContainerActivities.JSONActivitiesResponse;
 import VRAPI.ContainerActivity.Activity;
 import VRAPI.ContainerActivity.Type;
 import VRAPI.ContainerActivityType.ActivityType;
-import VRAPI.ContainerAddresses.Envelope;
 import VRAPI.ContainerDetailedProjects.Project;
-import VRAPI.ContainerOrganisationJSON.JSONContact;
-import VRAPI.ContainerOrganisationJSON.JSONOrganisation;
-import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
-import VRAPI.ContainerProjectJSON.JSONPhase;
-import VRAPI.ContainerProjectJSON.JSONProject;
-import VRAPI.ContainerProjectJSON.ZUKProjectsResponse;
+import VRAPI.JSONContainerOrganisation.JSONContact;
+import VRAPI.JSONContainerOrganisation.JSONOrganisation;
+import VRAPI.JSONContainerOrganisation.ZUKOrganisationResponse;
+import VRAPI.JSONContainerProject.JSONPhase;
+import VRAPI.JSONContainerProject.JSONProject;
+import VRAPI.JSONContainerProject.ZUKProjectsResponse;
 import VRAPI.ContainerProjectType.ProjectType;
 import VRAPI.ContainerProjects.ProjectWorker;
 import VRAPI.ContainerSimpleContactOrganisation.Contact;
@@ -43,18 +42,11 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.validation.constraints.Null;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBException;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.StringReader;
-import java.io.StringWriter;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -112,9 +104,7 @@ public class ResourceController {
         this.contactComparator = new ContactComparator();
         this.activityComparator = new ActivityComparator();
 
-        //this.teamMap = StaticMaps.INSTANCE.getTeamIDMap();
         this.teamMap = new HashMap<>();
-        //this.followerMap = StaticMaps.INSTANCE.getFollowerMap(); TODO: place calls in code
         this.followerMap = new HashMap<>();
 
         this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
@@ -147,7 +137,7 @@ public class ResourceController {
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
     })
     @RequestMapping(value = "/organisations/ZUK", method = RequestMethod.GET, produces = "application/json")
-    public String getZUKOrganisations()  {
+    public ZUKOrganisationResponse getZUKOrganisations()  {
         checkUserAndPW();
 
         this.teamMap = StaticMaps.INSTANCE.getTeamIDMap();
@@ -156,10 +146,11 @@ public class ResourceController {
 
         List<List<Long>> contactIdsAndOrgsIds = getSimpleContactsandOrgs(getAddressIdsSupervisedBy(getZUKTeamMemberIds()));
 
-        return buildZUKOrganisationsResponse(
+        ZUKOrganisationResponse res = buildZUKOrganisationsResponse(
                 getActiveDetailedContacts(contactIdsAndOrgsIds.get(0)),
-                getOrganisations(contactIdsAndOrgsIds.get(1)))
-                .toString();
+                getOrganisations(contactIdsAndOrgsIds.get(1)));
+        System.out.println(res.toPrettyString());
+        return res;
     }
 
     @ApiOperation(value = "Get an organisation by id")
@@ -186,6 +177,8 @@ public class ResourceController {
 
         jOrg.setContacts(getContactsAsJSONContact(org));
 
+        System.out.println(jOrg.toPrettyJSON());
+
         return jOrg;
     }
 
@@ -207,6 +200,8 @@ public class ResourceController {
         jc.setOwner(getUserEmail(cont.getPersonResponsible().getObjref()));
         jc.setFollowers(followerMap.get(jc.getObjid()));
 
+        System.out.println(jc.toPrettyJSON());
+
         return jc;
     }
 
@@ -216,10 +211,16 @@ public class ResourceController {
     })
     @RequestMapping(value = "/addressEntry/{id}", method = RequestMethod.GET, produces = "application/json")
     public String getAddressEntryById(@PathVariable Long id){
+
+        String res;
         try{
-            return getOrganisationById(id).toPrettyJSON();
+            res = getOrganisationById(id).toPrettyJSON();
+            System.out.println("Single Org: " + res);
+            return res;
         } catch (HttpNotFoundException nfe){
-            return getContactbyId(id).toPrettyJSON();
+            res = getContactbyId(id).toPrettyJSON();
+            System.out.println("Single cont: " + res);
+            return res;
         }
     }
 
@@ -233,6 +234,7 @@ public class ResourceController {
         this.teamMap = StaticMaps.INSTANCE.getTeamIDMap();
             final ZUKProjectsResponse response = new ZUKProjectsResponse();
             response.setProjects(projectsForTeam(getZUKTeamMemberIds()));
+        System.out.println(response.toPrettyJSON());
             return response;
     }
 
@@ -294,13 +296,36 @@ public class ResourceController {
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
     })
     @RequestMapping(value = "/activities/ZUK", method = RequestMethod.GET, produces = "application/json")
-    public ZUKActivitiesResponse getZUKActivities() {
+    public JSONActivitiesResponse getZUKActivities() {
         checkUserAndPW();
         this.teamMap = StaticMaps.INSTANCE.getTeamIDMap();
 
         final List<Activity> activities = getActivities(getActivityIds(getZUKTeamMemberIds()));
-        return buildJSONActivitiesResponse(activities, getActivityTypes(activities));
+
+        JSONActivitiesResponse res = buildJSONActivitiesResponse(activities, getActivityTypes(activities));
+        System.out.println(res.toPrettyJSON());
+
+        return res;
+
     }
+
+    @ApiOperation(value = "Get Activity by ID")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
+    })
+    @RequestMapping(value = "/activities/{v_id}", method = RequestMethod.GET, produces = "application/json")
+    public JSONActivitiesResponse getActivityById(@PathVariable Long v_id){
+        checkUserAndPW();
+        this.teamMap = StaticMaps.INSTANCE.getTeamIDMap();
+
+        final List<Activity> activities = getActivities(singletonList(v_id));
+
+        JSONActivitiesResponse res = buildJSONActivitiesResponse(activities, getActivityTypes(activities));
+        System.out.println(res.toPrettyJSON());
+
+        return res;
+    }
+
 
     private List<JSONProject> projectsForTeam(List<Long> teamMemberIDs) {
         return getDetailedProjects(getProjectsTeamAreWorkingOn(teamMemberIDs)).stream()
@@ -466,9 +491,6 @@ public class ResourceController {
         if (list.size() == 0) {
             failureFrom(response);
         }
-
-        //TODO: check this is what we actually want to do
-
         return list;
     }
 
@@ -659,10 +681,14 @@ public class ResourceController {
     }
 
     public List<VRAPI.ContainerActivity.Activity> getActivities(List<Long> ids) {
-        return callVertec(queryBuilder.getActivities(ids), VRAPI.ContainerActivity.Envelope.class)
-                .getBody()
-                .getQueryResponse()
-                .getActivities();
+        try{
+            return callVertec(queryBuilder.getActivities(ids), VRAPI.ContainerActivity.Envelope.class)
+                    .getBody()
+                    .getQueryResponse()
+                    .getActivities();
+        } catch (NullPointerException npe){
+            throw new HttpNotFoundException("No activities exist with the following v_ids: " + ids);
+        }
     }
 
     public List<ActivityType> getActivityTypes(List<Activity> activities) {
@@ -682,7 +708,7 @@ public class ResourceController {
 
     }
 
-    public ZUKActivitiesResponse buildJSONActivitiesResponse(List<Activity> activities, List<ActivityType> types) {
+    public JSONActivitiesResponse buildJSONActivitiesResponse(List<Activity> activities, List<ActivityType> types) {
         Map<Long, String> typeMap = new HashMap<>();
 
         for (ActivityType t : types) {
@@ -690,7 +716,7 @@ public class ResourceController {
         }
 
 
-        return new ZUKActivitiesResponse(
+        return new JSONActivitiesResponse(
                 activities.stream()
                         .map(activity ->
                                 new JSONActivity(
@@ -704,11 +730,11 @@ public class ResourceController {
                                 || activity.getProject_link() != null))
                         .filter(activity ->
                                 ofNullable(activity.getType())
-                                .map(type -> !(type.contains("Contract")
-                                        || type.contains("Document")
+                                .map(type -> !(type.contains("Document")
                                         || type.contains("Organizational Chart")
                                         || type.contains("Order Confirmation")
                                         || type.contains("Offer")))
+                                        //TODO see whether this is how Wolfgang wants it to be
                                 .orElse(true))
                         .collect(toList()));
     }

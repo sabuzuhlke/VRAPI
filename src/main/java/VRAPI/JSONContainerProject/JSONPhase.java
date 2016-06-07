@@ -1,10 +1,7 @@
-package VRAPI.ContainerProjectJSON;
+package VRAPI.JSONContainerProject;
 
-import VRAPI.ContainerPhases.ProjectPhase;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import java.text.DecimalFormat;
 
 /**
  * Created by sabu on 13/05/2016.
@@ -25,8 +22,6 @@ public class JSONPhase {
     private String salesStatus;
     @JsonProperty("external_value")
     private String externalValue;
-    @JsonProperty("internal_value")
-    private String internalValue;
     @JsonProperty("person_responsible")
     private String personResponsible;
     @JsonProperty("start_date")
@@ -59,7 +54,6 @@ public class JSONPhase {
         this.code = ph.getCode();
         this.status = ph.getStatus();
         this.externalValue = ph.getExternalValue();
-        this.internalValue = ph.getExternalValue();
         this.startDate = ph.getStartDate();
         this.endDate = ph.getEndDate();
         this.offeredDate = ph.getOfferedDate();
@@ -111,14 +105,6 @@ public class JSONPhase {
 
     public void setStatus(int status) {
         this.status = status;
-    }
-
-    public String getInternalValue() {
-        return internalValue;
-    }
-
-    public void setInternalValue(String internalValue) {
-        this.internalValue = internalValue;
     }
 
     public String getExternalValue() {

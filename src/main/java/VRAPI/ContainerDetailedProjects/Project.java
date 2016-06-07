@@ -70,7 +70,7 @@ public class Project {
         this.phases = phases;
     }
 
-    @XmlElement(name = "hB") //TODO: try and find Engagement manager instead
+    @XmlElement(name = "hB")
     public Leader getLeader() {
         return leader;
     }

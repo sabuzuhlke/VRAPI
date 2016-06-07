@@ -5,12 +5,14 @@ package com.example;
  */
 
 import VRAPI.*;
-import VRAPI.ContainerOrganisationJSON.JSONContact;
-import VRAPI.ContainerOrganisationJSON.JSONOrganisation;
-import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
-import VRAPI.ContainerProjectJSON.JSONPhase;
-import VRAPI.ContainerProjectJSON.JSONProject;
-import VRAPI.ContainerProjectJSON.ZUKProjectsResponse;
+import VRAPI.JSONContainerActivities.JSONActivitiesResponse;
+import VRAPI.JSONContainerActivities.JSONActivity;
+import VRAPI.JSONContainerOrganisation.JSONContact;
+import VRAPI.JSONContainerOrganisation.JSONOrganisation;
+import VRAPI.JSONContainerOrganisation.ZUKOrganisationResponse;
+import VRAPI.JSONContainerProject.JSONPhase;
+import VRAPI.JSONContainerProject.JSONProject;
+import VRAPI.JSONContainerProject.ZUKProjectsResponse;
 import VRAPI.ResourceController.ResourceController;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
@@ -123,7 +125,7 @@ public class APItests {
         assertTrue("No Exception caught", false);
     }
 
-    @Test @Ignore("Takes too long")
+    @Test //@Ignore("Takes too long")
     public void canGetZUK(){
         String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/organisations/ZUK/";
         ResponseEntity<ZUKOrganisationResponse> res = getFromVertec(url, ZUKOrganisationResponse.class);
@@ -136,7 +138,7 @@ public class APItests {
         System.out.println(res.getBody().toPrettyString());
     }
 
-    @Test @Ignore("Takes too long")
+    @Test //@Ignore("Takes too long")
     public void canGetZUKProjects() {
         String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/projects/ZUK/";
         ResponseEntity<ZUKProjectsResponse> res = getFromVertec(url, ZUKProjectsResponse.class);
@@ -155,18 +157,17 @@ public class APItests {
                             || p.getType().contains("DSI")
                             || p.getType().contains("CAP"));
         }
-        System.out.println(res.getBody().toString());
+        System.out.println(res.getBody().toPrettyJSON());
 
     }
 
-    @Test @Ignore("Takes too long")
+    @Test// @Ignore("Takes too long")
     public void canGetZUKActivities(){
         String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/activities/ZUK/";
         ResponseEntity<String> res = getFromVertec(url, String.class);
 
         assertTrue("Response status code not OK", res.getStatusCode() == HttpStatus.OK);
         assertTrue("Activities were filtered out incorrectly", ! res.getBody().contains("26376851"));
-        assertTrue("Activities were filtered out incorrectly", ! res.getBody().contains("28013137"));
         System.out.println(res);
     }
 
@@ -420,6 +421,58 @@ public class APItests {
 
         assertTrue(false);
     }
+
+    @Test
+    public void canGetActivitById() throws URISyntaxException {
+        Long id = 10003025L;
+
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/activities/" + id ;
+        RequestEntity<String> req;
+        ResponseEntity<JSONActivitiesResponse> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+        //add authentication header to headers object
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+        req = new RequestEntity<>(headers, HttpMethod.GET,new URI(url));
+
+        res = rt.exchange(req, JSONActivitiesResponse.class);
+
+        assertEquals("wrong statuscode received", res.getStatusCode(), HttpStatus.OK);
+        assertEquals("more than 1 item received", 1, res.getBody().getActivities().size());
+        JSONActivity act = res.getBody().getActivities().get(0);
+        assertEquals("field 'title' didnt get through", act.getTitle(), "Discuss Vodafone Group opportunities");
+        assertEquals("User not returned correctly", act.getAssignee(), "justin.cowling@zuhlke.com");
+
+    }
+
+    @Test
+    public void cannotGetNonExistingActivity(){
+        Long code  = 234L;
+
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/activities/" + code ;
+        RequestEntity<String> req = null;
+        ResponseEntity<String> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+        //add authentication header to headers object
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+        req = new RequestEntity<>(headers, HttpMethod.GET, URI.create(url));
+
+        try{
+
+            res = rt.exchange(req, String.class);
+        } catch (HttpStatusCodeException e){
+            assertEquals(e.getStatusCode(), HttpStatus.NOT_FOUND);
+            return;
+        }
+
+        assertTrue(false);
+    }
+
 
 
 }

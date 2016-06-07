@@ -16,7 +16,6 @@ public class ProjectPhase {
     private String code;
     private int status;
     private String externalValue;
-    private String internalValue;
     private PersonResponsible personResponsible;
     private String startDate;
     private String endDate;
@@ -83,15 +82,6 @@ public class ProjectPhase {
 
     public void setExternalValue(String externalValue) {
         this.externalValue = externalValue;
-    }
-
-    @XmlElement(name = "sumWertInt")
-    public String getInternalValue() {
-        return internalValue;
-    }
-
-    public void setInternalValue(String internalValue) {
-        this.internalValue = internalValue;
     }
 
     @XmlElement(name = "verantwortlicher")

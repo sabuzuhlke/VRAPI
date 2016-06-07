@@ -1,14 +1,16 @@
-package VRAPI.ContainerActivitiesJSON;
+package VRAPI.JSONContainerActivities;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
-public class ZUKActivitiesResponse {
+public class JSONActivitiesResponse {
     private List<JSONActivity> activities;
 
-    public ZUKActivitiesResponse(List<JSONActivity> activities) {
+    public JSONActivitiesResponse() {}
+
+    public JSONActivitiesResponse(List<JSONActivity> activities) {
         this.activities = activities;
     }
 
@@ -18,8 +20,7 @@ public class ZUKActivitiesResponse {
     }
 
 
-    @Override
-    public String toString() {
+    public String toPrettyJSON() {
         String retStr = null;
         ObjectMapper m = new ObjectMapper();
         try{

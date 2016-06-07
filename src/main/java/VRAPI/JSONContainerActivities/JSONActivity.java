@@ -1,4 +1,4 @@
-package VRAPI.ContainerActivitiesJSON;
+package VRAPI.JSONContainerActivities;
 
 import VRAPI.ContainerActivity.Activity;
 import com.fasterxml.jackson.annotation.JsonProperty;

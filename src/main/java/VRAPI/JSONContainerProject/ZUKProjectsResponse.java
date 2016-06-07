@@ -1,4 +1,4 @@
-package VRAPI.ContainerProjectJSON;
+package VRAPI.JSONContainerProject;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,8 +24,7 @@ public class ZUKProjectsResponse {
         this.projects = projects;
     }
 
-    @Override
-    public String toString() {
+    public String toPrettyJSON() {
         String retStr = null;
         ObjectMapper m = new ObjectMapper();
         try{

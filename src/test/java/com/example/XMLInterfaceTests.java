@@ -1,6 +1,6 @@
 package com.example;
 import VRAPI.Application;
-import VRAPI.ContainerActivitiesJSON.ZUKActivitiesResponse;
+import VRAPI.JSONContainerActivities.JSONActivitiesResponse;
 import VRAPI.ContainerActivity.Activity;
 import VRAPI.ContainerActivityType.ActivityType;
 import VRAPI.ContainerDetailedContact.Contact;
@@ -10,25 +10,20 @@ import VRAPI.ContainerDetailedOrganisation.DaughterFirms;
 import VRAPI.ContainerDetailedOrganisation.Objlist;
 import VRAPI.ContainerDetailedOrganisation.ParentFirm;
 import VRAPI.ContainerDetailedProjects.Project;
-import VRAPI.ContainerOrganisationJSON.ZUKOrganisationResponse;
+import VRAPI.JSONContainerOrganisation.ZUKOrganisationResponse;
 import VRAPI.MyAccessCredentials;
 import VRAPI.ResourceController.QueryBuilder;
 import VRAPI.ResourceController.ResourceController;
 import VRAPI.ResourceController.StaticMaps;
-import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.RequestEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.web.client.RestTemplate;
 
 import javax.xml.parsers.ParserConfigurationException;
-import java.net.URI;
 import java.util.*;
 
 import static java.util.Arrays.asList;
@@ -137,7 +132,6 @@ public class XMLInterfaceTests {
         assertTrue( ! phases.get(1).getActive());
         assertTrue(phases.get(1).getCode().equals("10_ALPHA"));
         assertTrue(phases.get(1).getDescription().equals("CA Alpha"));
-        assertTrue(phases.get(1).getInternalValue().equals("353,290.32"));
         assertTrue(phases.get(1).getStatus() == 1);
         assertTrue(phases.get(1).getPersonResponsible().getObjref() == 504354);
         assertTrue(phases.get(1).getSalesStatus().equals("21 - Verkauft (schriftlich) / Sold (written PO)"));
@@ -638,7 +632,7 @@ public class XMLInterfaceTests {
         List<Activity> activities = rc.getActivities(aIds);
         List<ActivityType> aTypes = rc.getActivityTypes(activities);
 
-        ZUKActivitiesResponse aRes = rc.buildJSONActivitiesResponse(activities, aTypes);
+        JSONActivitiesResponse aRes = rc.buildJSONActivitiesResponse(activities, aTypes);
 
         System.out.println(aRes);
 

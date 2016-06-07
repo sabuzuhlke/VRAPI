@@ -1,4 +1,4 @@
-package VRAPI.ContainerOrganisationJSON;
+package VRAPI.JSONContainerOrganisation;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -27,6 +27,9 @@ public class JSONContact {
 
     @JsonProperty("owner")
     private String owner;   // name of owner
+
+    @JsonProperty("organisation_ref")
+    private Long organisation;
 
     @JsonProperty("modified")
     private String modified;
@@ -61,6 +64,10 @@ public class JSONContact {
         this.setPhone(c.getPhone());
         this.setSurname(c.getSurnname());
         this.creationTime = c.getCreationTime();
+
+        if (c.getOrganisation() != null) {
+            this.organisation = c.getOrganisation().getObjref();
+        }
     }
 
     public List<String> getFollowers() {
@@ -133,6 +140,14 @@ public class JSONContact {
 
     public void setSurname(String surname) {
         this.surname = surname;
+    }
+
+    public Long getOrganisation() {
+        return organisation;
+    }
+
+    public void setOrganisation(Long organisation) {
+        this.organisation = organisation;
     }
 
     public String toPrettyJSON() {
