@@ -149,9 +149,12 @@ public class ResourceController {
         ZUKOrganisationResponse res = buildZUKOrganisationsResponse(
                 getActiveDetailedContacts(contactIdsAndOrgsIds.get(0)),
                 getOrganisations(contactIdsAndOrgsIds.get(1)));
-        System.out.println(res.toPrettyString());
+       //System.out.println(res.toPrettyString());
         return res;
     }
+
+    //TODO Write get OrgnisationList
+    //TODO write getContactList
 
     @ApiOperation(value = "Get an organisation by id")
     @ApiImplicitParams({
@@ -177,7 +180,7 @@ public class ResourceController {
 
         jOrg.setContacts(getContactsAsJSONContact(org));
 
-        System.out.println(jOrg.toPrettyJSON());
+       // System.out.println(jOrg.toPrettyJSON());
 
         return jOrg;
     }
@@ -200,7 +203,7 @@ public class ResourceController {
         jc.setOwner(getUserEmail(cont.getPersonResponsible().getObjref()));
         jc.setFollowers(followerMap.get(jc.getObjid()));
 
-        System.out.println(jc.toPrettyJSON());
+        //System.out.println(jc.toPrettyJSON());
 
         return jc;
     }
@@ -215,11 +218,11 @@ public class ResourceController {
         String res;
         try{
             res = getOrganisationById(id).toPrettyJSON();
-            System.out.println("Single Org: " + res);
+            //System.out.println("Single Org: " + res);
             return res;
         } catch (HttpNotFoundException nfe){
             res = getContactbyId(id).toPrettyJSON();
-            System.out.println("Single cont: " + res);
+            //System.out.println("Single cont: " + res);
             return res;
         }
     }
@@ -234,7 +237,7 @@ public class ResourceController {
         this.teamMap = StaticMaps.INSTANCE.getTeamIDMap();
             final ZUKProjectsResponse response = new ZUKProjectsResponse();
             response.setProjects(projectsForTeam(getZUKTeamMemberIds()));
-        System.out.println(response.toPrettyJSON());
+        //System.out.println(response.toPrettyJSON());
             return response;
     }
 
@@ -303,7 +306,7 @@ public class ResourceController {
         final List<Activity> activities = getActivities(getActivityIds(getZUKTeamMemberIds()));
 
         JSONActivitiesResponse res = buildJSONActivitiesResponse(activities, getActivityTypes(activities));
-        System.out.println(res.toPrettyJSON());
+        //System.out.println(res.toPrettyJSON());
 
         return res;
 
@@ -321,7 +324,7 @@ public class ResourceController {
         final List<Activity> activities = getActivities(singletonList(v_id));
 
         JSONActivitiesResponse res = buildJSONActivitiesResponse(activities, getActivityTypes(activities));
-        System.out.println(res.toPrettyJSON());
+       // System.out.println(res.toPrettyJSON());
 
         return res;
     }

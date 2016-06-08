@@ -125,7 +125,7 @@ public class APItests {
         assertTrue("No Exception caught", false);
     }
 
-    @Test //@Ignore("Takes too long")
+    @Test @Ignore("Takes too long")
     public void canGetZUK(){
         String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/organisations/ZUK/";
         ResponseEntity<ZUKOrganisationResponse> res = getFromVertec(url, ZUKOrganisationResponse.class);
@@ -138,7 +138,7 @@ public class APItests {
         System.out.println(res.getBody().toPrettyString());
     }
 
-    @Test //@Ignore("Takes too long")
+    @Test @Ignore("Takes too long")
     public void canGetZUKProjects() {
         String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/projects/ZUK/";
         ResponseEntity<ZUKProjectsResponse> res = getFromVertec(url, ZUKProjectsResponse.class);
@@ -161,7 +161,7 @@ public class APItests {
 
     }
 
-    @Test// @Ignore("Takes too long")
+    @Test @Ignore("Takes too long")
     public void canGetZUKActivities(){
         String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/activities/ZUK/";
         ResponseEntity<String> res = getFromVertec(url, String.class);
