@@ -38,9 +38,9 @@ public class JSONPhase {
     private String modifiedDate;
     @JsonProperty("created")
     private String creationDate;
-    @JsonProperty("completion _date")
+    @JsonProperty("completion_date")
     private String completionDate;
-    @JsonProperty("rejection_Date")
+    @JsonProperty("rejection_date")
     private String rejectionDate;
 
     @SuppressWarnings("unused")

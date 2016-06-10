@@ -56,7 +56,7 @@ public class JSONContact {
 
     public JSONContact(VRAPI.ContainerDetailedContact.Contact c){
         this.setObjid(c.getObjId());
-        this.setEmail(c.getEmail());
+        this.setEmail(c.getEmail().toLowerCase());
         this.setMobile(c.getMobile());
         this.setFirstName(c.getFirstName());
         this.setModified(c.getModified());
