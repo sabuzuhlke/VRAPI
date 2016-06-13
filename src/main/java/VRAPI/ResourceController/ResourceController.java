@@ -46,6 +46,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.ByteArrayInputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
@@ -149,6 +150,13 @@ public class ResourceController {
         ZUKOrganisationResponse res = buildZUKOrganisationsResponse(
                 getActiveDetailedContacts(contactIdsAndOrgsIds.get(0)),
                 getOrganisations(contactIdsAndOrgsIds.get(1)));
+
+        try {
+            FileWriter file = new FileWriter("orgOutput.txt");
+            file.write(res.toPrettyString());
+        } catch (Exception e) {
+            System.out.println("Failed to output to file");
+        }
        //System.out.println(res.toPrettyString());
         return res;
     }
@@ -237,6 +245,13 @@ public class ResourceController {
         this.teamMap = StaticMaps.INSTANCE.getTeamIDMap();
             final ZUKProjectsResponse response = new ZUKProjectsResponse();
             response.setProjects(projectsForTeam(getZUKTeamMemberIds()));
+
+        try {
+            FileWriter file = new FileWriter("projOutput.txt");
+            file.write(response.toPrettyJSON());
+        } catch (Exception e) {
+            System.out.println("Failed to output to file");
+        }
         //System.out.println(response.toPrettyJSON());
             return response;
     }
@@ -307,6 +322,12 @@ public class ResourceController {
 
         JSONActivitiesResponse res = buildJSONActivitiesResponse(activities, getActivityTypes(activities));
         //System.out.println(res.toPrettyJSON());
+        try {
+            FileWriter file = new FileWriter("actOutput.txt");
+            file.write(res.toPrettyJSON());
+        } catch (Exception e) {
+            System.out.println("Failed to output to file");
+        }
 
         return res;
 
@@ -418,7 +439,6 @@ public class ResourceController {
            }
            List<VRAPI.ContainerDetailedContact.Contact> conts = getDetailedContacts(org.getContacts().getObjlist().getObjref());
            if (conts == null || conts.isEmpty()) {
-               System.out.println("Empty contacts for: " + org);
                return new ArrayList<>();
            }
            return conts.stream()
