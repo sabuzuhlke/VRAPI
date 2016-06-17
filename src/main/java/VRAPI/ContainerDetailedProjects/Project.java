@@ -15,6 +15,7 @@ public class Project {
     private Client client;
     private Phases phases;
     private Leader leader;
+    private Leader accountManager;
     private String title;
     private Customer customer;
     private Type type;
@@ -131,6 +132,15 @@ public class Project {
 
     public void setCreationDate(String creationDate) {
         this.creationDate = creationDate;
+    }
+
+    @XmlElement(name  = "hBStv")
+    public Leader getAccountManager() {
+        return accountManager;
+    }
+
+    public void setAccountManager(Leader accountManager) {
+        this.accountManager = accountManager;
     }
 
     public String toJSONString(){

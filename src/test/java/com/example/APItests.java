@@ -447,7 +447,7 @@ public class APItests {
 
     }
 
-    @Test
+    @Test @Ignore("takes too long")
     public void cannotGetNonExistingActivity(){
         Long code  = 234L;
 

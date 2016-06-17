@@ -67,9 +67,9 @@ public class JSONActivity {
         this(activity);
         this.assignee = assignee;
         this.type = typeName;
-        if (customer_link == null && phase_link == null && project_link == null) {
-            System.out.println("Found activity not attached to anything: " + toPrettyJSON());
-        }
+//        if (customer_link == null && phase_link == null && project_link == null) {
+//            System.out.println("Found activity not attached to anything: " + toPrettyJSON());
+//        }
     }
 
     @JsonProperty("id")
