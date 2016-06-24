@@ -33,7 +33,7 @@ import static java.util.stream.Collectors.toList;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
 public class MapBuilder {
-    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.10.54";
+    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.10.66";
     public static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
 
     private final URI vertecURI;

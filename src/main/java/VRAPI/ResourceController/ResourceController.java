@@ -1,4 +1,5 @@
 package VRAPI.ResourceController;
+import VRAPI.ContainerPhases.ProjectPhase;
 import VRAPI.JSONContainerActivities.JSONActivity;
 import VRAPI.JSONContainerActivities.JSONActivitiesResponse;
 import VRAPI.ContainerActivity.Activity;
@@ -52,12 +53,14 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
+import static java.util.stream.Collectors.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.w3c.dom.Node.ELEMENT_NODE;
@@ -66,7 +69,7 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 @RestController
 @Scope("prototype")
 public class ResourceController {
-    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.10.54";
+    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.10.66";
     public static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
 
     private final URI vertecURI;
@@ -352,13 +355,26 @@ public class ResourceController {
 
 
     private List<JSONProject> projectsForTeam(List<Long> teamMemberIDs) {
-        return getDetailedProjects(getProjectsTeamAreWorkingOn(teamMemberIDs)).stream()
+        List<ProjectWithType> projectsBeforePhasesAssigned = getDetailedProjects(getProjectsTeamAreWorkingOn(teamMemberIDs)).stream()
                 .map(this::fromProject)
                 .filter(ProjectWithType::isAfterCutOffDate)
                 .filter(ProjectWithType::isInUK)
                 .filter(ProjectWithType::isExternal)
-                .map(this::asJsonProject)
                 .collect(toList());
+
+        List<ProjectPhase> phaseList = getPhasesList(projectsBeforePhasesAssigned);
+        return projectsBeforePhasesAssigned.stream()
+                .map(proj -> asJsonProject(proj, phaseList))
+                .collect(toList());
+    }
+
+    private List<ProjectPhase> getPhasesList(List<ProjectWithType> projectsBeforePhasesAssigned) {
+        List<Long> allPhaseIds = projectsBeforePhasesAssigned.stream()
+                .map(p -> p.project)
+                .map(p -> p.getPhases().getObjlist().getObjrefs())
+                .flatMap(Collection::stream)
+                .collect(toList());
+        return callVertec(queryBuilder.getProjectPhases(allPhaseIds), VRAPI.ContainerPhases.Envelope.class).getBody().getQueryResponse().getPhases();
     }
 
     private class ProjectWithType {
@@ -392,6 +408,15 @@ public class ResourceController {
         }
     }
 
+    private JSONProject asJsonProject(ProjectWithType pwt, List<ProjectPhase> phases) {
+        String leaderEmail = teamMap.get(pwt.project.getLeader().getObjref());
+        JSONProject proj = new JSONProject(pwt.project, leaderEmail);
+        proj.setPhases(phasesFor(pwt.project, phases));
+        proj.setType(pwt.projectType.getDescripton());
+        proj.setCurrency(getCurrency(pwt.currencyId()).getName());
+        return proj;
+    }
+
     private JSONProject asJsonProject(ProjectWithType pwt) {
         String leaderEmail = teamMap.get(pwt.project.getLeader().getObjref());
         JSONProject proj = new JSONProject(pwt.project, leaderEmail);
@@ -403,6 +428,25 @@ public class ResourceController {
 
     public ProjectWithType fromProject(VRAPI.ContainerDetailedProjects.Project project) {
         return new ProjectWithType(project, getProjectType(project.getType().getObjref()));
+    }
+
+    private List<JSONPhase> phasesFor(Project project, List<ProjectPhase> phases) {
+        return phases.stream()
+                .filter(phase -> project.getPhases().getObjlist().getObjrefs().contains(phase.getObjid()))
+                .map(phase -> {
+                    String responsibleEmail = teamMap.get(project.getLeader().getObjref());
+                    return new JSONPhase(phase, responsibleEmail);
+                })
+                .collect(toList());
+
+
+//        return getPhasesForProject(project.getPhases().getObjlist().getObjrefs()).stream()
+//                .filter(phase -> !phase.getCode().contains("00_INTERN"))
+//                .map(phase -> {
+//                    String responsibleEmail = teamMap.get(project.getLeader().getObjref());
+//                    return new JSONPhase(phase, responsibleEmail);
+//                })
+//                .collect(toList());
     }
 
     private List<JSONPhase> phasesFor(Project project) {

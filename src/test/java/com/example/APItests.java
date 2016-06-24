@@ -138,7 +138,7 @@ public class APItests {
         System.out.println(res.getBody().toPrettyString());
     }
 
-    @Test @Ignore("Takes too long")
+    @Test //@Ignore("Takes too long")
     public void canGetZUKProjects() {
         String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/projects/ZUK/";
         ResponseEntity<ZUKProjectsResponse> res = getFromVertec(url, ZUKProjectsResponse.class);
@@ -472,7 +472,5 @@ public class APItests {
 
         assertTrue(false);
     }
-
-
 
 }
