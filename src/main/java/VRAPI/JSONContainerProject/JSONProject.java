@@ -34,12 +34,14 @@ public class JSONProject {
     private String modifiedDate;
     @JsonProperty("created")
     private String creationDate;
+    @JsonProperty("account_manager")
+    private String accountManager;
 
 
     public JSONProject() {
     }
 
-    public JSONProject(VRAPI.ContainerDetailedProjects.Project pr, String leaderEmail) {
+    public JSONProject(VRAPI.ContainerDetailedProjects.Project pr, String leaderEmail, String aManagerEmail) {
         this.title = pr.getTitle();
         this.v_id = pr.getId();
         this.active = pr.getActive();
@@ -49,6 +51,7 @@ public class JSONProject {
         this.customerId = pr.getCustomer().getObjref();
         this.modifiedDate = pr.getModifiedDate();
         this.creationDate = pr.getCreationDate();
+        this.accountManager = aManagerEmail;
 
         //set phases outside of constructor
         //set Type outside of constructor
@@ -149,6 +152,14 @@ public class JSONProject {
 
     public void setCreationDate(String creationDate) {
         this.creationDate = creationDate;
+    }
+
+    public String getAccountManager() {
+        return accountManager;
+    }
+
+    public void setAccountManager(String accountManager) {
+        this.accountManager = accountManager;
     }
 
     public String toJSONString(){

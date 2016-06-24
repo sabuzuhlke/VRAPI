@@ -56,15 +56,22 @@ public class JSONPhase {
         this.externalValue = ph.getExternalValue();
         this.startDate = ph.getStartDate();
         this.endDate = ph.getEndDate();
+
         this.offeredDate = ph.getOfferedDate();
+        if(this.offeredDate.equals("")) this.offeredDate = null;
+
         this.salesStatus = ph.getSalesStatus();
         this.lostReason = ph.getLostReason();
         this.modifiedDate = ph.getModifiedDate();
         this.creationDate = ph.getCreationDate();
         //this.grantedDate = ph
         this.personResponsible = personResponsible;
+
         this.completionDate = ph.getCompletionDate();
+        if(this.completionDate.equals("")) this.completionDate = null;
+
         this.rejectionDate = ph.getRejectionDate();
+        if(this.rejectionDate.equals("")) this.rejectionDate = null;
     }
 
     public Long getV_id() {

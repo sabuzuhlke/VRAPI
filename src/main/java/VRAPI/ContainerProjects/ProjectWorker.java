@@ -1,5 +1,7 @@
 package VRAPI.ContainerProjects;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.xml.bind.annotation.XmlElement;
 
 /**
@@ -39,5 +41,18 @@ public class ProjectWorker {
 
     public void setProjectsList(ProjectsList projectsList) {
         this.projectsList = projectsList;
+    }
+
+    public String toJSONString(){
+        String retStr = null;
+        ObjectMapper m = new ObjectMapper();
+        try{
+
+            retStr = m.writeValueAsString(this);
+        }
+        catch(Exception e){
+            System.out.println("Could not convert XML Envelope to JSON: " + e.toString());
+        }
+        return retStr;
     }
 }

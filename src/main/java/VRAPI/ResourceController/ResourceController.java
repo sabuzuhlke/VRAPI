@@ -89,6 +89,7 @@ public class ResourceController {
 
     public QueryBuilder queryBuilder;
 
+
     public ResourceController() throws ParserConfigurationException {
         //set resttemplate message converters
         this.rest = new RestTemplate();
@@ -112,6 +113,7 @@ public class ResourceController {
         this.followerMap = new HashMap<>();
 
         this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+
     }
 
     //TODO: only used in tests, maybe change
@@ -212,7 +214,14 @@ public class ResourceController {
 
         JSONContact jc = new JSONContact(cont);
         jc.setOwner(getUserEmail(cont.getPersonResponsible().getObjref()));
+        //Followers
+        if(followerMap.get(jc.getObjid()) != null){ //None of the followers might be in our follower map, in that case we don't care
+
         jc.setFollowers(followerMap.get(jc.getObjid()));
+
+        } else {
+            jc.setFollowers(new ArrayList<>());
+        }
 
         //System.out.println(jc.toPrettyJSON());
 
@@ -418,8 +427,16 @@ public class ResourceController {
     }
 
     private JSONProject asJsonProject(ProjectWithType pwt) {
+        String aManagerEmail = null;
+
         String leaderEmail = teamMap.get(pwt.project.getLeader().getObjref());
-        JSONProject proj = new JSONProject(pwt.project, leaderEmail);
+
+        if(pwt.project.getAccountManager() != null){
+            System.out.println("Account Manager added: " + pwt.project.getAccountManager().getObjref());
+            aManagerEmail = teamMap.get(pwt.project.getAccountManager().getObjref());
+        }
+
+        JSONProject proj = new JSONProject(pwt.project, leaderEmail, aManagerEmail);
         proj.setPhases(phasesFor(pwt.project));
         proj.setType(pwt.projectType.getDescripton());
         proj.setCurrency(getCurrency(pwt.currencyId()).getName());
@@ -541,7 +558,13 @@ public class ResourceController {
                 VRAPI.ContainerProjects.Envelope.class)
                 .getBody().getQueryResponse().getProjectWorkers().stream()
                 .filter(ProjectWorker::getActive)
-                .flatMap(worker -> worker.getProjectsList().getObjList().getObjrefs().stream())
+                .filter(worker ->  worker.getProjectsList().
+                        getObjList()
+                        .getObjrefs() != null) //Ugly but Thal Bryan has got no projects, nor betreute addressen
+                .flatMap(worker ->  worker.getProjectsList().
+                        getObjList()
+                        .getObjrefs()
+                        .stream())
                 .collect(toSet());
     }
 
