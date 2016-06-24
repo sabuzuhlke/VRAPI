@@ -66,7 +66,7 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 @RestController
 @Scope("prototype")
 public class ResourceController {
-    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.10.54";
+    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.10.66";
     public static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
 
     private final URI vertecURI;
@@ -407,6 +407,7 @@ public class ResourceController {
         String leaderEmail = teamMap.get(pwt.project.getLeader().getObjref());
 
         if(pwt.project.getAccountManager() != null){
+            System.out.println("Account Manager added: " + pwt.project.getAccountManager().getObjref());
             aManagerEmail = teamMap.get(pwt.project.getAccountManager().getObjref());
         }
 
