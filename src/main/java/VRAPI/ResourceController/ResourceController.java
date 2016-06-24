@@ -1,22 +1,22 @@
 package VRAPI.ResourceController;
-import VRAPI.ContainerPhases.ProjectPhase;
-import VRAPI.JSONContainerActivities.JSONActivity;
-import VRAPI.JSONContainerActivities.JSONActivitiesResponse;
 import VRAPI.ContainerActivity.Activity;
 import VRAPI.ContainerActivity.Type;
 import VRAPI.ContainerActivityType.ActivityType;
 import VRAPI.ContainerDetailedProjects.Project;
+import VRAPI.ContainerPhases.ProjectPhase;
+import VRAPI.ContainerProjectType.ProjectType;
+import VRAPI.ContainerProjects.ProjectWorker;
+import VRAPI.ContainerSimpleContactOrganisation.Contact;
+import VRAPI.ContainerSimpleContactOrganisation.Organisation;
+import VRAPI.Exceptions.*;
+import VRAPI.JSONContainerActivities.JSONActivitiesResponse;
+import VRAPI.JSONContainerActivities.JSONActivity;
 import VRAPI.JSONContainerOrganisation.JSONContact;
 import VRAPI.JSONContainerOrganisation.JSONOrganisation;
 import VRAPI.JSONContainerOrganisation.ZUKOrganisationResponse;
 import VRAPI.JSONContainerProject.JSONPhase;
 import VRAPI.JSONContainerProject.JSONProject;
 import VRAPI.JSONContainerProject.ZUKProjectsResponse;
-import VRAPI.ContainerProjectType.ProjectType;
-import VRAPI.ContainerProjects.ProjectWorker;
-import VRAPI.ContainerSimpleContactOrganisation.Contact;
-import VRAPI.ContainerSimpleContactOrganisation.Organisation;
-import VRAPI.Exceptions.*;
 import com.google.common.collect.Lists;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -53,14 +53,12 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.Collections.singletonList;
 import static java.util.Optional.ofNullable;
-import static java.util.stream.Collectors.*;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.w3c.dom.Node.ELEMENT_NODE;
@@ -419,7 +417,13 @@ public class ResourceController {
 
     private JSONProject asJsonProject(ProjectWithType pwt, List<ProjectPhase> phases) {
         String leaderEmail = teamMap.get(pwt.project.getLeader().getObjref());
-        JSONProject proj = new JSONProject(pwt.project, leaderEmail);
+
+        String aManagerEmail = null;
+        if(pwt.project.getAccountManager() != null){
+            System.out.println("Account Manager added: " + pwt.project.getAccountManager().getObjref());
+            aManagerEmail = teamMap.get(pwt.project.getAccountManager().getObjref());
+        }
+        JSONProject proj = new JSONProject(pwt.project, leaderEmail, aManagerEmail);
         proj.setPhases(phasesFor(pwt.project, phases));
         proj.setType(pwt.projectType.getDescripton());
         proj.setCurrency(getCurrency(pwt.currencyId()).getName());
