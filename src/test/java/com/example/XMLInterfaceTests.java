@@ -115,6 +115,9 @@ public class XMLInterfaceTests {
         assertTrue(projects.get(0).getType().getObjref() == 26540859L);
         assertTrue(projects.get(0).getCurrency() != null);
         assertTrue(projects.get(0).getCurrency().getObjref() == 346658L);
+        assertEquals("Account manager got incorrectly", 16887415L, projects
+                .get(0)
+                .getAccountManager().getObjref().longValue());
 
         for(int i = 0; i < projects.size(); i++ ){
 

@@ -250,6 +250,7 @@ public class APItests {
         assertEquals(res.getBody().getClientRef().longValue(), 710229);
         assertEquals(res.getBody().getCurrency(),"GBP");
         assertEquals(res.getBody().getType(),"BU CAP");
+        assertEquals("Account manager not set properly",res.getBody().getAccountManager(),"justin.cowling@zuhlke.com" );
 
         JSONPhase phase = res.getBody().getPhases().get(0);
 

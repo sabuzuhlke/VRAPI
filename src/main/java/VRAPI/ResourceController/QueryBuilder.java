@@ -160,6 +160,7 @@ public class QueryBuilder {
                 "        <member>Phasen</member>\n" +
                 "        <member>projektnummer</member>\n" +
                 "        <member>hb</member>\n" +
+                "        <member>hbstv</member>\n" +
                 "        <member>code</member>\n" +
                 "        <member>auftraggeber</member>\n" +
                 "        <member>typ</member>\n" +
@@ -370,7 +371,7 @@ public class QueryBuilder {
                 "        <member>Phasen</member>\n" +
                 "        <member>projektnummer</member>\n" +
                 "        <member>hb</member>\n" +
-                "        <member>hbstv</member>\n" +
+                "        <member>hBStv</member>\n" +
                 "        <member>code</member>\n" +
                 "        <member>auftraggeber</member>\n" +
                 "        <member>typ</member>\n" +
