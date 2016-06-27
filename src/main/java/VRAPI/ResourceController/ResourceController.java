@@ -53,6 +53,7 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -369,7 +370,9 @@ public class ResourceController {
                 .filter(ProjectWithType::isExternal)
                 .collect(toList());
 
-        List<ProjectPhase> phaseList = getPhasesList(projectsBeforePhasesAssigned);
+        List<ProjectPhase> phaseList = getPhasesList(projectsBeforePhasesAssigned).stream()
+                .filter(phase -> !phase.getCode().contains("00_INTERN"))
+                .collect(toList());
         return projectsBeforePhasesAssigned.stream()
                 .map(proj -> asJsonProject(proj, phaseList))
                 .collect(toList());
