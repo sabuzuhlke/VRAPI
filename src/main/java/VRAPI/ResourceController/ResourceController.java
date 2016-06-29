@@ -17,11 +17,14 @@ import VRAPI.JSONContainerOrganisation.ZUKOrganisationResponse;
 import VRAPI.JSONContainerProject.JSONPhase;
 import VRAPI.JSONContainerProject.JSONProject;
 import VRAPI.JSONContainerProject.ZUKProjectsResponse;
+import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
@@ -41,6 +44,13 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
+import springfox.documentation.builders.PathSelectors;
+import springfox.documentation.builders.RequestHandlerSelectors;
+import springfox.documentation.service.ApiInfo;
+import springfox.documentation.spi.DocumentationType;
+import springfox.documentation.spring.web.plugins.Docket;
+import springfox.documentation.swagger.web.UiConfiguration;
+import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
@@ -67,6 +77,8 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 @SuppressWarnings("WeakerAccess")
 @RestController
 @Scope("prototype")
+@EnableSwagger2
+@Configuration
 public class ResourceController {
     public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.10.66";
     public static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
@@ -356,7 +368,7 @@ public class ResourceController {
         final List<Activity> activities = getActivities(singletonList(v_id));
 
         JSONActivitiesResponse res = buildJSONActivitiesResponse(activities, getActivityTypes(activities));
-       // System.out.println(res.toPrettyJSON());
+        //System.out.println(res.toPrettyJSON());
 
         return res;
     }
@@ -372,6 +384,7 @@ public class ResourceController {
 
         List<ProjectPhase> phaseList = getPhasesList(projectsBeforePhasesAssigned).stream()
                 .filter(phase -> !phase.getCode().contains("00_INTERN"))
+                .filter(phase -> !phase.getCode().contains("00_BID"))
                 .collect(toList());
         return projectsBeforePhasesAssigned.stream()
                 .map(proj -> asJsonProject(proj, phaseList))
@@ -476,6 +489,7 @@ public class ResourceController {
     private List<JSONPhase> phasesFor(Project project) {
         return getPhasesForProject(project.getPhases().getObjlist().getObjrefs()).stream()
                 .filter(phase -> !phase.getCode().contains("00_INTERN"))
+                .filter(phase -> !phase.getCode().contains("00_BID"))
                 .map(phase -> {
                     String responsibleEmail = teamMap.get(project.getLeader().getObjref());
                     return new JSONPhase(phase, responsibleEmail);
@@ -888,5 +902,34 @@ public class ResourceController {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    @Bean
+    public Docket api(){
+
+        return new Docket(DocumentationType.SWAGGER_2)
+                .select()
+                .apis(RequestHandlerSelectors.any())
+                .paths(Predicates.not(PathSelectors.regex("/error.*")))
+                .build()
+                .apiInfo(apiInfo())
+                .pathMapping("/");
+    }
+
+
+    private ApiInfo apiInfo() {
+        return new ApiInfo(
+                "Vertec REST API",
+                "This API is used for getting data relevant to ZUK",
+                "0.0", "Free to use for Zuhlke emplyees", "Sam and Gergely", "", ""
+        );
+    }
+
+    @Bean
+    UiConfiguration uiConfig(){
+        return new UiConfiguration(
+                "validationUrl"
+        );
+
     }
 }

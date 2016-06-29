@@ -43,6 +43,9 @@ public class JSONContact {
     @JsonProperty("followers")
     private List<String> followers;
 
+    @JsonProperty("active")
+    private Boolean active;
+
     public String getCreationTime() {
         return creationTime;
     }
@@ -68,6 +71,7 @@ public class JSONContact {
         if (c.getOrganisation() != null) {
             this.organisation = c.getOrganisation().getObjref();
         }
+        this.active = c.getActive();
     }
 
     public List<String> getFollowers() {
@@ -148,6 +152,14 @@ public class JSONContact {
 
     public void setOrganisation(Long organisation) {
         this.organisation = organisation;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 
     public String toPrettyJSON() {

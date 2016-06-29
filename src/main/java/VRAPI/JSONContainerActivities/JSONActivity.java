@@ -19,6 +19,7 @@ public class JSONActivity {
     private String date;
     private String type;
     private String done_date;
+    private String creation_date_time;
 
     public JSONActivity() {
     }
@@ -61,6 +62,8 @@ public class JSONActivity {
         this.type = null;
 
         this.done_date = a.getDoneDate();
+
+        this.creation_date_time = a.getCreationDateTime();
     }
 
     public JSONActivity(Activity activity, String assignee, String typeName) {
@@ -169,6 +172,15 @@ public class JSONActivity {
 
     public void setDone_date(String done_date) {
         this.done_date = done_date;
+    }
+
+    @JsonProperty("creation_date_time")
+    public String getCreation_date_time() {
+        return creation_date_time;
+    }
+
+    public void setCreation_date_time(String creation_date_time) {
+        this.creation_date_time = creation_date_time;
     }
 
     public String toPrettyJSON() {

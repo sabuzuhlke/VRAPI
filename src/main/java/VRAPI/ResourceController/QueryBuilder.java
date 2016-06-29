@@ -314,6 +314,7 @@ public class QueryBuilder {
                 "           <member>titel</member>\n" +
                 "           <member>zustaendig</member>\n" +
                 "           <member>erledigtdatum</member>\n" +
+                "           <member>creationDateTime</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +

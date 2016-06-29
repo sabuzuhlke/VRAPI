@@ -18,6 +18,7 @@ public class Activity {
     private String title;
     private Assignee assignee;
     private String doneDate;
+    private String creationDateTime;
 
     public Activity() {
 
@@ -120,5 +121,14 @@ public class Activity {
 
     public void setDoneDate(String doneDate) {
         this.doneDate = doneDate;
+    }
+
+    @XmlElement(name = "creationDateTime")
+    public String getCreationDateTime() {
+        return creationDateTime;
+    }
+
+    public void setCreationDateTime(String creationDateTime) {
+        this.creationDateTime = creationDateTime;
     }
 }
