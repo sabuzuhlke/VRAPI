@@ -381,13 +381,14 @@ public class ResourceController {
                 .filter(ProjectWithType::isInUK)
                 .filter(ProjectWithType::isExternal)
                 .collect(toList());
-
-        List<ProjectPhase> phaseList = getPhasesList(projectsBeforePhasesAssigned).stream()
-                .filter(phase -> !phase.getCode().contains("00_INTERN"))
-                .filter(phase -> !phase.getCode().contains("00_BID"))
-                .collect(toList());
+//
+//        List<ProjectPhase> phaseList = getPhasesList(projectsBeforePhasesAssigned).stream()
+//                .filter(phase -> !phase.getCode().contains("00_INTERN"))
+//                .filter(phase -> !phase.getCode().contains("00_BID"))
+//                .collect(toList());
         return projectsBeforePhasesAssigned.stream()
-                .map(proj -> asJsonProject(proj, phaseList))
+//                .map(proj -> asJsonProject(proj, phaseList))
+                .map(this::asJsonProject)
                 .collect(toList());
     }
 
@@ -431,20 +432,20 @@ public class ResourceController {
         }
     }
 
-    private JSONProject asJsonProject(ProjectWithType pwt, List<ProjectPhase> phases) {
-        String leaderEmail = teamMap.get(pwt.project.getLeader().getObjref());
-
-        String aManagerEmail = null;
-        if(pwt.project.getAccountManager() != null){
-            System.out.println("Account Manager added: " + pwt.project.getAccountManager().getObjref());
-            aManagerEmail = teamMap.get(pwt.project.getAccountManager().getObjref());
-        }
-        JSONProject proj = new JSONProject(pwt.project, leaderEmail, aManagerEmail);
-        proj.setPhases(phasesFor(pwt.project, phases));
-        proj.setType(pwt.projectType.getDescripton());
-        proj.setCurrency(getCurrency(pwt.currencyId()).getName());
-        return proj;
-    }
+//    private JSONProject asJsonProject(ProjectWithType pwt, List<ProjectPhase> phases) {
+//        String leaderEmail = teamMap.get(pwt.project.getLeader().getObjref());
+//
+//        String aManagerEmail = null;
+//        if(pwt.project.getAccountManager() != null){
+//            System.out.println("Account Manager added: " + pwt.project.getAccountManager().getObjref());
+//            aManagerEmail = teamMap.get(pwt.project.getAccountManager().getObjref());
+//        }
+//        JSONProject proj = new JSONProject(pwt.project, leaderEmail, aManagerEmail);
+//        proj.setPhases(phasesFor(pwt.project, phases));
+//        proj.setType(pwt.projectType.getDescripton());
+//        proj.setCurrency(getCurrency(pwt.currencyId()).getName());
+//        return proj;
+//    }
 
     private JSONProject asJsonProject(ProjectWithType pwt) {
         String aManagerEmail = null;
@@ -467,24 +468,24 @@ public class ResourceController {
         return new ProjectWithType(project, getProjectType(project.getType().getObjref()));
     }
 
-    private List<JSONPhase> phasesFor(Project project, List<ProjectPhase> phases) {
-        return phases.stream()
-                .filter(phase -> project.getPhases().getObjlist().getObjrefs().contains(phase.getObjid()))
-                .map(phase -> {
-                    String responsibleEmail = teamMap.get(project.getLeader().getObjref());
-                    return new JSONPhase(phase, responsibleEmail);
-                })
-                .collect(toList());
-
-
-//        return getPhasesForProject(project.getPhases().getObjlist().getObjrefs()).stream()
-//                .filter(phase -> !phase.getCode().contains("00_INTERN"))
+//    private List<JSONPhase> phasesFor(Project project, List<ProjectPhase> phases) {
+//        return phases.stream()
+//                .filter(phase -> project.getPhases().getObjlist().getObjrefs().contains(phase.getObjid()))
 //                .map(phase -> {
 //                    String responsibleEmail = teamMap.get(project.getLeader().getObjref());
 //                    return new JSONPhase(phase, responsibleEmail);
 //                })
 //                .collect(toList());
-    }
+//
+//
+////        return getPhasesForProject(project.getPhases().getObjlist().getObjrefs()).stream()
+////                .filter(phase -> !phase.getCode().contains("00_INTERN"))
+////                .map(phase -> {
+////                    String responsibleEmail = teamMap.get(project.getLeader().getObjref());
+////                    return new JSONPhase(phase, responsibleEmail);
+////                })
+////                .collect(toList());
+//    }
 
     private List<JSONPhase> phasesFor(Project project) {
         return getPhasesForProject(project.getPhases().getObjlist().getObjrefs()).stream()
@@ -851,6 +852,7 @@ public class ResourceController {
     }
 
     public <T> T callVertec(String query, Class<T> responseType) {
+        System.out.println("Calling vertec, querying for: " + responseType.getName());
         return rest.exchange(
                 new RequestEntity<>(query, HttpMethod.POST, vertecURI),
                 responseType).getBody();
