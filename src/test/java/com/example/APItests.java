@@ -125,7 +125,7 @@ public class APItests {
         assertTrue("No Exception caught", false);
     }
 
-    @Test @Ignore("Takes too long")
+    @Test //@Ignore("Takes too long")
     public void canGetZUK(){
         String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/organisations/ZUK/";
         ResponseEntity<ZUKOrganisationResponse> res = getFromVertec(url, ZUKOrganisationResponse.class);
@@ -161,14 +161,14 @@ public class APItests {
 
     }
 
-    @Test @Ignore("Takes too long")
+    @Test //@Ignore("Takes too long")
     public void canGetZUKActivities(){
         String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/activities/ZUK/";
-        ResponseEntity<String> res = getFromVertec(url, String.class);
+        ResponseEntity<JSONActivitiesResponse> res = getFromVertec(url, JSONActivitiesResponse.class);
 
         assertTrue("Response status code not OK", res.getStatusCode() == HttpStatus.OK);
-        assertTrue("Activities were filtered out incorrectly", ! res.getBody().contains("26376851"));
-        System.out.println(res);
+//        assertTrue("Activities were filtered out incorrectly", ! res.getBody().contains("26376851"));
+        System.out.println(res.getBody().toPrettyJSON());
     }
 
     @Test
