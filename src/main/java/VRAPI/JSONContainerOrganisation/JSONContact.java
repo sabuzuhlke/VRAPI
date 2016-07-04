@@ -72,6 +72,7 @@ public class JSONContact {
             this.organisation = c.getOrganisation().getObjref();
         }
         this.active = c.getActive();
+        if(this.active == null) this.active = false;
     }
 
     public List<String> getFollowers() {

@@ -233,6 +233,7 @@ public class ResourceController {
         } else {
             jc.setFollowers(new ArrayList<>());
         }
+        System.out.println("Getting contact " + jc.getFirstName() + " " + jc.getSurname() + " Active on vertec: " + cont.getActive() + ", and as a JSON " + jc.getActive());
 
         //System.out.println(jc.toPrettyJSON());
 
@@ -520,7 +521,7 @@ public class ResourceController {
                System.out.println("Objref null: " + org);
                return new ArrayList<>();
            }
-           List<VRAPI.ContainerDetailedContact.Contact> conts = getDetailedContacts(org.getContacts().getObjlist().getObjref());
+           List<VRAPI.ContainerDetailedContact.Contact> conts = getActiveDetailedContacts(org.getContacts().getObjlist().getObjref());
            if (conts == null || conts.isEmpty()) {
                return new ArrayList<>();
            }
