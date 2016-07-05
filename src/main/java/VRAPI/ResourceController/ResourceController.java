@@ -17,6 +17,10 @@ import VRAPI.JSONContainerOrganisation.ZUKOrganisationResponse;
 import VRAPI.JSONContainerProject.JSONPhase;
 import VRAPI.JSONContainerProject.JSONProject;
 import VRAPI.JSONContainerProject.ZUKProjectsResponse;
+import VRAPI.JSONTeam.TeamMember;
+import VRAPI.JSONTeam.ZUKTeam;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.base.Predicates;
 import com.google.common.collect.Lists;
 import io.swagger.annotations.ApiImplicitParam;
@@ -26,10 +30,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -135,6 +136,45 @@ public class ResourceController {
     //------------------------------------------------------------------------------------------------------------Paths
     @Autowired
     private HttpServletRequest request;
+
+
+    @ApiOperation(value = "Get Team details", nickname = "team")
+    @RequestMapping(value = "/ZUKTeam", method = RequestMethod.GET, produces = "application/json")
+    public ResponseEntity<ZUKTeam> createTeamResponse()  {
+
+        checkUserAndPW();
+
+        List<Long> ids = getZUKTeamMemberIds();
+//        String xmlQuery = getXMLQuery_TeamIdsAndEmails(ids);
+        String xmlQuery = StaticMaps.INSTANCE.getTeamQuery(ids);
+        final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
+        NodeList teamMembers = response.getElementsByTagName("Projektbearbeiter");
+        ZUKTeam team = new ZUKTeam();
+        IntStream.range(0, teamMembers.getLength())
+                .mapToObj(index -> (Element) teamMembers.item(index))
+                .forEach(teamMemberElement -> {
+                    final NodeList active = teamMemberElement.getElementsByTagName("aktiv");
+                    if (toBoolean(active.item(0).getTextContent())) {
+                        final NodeList briefEmail = teamMemberElement.getElementsByTagName("briefEmail");
+                        String email = briefEmail.item(0).getTextContent();
+                        if(briefEmail.getLength(
+                        ) != 1) {
+                            throw new RuntimeException("XML Document parse for briefEmail went wrong"); //for debugging
+                        }
+                        final NodeList objid = teamMemberElement.getElementsByTagName("objid");
+                        Long id = Long.parseLong(objid.item(0).getTextContent());
+                        if (! email.isEmpty()) {
+                            team.members.add(new TeamMember(email.toLowerCase(), id));
+                        }
+                    }
+                });
+
+        return new ResponseEntity<>(team, HttpStatus.OK);
+    }
+
+    private Boolean toBoolean(String s) {
+        return s.equals("1");
+    }
 
     @ApiOperation(value = "Test access", nickname = "notping")
     @RequestMapping(value = "/ping", method = RequestMethod.GET, produces = "text/plain")
@@ -345,10 +385,11 @@ public class ResourceController {
         final List<Activity> activities = getActivities(getActivityIds(getZUKTeamMemberIds()));
 
         JSONActivitiesResponse res = buildJSONActivitiesResponse(activities, getActivityTypes(activities));
-        //System.out.println(res.toPrettyJSON());
+        System.out.println(res.toPrettyJSON());
         try {
             FileWriter file = new FileWriter("actOutput.txt");
             file.write(res.toPrettyJSON());
+            file.close();
         } catch (Exception e) {
             System.out.println("Failed to output to file");
         }
@@ -831,12 +872,16 @@ public class ResourceController {
 
         return new JSONActivitiesResponse(
                 activities.stream()
-                        .map(activity ->
-                                new JSONActivity(
+                        .map(activity ->{
+                               JSONActivity act =  new JSONActivity(
                                         activity,
                                         teamMap.get(activity.getAssignee().getObjref()),
-                                        typeMap.get(activity.getType().getObjref()))
-                        )
+                                        typeMap.get(activity.getType().getObjref()));
+
+                            if(act.getCreation_date_time() == null) act.setCreation_date_time("");
+
+                            return act;
+                        })
                         .filter(activity -> (
                                 activity.getCustomer_link() != null
                                 || activity.getPhase_link() != null

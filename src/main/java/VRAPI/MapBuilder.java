@@ -105,7 +105,7 @@ public class MapBuilder {
         return s.equals("1");
     }
 
-    private String getXMLQuery_TeamIdsAndEmails(List<Long> ids) {
+    public String getXMLQuery_TeamIdsAndEmails(List<Long> ids) {
 
         String header = "<Envelope>\n" +
                 "  <Header>\n" +

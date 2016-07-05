@@ -13,6 +13,7 @@ import VRAPI.JSONContainerOrganisation.ZUKOrganisationResponse;
 import VRAPI.JSONContainerProject.JSONPhase;
 import VRAPI.JSONContainerProject.JSONProject;
 import VRAPI.JSONContainerProject.ZUKProjectsResponse;
+import VRAPI.JSONTeam.ZUKTeam;
 import VRAPI.ResourceController.ResourceController;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
@@ -125,7 +126,7 @@ public class APItests {
         assertTrue("No Exception caught", false);
     }
 
-    @Test //@Ignore("Takes too long")
+    @Test @Ignore("Takes too long")
     public void canGetZUK(){
         String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/organisations/ZUK/";
         ResponseEntity<ZUKOrganisationResponse> res = getFromVertec(url, ZUKOrganisationResponse.class);
@@ -138,7 +139,7 @@ public class APItests {
         System.out.println(res.getBody().toPrettyString());
     }
 
-    @Test //@Ignore("Takes too long")
+    @Test @Ignore("Takes too long")
     public void canGetZUKProjects() {
         String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/projects/ZUK/";
         ResponseEntity<ZUKProjectsResponse> res = getFromVertec(url, ZUKProjectsResponse.class);
@@ -161,7 +162,7 @@ public class APItests {
 
     }
 
-    @Test //@Ignore("Takes too long")
+    @Test @Ignore("Takes too long")
     public void canGetZUKActivities(){
         String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/activities/ZUK/";
         ResponseEntity<JSONActivitiesResponse> res = getFromVertec(url, JSONActivitiesResponse.class);
@@ -472,6 +473,37 @@ public class APItests {
         }
 
         assertTrue(false);
+    }
+
+    @Test
+    public void canGetTeamResponse() {
+        RestTemplate rt = new RestTemplate();
+        String url = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/ZUKTeam";
+        RequestEntity<String> req = null;
+        ResponseEntity<ZUKTeam> res;
+        MyAccessCredentials creds = new MyAccessCredentials();
+        //add authentication header to headers object
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", creds.getUserName() + ':' + creds.getPass());
+
+        req = new RequestEntity<>(headers, HttpMethod.GET, URI.create(url));
+
+        try{
+
+            res = rt.exchange(req, ZUKTeam.class);
+            res.getBody().getMembers().stream()
+                    .forEach(tm -> {
+                        assertNotNull(tm.getEmail());
+                        assertNotNull(tm.getId());
+                    });
+
+            System.out.println(res.getBody().toJSONString());
+
+        } catch (HttpStatusCodeException e){
+            assertEquals(e.getStatusCode(), HttpStatus.NOT_FOUND);
+            return;
+        }
+
     }
 
 }

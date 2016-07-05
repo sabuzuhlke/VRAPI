@@ -47,6 +47,14 @@ public enum StaticMaps {
         return followerMap;
     }
 
+    public String getTeamQuery(List<Long> ids) {
+        mapBuilder = mapBuilder == null ? new MapBuilder() : mapBuilder;
+        MyAccessCredentials mac = new MyAccessCredentials();
+        mapBuilder.setPassword(mac.getPass());
+        mapBuilder.setUsername(mac.getUserName());
+        return mapBuilder.getXMLQuery_TeamIdsAndEmails(ids);
+    }
+
 
     public void setUpTeamMap() {
         System.out.println("SETTING UP TEAM MAP, YOU SHOULD ONLY SEE THIS ONCE");
