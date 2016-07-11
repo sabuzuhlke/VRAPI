@@ -46,6 +46,9 @@ public class JSONContact {
     @JsonProperty("active")
     private Boolean active;
 
+    @JsonProperty("position")
+    private String positition;
+
     public String getCreationTime() {
         return creationTime;
     }
@@ -73,6 +76,7 @@ public class JSONContact {
         }
         this.active = c.getActive();
         if(this.active == null) this.active = false;
+        this.positition = c.getPosition() == null ? "" : c.getPosition();
     }
 
     public List<String> getFollowers() {
@@ -161,6 +165,14 @@ public class JSONContact {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    public String getPositition() {
+        return positition;
+    }
+
+    public void setPositition(String positition) {
+        this.positition = positition;
     }
 
     public String toPrettyJSON() {

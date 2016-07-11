@@ -23,6 +23,7 @@ public class Organisation {
     private ParentFirm parentFirm;
     private DaughterFirms daughterFirm;
     private Contacts contacts;
+    private String website;
 
     @XmlElement(name = "mutterfirma")
     public ParentFirm getParentFirm() {
@@ -151,6 +152,15 @@ public class Organisation {
 
     public void setContacts(Contacts contacts) {
         this.contacts = contacts;
+    }
+
+    @XmlElement(name = "standardHomepage")
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
     }
 
     @Override

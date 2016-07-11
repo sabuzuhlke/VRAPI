@@ -566,11 +566,26 @@ public class XMLInterfaceTests {
         rc.setUsername(mac.getUserName());
         rc.setPassword(mac.getPass());
         Map<Long, List<String>> map = staticMaps.getFollowerMap();
+        System.out.println(map);
 
         assertTrue(map.get(13030752L).contains("justin.cowling@zuhlke.com"));
         assertTrue(map.get(22285081L).contains("justin.cowling@zuhlke.com"));
         assertTrue(map.get(22285152L).contains("justin.cowling@zuhlke.com"));
         assertTrue(map.get(22286793L).contains("justin.cowling@zuhlke.com"));
+
+    }
+
+    @Test// @Ignore
+    public void GivenTeamListCanBuildTeamMap() throws Exception {
+        List<Long> teamIds = rc.getZUKTeamMemberIds();
+
+        assertTrue(!teamIds.isEmpty());
+
+        MyAccessCredentials mac = new MyAccessCredentials();
+        rc.setUsername(mac.getUserName());
+        rc.setPassword(mac.getPass());
+        Map<Long, String> map = staticMaps.getTeamIDMap();
+        System.out.println(map);
 
     }
 

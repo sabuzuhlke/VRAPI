@@ -19,6 +19,7 @@ public class Contact {
     private String modified;
     private PersonResponsible personResponsible;
     private Boolean active;
+    private String position;
 
 
     private String creationTime;
@@ -124,6 +125,15 @@ public class Contact {
 
     public void setActive(Boolean active) {
         this.active = active;
+    }
+
+    @XmlElement(name = "stellung")
+    public String getPosition() {
+        return position;
+    }
+
+    public void setPosition(String position) {
+        this.position = position;
     }
 
     @Override

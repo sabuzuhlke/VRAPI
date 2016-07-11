@@ -35,6 +35,9 @@ public class JSONOrganisation {
     @JsonProperty("objid")
     private Long objid; //unsure if needed
 
+    @JsonProperty("website")
+    private String website;
+
     @JsonProperty("modified")
     private String modified;
 
@@ -71,6 +74,7 @@ public class JSONOrganisation {
         this.setCountry(o.getCountry());
         //this.setOwner(o.getPersonResponsible().getObjref());  //Have to set owner to email address in buildZUKOrganisationsResponse
         this.setObjid(o.getObjId());
+        this.setWebsite(o.getWebsite() == null ? "" : o.getWebsite());
         this.setModified(o.getModified());
         this.contacts = new ArrayList<>();
         this.creationTime = o.getCreationTime();
@@ -177,6 +181,14 @@ public class JSONOrganisation {
 
     public void setChildOrganisationList(List<Long> childOrganisationList) {
         this.childOrganisationList = childOrganisationList;
+    }
+
+    public String getWebsite() {
+        return website;
+    }
+
+    public void setWebsite(String website) {
+        this.website = website;
     }
 
     public String toPrettyJSON() {

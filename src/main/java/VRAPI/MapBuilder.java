@@ -97,6 +97,16 @@ public class MapBuilder {
                     }
                 });
 
+        //Adding custom mapping of inactive users
+        teamMap.put(5726L, "wolfgang.emmerich@zuhlke.com"); //Vertec id of David Levin
+        teamMap.put(18010762L, "sabine.strauss@zuhlke.com"); //Vertec id of allana poleon
+        teamMap.put(21741030L, "sabine.strauss@zuhlke.com"); //Vertec id of kathryn fletcher
+        teamMap.put(504419L, "sabine.strauss@zuhlke.com"); //Vertec id of maria burley
+        teamMap.put(18635504L, "sabine.strauss@zuhlke.com"); //Vertec id of hayley syms
+        teamMap.put(10301189L, "justin.cowling@zuhlke.com"); //Vertec id of julia volland
+        teamMap.put(1795374L, "justin.cowling@zuhlke.com"); //Vertec id of rod cobain
+        teamMap.put(8904906L, "justin.cowling@zuhlke.com"); //Vertec id of afzar haider
+        teamMap.put(15948308L, "justin.cowling@zuhlke.com"); //Vertec id of peter mcmanus
 
         return teamMap;
     }

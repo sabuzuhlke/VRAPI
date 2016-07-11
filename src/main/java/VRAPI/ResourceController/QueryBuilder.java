@@ -94,7 +94,7 @@ public class QueryBuilder {
 
         String bodyEnd = "</Selection>\n" +
                 "      <Resultdef>\n" +
-                "        <member>Name</member>\n" + //will return list of obj ref for each company
+                "        <member>Name</member>\n" +
                 "        <member>Firma</member>\n" + //will return objref to parent firma
                 "        <member>StandardEMail</member>\n" +
                 "        <member>StandardTelefon</member>\n" +
@@ -104,6 +104,7 @@ public class QueryBuilder {
                 "        <member>ModifiedDateTime</member>\n" +
                 "        <member>creationDateTime</member>\n" +
                 "        <member>aktiv</member>\n" +
+                "        <member>stellung</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +
@@ -136,6 +137,7 @@ public class QueryBuilder {
                 "        <member>mutterfirma</member>\n" +
                 "        <member>tochterfirmen</member>\n" +
                 "        <member>kontakte</member>\n" +
+                "        <member>standardHomepage</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +

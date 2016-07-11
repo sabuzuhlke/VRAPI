@@ -210,6 +210,7 @@ public class ResourceController {
         try {
             FileWriter file = new FileWriter("orgOutput.txt");
             file.write(res.toPrettyString());
+            file.close();
         } catch (Exception e) {
             System.out.println("Failed to output to file");
         }
@@ -313,6 +314,7 @@ public class ResourceController {
         try {
             FileWriter file = new FileWriter("projOutput.txt");
             file.write(response.toPrettyJSON());
+            file.close();
         } catch (Exception e) {
             System.out.println("Failed to output to file");
         }
@@ -554,6 +556,8 @@ public class ResourceController {
 
     private List<JSONContact> getContactsAsJSONContact(VRAPI.ContainerDetailedOrganisation.Organisation org) {
        try {
+           if (org.getContacts() == null )
+
            if (org.getContacts().getObjlist() == null) {
                System.out.println("Objlist null: " + org);
                return new ArrayList<>();
@@ -704,7 +708,7 @@ public class ResourceController {
         Set<Long> uniqueIds = new HashSet<>();
         callVertec(queryBuilder.getSupervisedAddresses(supervisorIds), VRAPI.ContainerAddresses.Envelope.class)
                 .getBody().getQueryResponse().getWorkers().stream()
-                .filter(VRAPI.ContainerAddresses.ProjectWorker::getActive)
+                //.filter(VRAPI.ContainerAddresses.ProjectWorker::getActive) // removed filter as inactive user emails now mapped to active members
                 .forEach(w -> {
                     ids.addAll(w.getAddresses().getList().getObjects());
                     //teamMap.put(w.getObjid(), w.getEmail().toLowerCase());
