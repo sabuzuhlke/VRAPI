@@ -78,8 +78,6 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 @SuppressWarnings("WeakerAccess")
 @RestController
 @Scope("prototype")
-@EnableSwagger2
-@Configuration
 public class ResourceController {
     public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.10.66";
     public static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
@@ -956,32 +954,4 @@ public class ResourceController {
         this.password = password;
     }
 
-    @Bean
-    public Docket api(){
-
-        return new Docket(DocumentationType.SWAGGER_2)
-                .select()
-                .apis(RequestHandlerSelectors.any())
-                .paths(Predicates.not(PathSelectors.regex("/error.*")))
-                .build()
-                .apiInfo(apiInfo())
-                .pathMapping("/");
-    }
-
-
-    private ApiInfo apiInfo() {
-        return new ApiInfo(
-                "Vertec REST API",
-                "This API is used for getting data relevant to ZUK",
-                "0.0", "Free to use for Zuhlke emplyees", "Sam and Gergely", "", ""
-        );
-    }
-
-    @Bean
-    UiConfiguration uiConfig(){
-        return new UiConfiguration(
-                "validationUrl"
-        );
-
-    }
 }

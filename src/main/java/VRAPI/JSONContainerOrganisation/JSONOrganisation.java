@@ -6,9 +6,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by sabu on 27/04/2016.
- */
 public class JSONOrganisation {
 
     @JsonProperty("name")
@@ -44,6 +41,9 @@ public class JSONOrganisation {
     @JsonProperty("creationTime")
     private String creationTime;
 
+    @JsonProperty("active")
+    private Boolean active;
+
     @JsonProperty("parentOrganisationId")
     private Long parentOrganisationId;
 
@@ -65,6 +65,10 @@ public class JSONOrganisation {
         this.contacts = new ArrayList<>();
     }
 
+    /**
+     * set contacts outside
+     * @param o
+     */
     public JSONOrganisation(VRAPI.ContainerDetailedOrganisation.Organisation o) {
         this.setName(o.getName());
         this.setStreetAddress(o.getStreetAddress());
@@ -84,6 +88,7 @@ public class JSONOrganisation {
                     .getObjlist()
                     .getObjref();
         }
+        this.active = o.getActive();
         this.parentOrganisationId = o.getParentFirm().getObjref();
     }
 
@@ -189,6 +194,14 @@ public class JSONOrganisation {
 
     public void setWebsite(String website) {
         this.website = website;
+    }
+
+    public Boolean getActive() {
+        return active;
+    }
+
+    public void setActive(Boolean active) {
+        this.active = active;
     }
 
     public String toPrettyJSON() {

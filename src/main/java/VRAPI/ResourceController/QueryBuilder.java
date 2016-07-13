@@ -20,7 +20,43 @@ public class QueryBuilder {
                 "  </Header>\n";
     }
 
+//---------------------------------------------------------------------------------------------------------------------- POST
+    String postOrganisation(VRAPI.ContainerDetailedOrganisation.Organisation organisation) {
 
+        String body = "<Body>\n" +
+                "    <Create>\n" +
+                "      <Firma> \n";
+
+        body += "<name>" + organisation.getName() + "</name>\n";
+        body += "<standardAdresse>" + organisation.getName() + "</standardAdresse>\n";
+        body += "<standardLand>" + organisation.getCountry() + "</standardLand>\n";
+        body += "<standardOrt>" + organisation.getCity() + "</standardOrt>\n";
+        body += "<standardPLZ>" + organisation.getZip() + "</standardPLZ>\n";
+        body += "<standardHomepage>" + organisation.getWebsite() + "</standardHomepage>\n";
+        body += "<zusatz>" + organisation.getAdditionalAddressName() + "</zusatz>\n";
+        body += "<aktiv>" + (organisation.getActive() ? "1" : "0") + "</aktiv>\n";
+        if (organisation.getParentFirm().getObjref() != null) {
+            body += "<mutterfirma>" + organisation.getParentFirm().getObjref() + "</mutterfirma>\n";
+        }
+        if (organisation.getDaughterFirm() != null
+                && organisation.getDaughterFirm().getObjlist() != null
+                && !organisation.getDaughterFirm().getObjlist().getObjref().isEmpty()) {
+            body += "<tochterfirma>";
+            for (Long objref : organisation.getDaughterFirm().getObjlist().getObjref()) {
+                body += "<objref>" + objref + "</objref>\n";
+            }
+            body += "</tochterfirma>";
+
+        }
+        body += "<betreuer> <objref>" + organisation.getPersonResponsible().getObjref() + "</objref> </beteuer>\n";
+
+        body += "</Firma>\n</Create>\n</Body>\n</Envelope>";
+
+        return header + body;
+    }
+
+
+//---------------------------------------------------------------------------------------------------------------------- GET
     /**
      * Wolfgang's Team
      */
@@ -39,7 +75,6 @@ public class QueryBuilder {
                 "  </Body>\n" +
                 "</Envelope>";
     }
-
 
     String getSupervisedAddresses(List<Long> memberIds) {
         String bodyStart = "<Body>\n" +
@@ -294,7 +329,6 @@ public class QueryBuilder {
 
         return header + bodyStart + bodyEnd;
     }
-
 
     String getActivities(List<Long> ids) {
         String bodyStart = "<Body>\n" +

@@ -1,6 +1,7 @@
 package VRAPI.ContainerDetailedContact;
 
 import javax.xml.bind.annotation.XmlElement;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -8,7 +9,7 @@ import java.util.List;
  */
 public class QueryResponse {
 
-    private List<Contact> contactList;
+    private List<Contact> contactList = new ArrayList<>();
 
     public QueryResponse() {
     }
