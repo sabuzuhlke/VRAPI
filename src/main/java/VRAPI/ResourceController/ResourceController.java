@@ -79,7 +79,7 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 @RestController
 @Scope("prototype")
 public class ResourceController {
-    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.10.66";
+    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.112.31";
     public static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
 
     private final URI vertecURI;
@@ -201,6 +201,7 @@ public class ResourceController {
 
         List<List<Long>> contactIdsAndOrgsIds = getSimpleContactsandOrgs(getAddressIdsSupervisedBy(getZUKTeamMemberIds()));
 
+        System.out.println(contactIdsAndOrgsIds.get(1).size());
         ZUKOrganisationResponse res = buildZUKOrganisationsResponse(
                 getActiveDetailedContacts(contactIdsAndOrgsIds.get(0)),
                 getOrganisations(contactIdsAndOrgsIds.get(1)));

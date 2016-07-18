@@ -33,8 +33,10 @@ import static java.util.stream.Collectors.toList;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
 public class MapBuilder {
-    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.10.66";
+    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.112.31";
     public static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
+
+    private final Long SALES_TEAM_IDENTIFIER = -5L;
 
     private final URI vertecURI;
 
@@ -47,6 +49,9 @@ public class MapBuilder {
 
     private Map<Long, String> teamMap;
     private Map<Long, List<String>> followerMap;
+
+    //map of worker_id to their superior
+    public Map<Long, Long> supervisorMap;
 
     public MapBuilder() {
         //set resttemplate message converters
@@ -68,6 +73,8 @@ public class MapBuilder {
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         }
+
+        supervisorMap = new HashMap<>();
     }
 
 
@@ -111,6 +118,115 @@ public class MapBuilder {
         return teamMap;
     }
 
+    public void createSupervisorMap() {
+        List<Long> ids = getZUKTeamMemberIds();
+        String xmlQuery = getXMLQuery_TeamIdsAndEmails(ids);
+        final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
+        NodeList teamMembers = response.getElementsByTagName("Projektbearbeiter");
+        IntStream.range(0, teamMembers.getLength())
+                .mapToObj(index -> (Element) teamMembers.item(index))
+                .forEach(teamMemberElement -> {
+                    final NodeList active = teamMemberElement.getElementsByTagName("aktiv");
+                    final NodeList objid = teamMemberElement.getElementsByTagName("objid");
+                    Long id = Long.parseLong(objid.item(0).getTextContent());
+                   // if (toBoolean(active.item(0).getTextContent())) {
+                        System.out.println("Adding SalesTeam member to map " + id);
+                        supervisorMap.put(id, SALES_TEAM_IDENTIFIER );
+                    //}
+                    if (id != 5295L) {
+                        final NodeList team = teamMemberElement.getElementsByTagName("objref");
+
+
+                        List<Long> subTeamIds = IntStream.range(0, team.getLength())
+                                .mapToObj(index -> Long.parseLong(team.item(index).getTextContent()))
+                                .collect(toList());
+
+                        System.out.println("SalesTeam member" + id + " has " + subTeamIds.size() + " subordinates");
+
+                        subTeamIds.forEach(subId -> {
+                            supervisorMap.put(subId, id);
+                        });
+                        handleSubTeamMembers(subTeamIds);
+
+                        System.out.println("=================================");
+                    }
+
+                });
+
+
+        /*
+         * Commented out because these inactive SalesTeam members should have their orgs marked as SALES_TEAM,
+         * Will be uploaded to pipedrive with appropriate owner and when sync runs it will update vertec owner
+         * to reflect vertec
+         */
+//        supervisorMap.put(5726L, 5295L); //Vertec id of David Levin
+//        supervisorMap.put(18010762L, 23560788L); //Vertec id of allana poleon
+//        supervisorMap.put(21741030L, 23560788L); //Vertec id of kathryn fletcher
+//        supervisorMap.put(504419L, 23560788L); //Vertec id of maria burley
+//        supervisorMap.put(18635504L, 23560788L); //Vertec id of hayley syms
+//        supervisorMap.put(10301189L, 8619482L); //Vertec id of julia volland
+//        supervisorMap.put(1795374L, 8619482L); //Vertec id of rod cobain
+//        supervisorMap.put(8904906L, 8619482L); //Vertec id of afzar haider
+//        supervisorMap.put(15948308L, 8619482L); //Vertec id of peter mcmanus
+
+
+    }
+
+    private void handleSubTeamMembers(List<Long> ids) {
+
+        ids.forEach(id -> {
+            String xmlQuery = getXMLQuery_TeamIdsAndSubTeam(id);
+            final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
+            NodeList teamMembers = response.getElementsByTagName("Projektbearbeiter");
+            IntStream.range(0, teamMembers.getLength())
+                    .mapToObj(index -> (Element) teamMembers.item(index))
+                    .forEach(teamMemberElement -> {
+                        final NodeList team = teamMemberElement.getElementsByTagName("objref");
+
+                        List<Long> subTeamIds = IntStream.range(0, team.getLength())
+                                .mapToObj(index -> Long.parseLong(team.item(index).getTextContent()))
+                                .collect(toList());
+
+                        System.out.println("Sub member" + id + " has " + subTeamIds.size() + " subordinates");
+
+                        subTeamIds.forEach(subId -> {
+                            supervisorMap.put(subId, id);
+                        });
+                        handleSubTeamMembers(subTeamIds);
+
+                        System.out.println("--------------------------------");
+                    });
+        });
+
+    }
+
+    public String getXMLQuery_TeamIdsAndSubTeam(Long id) {
+
+        String header = "<Envelope>\n" +
+                "  <Header>\n" +
+                "    <BasicAuth>\n" +
+                "      <Name>" + this.username + "</Name>\n" +
+                "      <Password>" + this.password + "</Password>\n" +
+                "      </BasicAuth>\n" +
+                "  </Header>\n";
+
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
+
+        bodyStart += "<objref>" + id + "</objref>\n";
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "        <member>Team</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + bodyStart + bodyEnd;
+    }
+
     private Boolean toBoolean(String s) {
         return s.equals("1");
     }
@@ -138,6 +254,7 @@ public class MapBuilder {
                 "      <Resultdef>\n" +
                 "        <member>Aktiv</member>\n" +
                 "        <member>briefEmail</member>\n" + //will return Email address of team member
+                "        <member>Team</member>\n" + //will return Email address of team member
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +

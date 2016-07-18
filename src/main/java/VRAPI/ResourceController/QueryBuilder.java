@@ -1,5 +1,6 @@
 package VRAPI.ResourceController;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
@@ -18,6 +19,44 @@ public class QueryBuilder {
                 "      <Password>" + password + "</Password>\n" +
                 "      </BasicAuth>\n" +
                 "  </Header>\n";
+    }
+
+//---------------------------------------------------------------------------------------------------------------------- GET TEAM and SUBTEAM
+
+    String getSubTeamOfMember(Long id) {
+        return header +
+                "\n" +
+                "  <Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n" +
+                "        <objref>" + id +"</objref>\n" +
+                "      </Selection>\n" +
+                "      <Resultdef>\n" +
+                "        <member>briefEmail</member>\n" + //will return objref for each member of team
+                "        <member>Team</member>\n" + //will return objref for each member of team
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+    }
+
+    public String getXMLQuery_TeamIdsAndSubTeam(Long id) {
+
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
+
+        bodyStart += "<objref>" + id + "</objref>\n";
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "        <member>Team</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + bodyStart + bodyEnd;
     }
 
 //---------------------------------------------------------------------------------------------------------------------- POST
@@ -56,7 +95,7 @@ public class QueryBuilder {
     }
 
 
-//---------------------------------------------------------------------------------------------------------------------- GET
+//---------------------------------------------------------------------------------------------------------------------- OLD
     /**
      * Wolfgang's Team
      */
@@ -76,7 +115,7 @@ public class QueryBuilder {
                 "</Envelope>";
     }
 
-    String getSupervisedAddresses(List<Long> memberIds) {
+    String getSupervisedAddresses(Collection<Long> memberIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n" +
@@ -99,7 +138,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getContactAndOrganisationIds(List<Long> contactIds) {
+    String getContactAndOrganisationIds(Collection<Long> contactIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";

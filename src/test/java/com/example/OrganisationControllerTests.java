@@ -1,6 +1,7 @@
 package com.example;
 
 import VRAPI.Application;
+import VRAPI.Entities.OrganisationList;
 import VRAPI.JSONContainerOrganisation.JSONOrganisation;
 import VRAPI.JSONContainerOrganisation.JSONOrganisationList;
 import VRAPI.MyAccessCredentials;
@@ -66,6 +67,18 @@ public class OrganisationControllerTests {
         return rt.exchange(
                 new RequestEntity<>(headers, HttpMethod.GET, URI.create(uri)),
                 responseType);
+    }
+
+
+
+    @Test
+    public void canGetAllOrganisationsInCommonRepresentation() {
+
+        String uri = baseURI + "/organisations/all";
+        ResponseEntity<OrganisationList> res = getFromVertec(uri, OrganisationList.class);
+
+        System.out.println(res.getBody().toJSONString());
+
     }
 
 

@@ -29,7 +29,7 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 
 public class Authenticator {
 
-    private static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.10.66";
+    private static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.112.31";
     private static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
 
     private final URI vertecURI;

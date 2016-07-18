@@ -24,20 +24,35 @@ public class Organisation {
     private String modified;
     private String created;
 
-    public Organisation() {
+    /**
+     * Used to create an organisation class from what we recieve from vertec
+     * IMPORTANT!!!! must set owned_on_vertec_by and supervisor email outside constructor
+     * @param vo
+     */
+    public Organisation(VRAPI.ContainerDetailedOrganisation.Organisation vo) {
+        vertecId = vo .getObjId();
+        active = vo.getActive();
+        name = vo.getName();
+        website = vo.getWebsite();
+        category = "CATEGORY PLACEHOLDER";//TODO: replace with actual value
+        businessDomain = "BUSINESS DOMAIN PLACEHOLDER";
+        buildingName = vo.getAdditionalAddressName();
+        String[] addressParts = vo.getStreetAddress().split(" ");
+        if (addressParts.length == 2) {
+            street_no = addressParts[0];
+            street = addressParts[1];
+        } else {
+            street = vo.getStreetAddress();
+        }
+        city = vo.getCity();
+        country = vo.getCountry();
+        zip = vo.getZip();
+
+        modified = vo.getModified();
+        created = vo.getCreationTime(); //TODO: change to common format
     }
 
-    public String toJSONString(){
-        String retStr = null;
-        ObjectMapper m = new ObjectMapper();
-        try{
-
-            retStr = m.writerWithDefaultPrettyPrinter().writeValueAsString(this);
-        }
-        catch(Exception e){
-            System.out.println("Could not convert XML Envelope to JSON: " + e.toString());
-        }
-        return retStr;
+    public Organisation() {
     }
 
     public Long getVertecId() {

@@ -136,7 +136,6 @@ public class APItests {
                 res.getStatusCode(),
                 HttpStatus.OK);
         assertNotNull("Response body is null", res.getBody());
-        System.out.println(res.getBody().toPrettyString());
     }
 
     @Test @Ignore("Takes too long")

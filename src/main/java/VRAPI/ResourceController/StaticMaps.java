@@ -24,6 +24,18 @@ public enum StaticMaps {
 
     private Map<Long, String> teamIDMap = new HashMap<>();
     private Map<Long, List<String>> followerMap = new HashMap<>();
+    private Map<Long, Long> supervisorMap = new HashMap();
+
+    public Map<Long, Long> getSupervisorMap() {
+        if (supervisorMap.isEmpty()) {
+            mapBuilder = mapBuilder == null ? new MapBuilder() : mapBuilder;
+            MyAccessCredentials mac = new MyAccessCredentials();
+            mapBuilder.setPassword(mac.getPass());
+            mapBuilder.setUsername(mac.getUserName());
+            setUpSupervisorMap();
+        }
+        return supervisorMap;
+    }
 
     public Map<Long, String> getTeamIDMap() {
         if(teamIDMap.isEmpty()){
@@ -55,6 +67,11 @@ public enum StaticMaps {
         return mapBuilder.getXMLQuery_TeamIdsAndEmails(ids);
     }
 
+    public void setUpSupervisorMap() {
+        System.out.println("SETTING UP SUPERVISOR MAP, YOU SHOULD ONLY SEE THIS ONCE");
+        mapBuilder.createSupervisorMap();
+        this.supervisorMap = mapBuilder.supervisorMap;
+    }
 
     public void setUpTeamMap() {
         System.out.println("SETTING UP TEAM MAP, YOU SHOULD ONLY SEE THIS ONCE");
