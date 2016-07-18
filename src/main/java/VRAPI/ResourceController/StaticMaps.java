@@ -25,6 +25,7 @@ public enum StaticMaps {
     private Map<Long, String> teamIDMap = new HashMap<>();
     private Map<Long, List<String>> followerMap = new HashMap<>();
     private Map<Long, Long> supervisorMap = new HashMap();
+    private Map<Long, String> activityTypeMap = new HashMap<>();
 
     public Map<Long, Long> getSupervisorMap() {
         if (supervisorMap.isEmpty()) {
@@ -48,7 +49,7 @@ public enum StaticMaps {
         return teamIDMap;
     }
 
-    public Map<Long, List<String>> getFollowerMap(){
+    public Map<Long, List<String>> getFollowerMap() {
         if(followerMap.isEmpty()){
             mapBuilder = mapBuilder == null ? new MapBuilder() : mapBuilder;
             MyAccessCredentials mac = new MyAccessCredentials();
@@ -57,6 +58,22 @@ public enum StaticMaps {
             setUpFollowerMap();
         }
         return followerMap;
+    }
+
+    public Map<Long, String> getActivityTypeMap() {
+        if (activityTypeMap.isEmpty()) {
+            mapBuilder = mapBuilder == null ? new MapBuilder() : mapBuilder;
+            MyAccessCredentials mac = new MyAccessCredentials();
+            mapBuilder.setPassword(mac.getPass());
+            mapBuilder.setUsername(mac.getUserName());
+            setUpActivityTypeMap();
+        }
+        return activityTypeMap;
+    }
+
+    private void setUpActivityTypeMap() {
+        System.out.println("SETTING UP ACTIVITY TYPE MAP, YOU SHOULD ONLY SEE THIS ONCE");
+        this.activityTypeMap = mapBuilder.createActivityTypeMap();
     }
 
     public String getTeamQuery(List<Long> ids) {

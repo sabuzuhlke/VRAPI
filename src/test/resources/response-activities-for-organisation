@@ -1,0 +1,16 @@
+<Envelope>
+    <Body>
+        <QueryResponse>
+            <Firma>
+                <objid>17334035</objid>
+                <adressAktivitaeten>
+                    <objlist>
+                        <objref>18550676</objref>
+                        <objref>25764191</objref>
+                    </objlist>
+                </adressAktivitaeten>
+                <name>HM Revenue &amp; Customs</name>
+            </Firma>
+        </QueryResponse>
+    </Body>
+</Envelope>

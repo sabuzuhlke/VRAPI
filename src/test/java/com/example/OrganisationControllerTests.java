@@ -4,6 +4,7 @@ import VRAPI.Application;
 import VRAPI.Entities.OrganisationList;
 import VRAPI.JSONContainerOrganisation.JSONOrganisation;
 import VRAPI.JSONContainerOrganisation.JSONOrganisationList;
+import VRAPI.MergeClasses.ActivitiesForOrganisation;
 import VRAPI.MyAccessCredentials;
 import VRAPI.ResourceController.OrganisationController;
 import org.junit.Before;
@@ -20,7 +21,14 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
+import org.w3c.dom.Document;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -236,6 +244,42 @@ public class OrganisationControllerTests {
                     HttpStatus.NOT_FOUND,
                     e.getStatusCode());
         }
+
+    }
+
+    @Test
+    public void getActivityIdsForOrganisationReturnsCorrectly() throws ParserConfigurationException, IOException, SAXException {
+        OrganisationController oc = new OrganisationController();
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.parse(new File("src/test/resources/response-activities-for-organisation"));
+
+        List<Long> activityIds = oc.getObjrefsForOrganisationDocument(doc);
+
+        assertEquals("Incorrect list size returned", 2, activityIds.size());
+        assertTrue("Activity Id Missing", activityIds.contains(18550676L));
+        assertTrue("Activity Id Missing", activityIds.contains(25764191L));
+
+    }
+
+    @Test
+    public void getNameForOrganisationFromDocument() throws ParserConfigurationException, IOException, SAXException {
+        OrganisationController oc = new OrganisationController();
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+        DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
+        Document doc = dBuilder.parse(new File("src/test/resources/response-activities-for-organisation"));
+
+        String name = oc.getNameForOrganisationDocument(doc);
+
+        assertEquals("Name incorrectly extracted", "HM Revenue & Customs", name);
+    }
+
+    @Test
+    public void getActivitiesForOrganisationReturnsCorrectly() {
+        String uri = baseURI + "/organisation/" + 17334035 + "/activities";
+        ResponseEntity<ActivitiesForOrganisation> res = getFromVertec(uri, ActivitiesForOrganisation.class);
+
+        System.out.println(res.getBody().toJSONString());
 
     }
 

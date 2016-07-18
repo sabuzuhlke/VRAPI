@@ -1,4 +1,7 @@
 package VRAPI;
+import VRAPI.ContainerActivity.Activity;
+import VRAPI.ContainerActivity.Type;
+import VRAPI.ContainerActivityType.ActivityType;
 import VRAPI.Exceptions.HttpForbiddenException;
 import VRAPI.Exceptions.HttpInternalServerError;
 import VRAPI.Exceptions.HttpUnauthorisedException;
@@ -30,10 +33,11 @@ import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
 public class MapBuilder {
-    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.112.31";
+    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.112.101";
     public static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
 
     private final Long SALES_TEAM_IDENTIFIER = -5L;
@@ -77,6 +81,25 @@ public class MapBuilder {
         supervisorMap = new HashMap<>();
     }
 
+
+    public Map<Long,String> createActivityTypeMap() {
+        List<ActivityType> types = getActivityTypes();
+
+        Map<Long, String> activityTypeMap = new HashMap<>();
+
+        types.forEach(type -> activityTypeMap.put(type.getObjid(), type.getTypename()));
+
+        return activityTypeMap;
+    }
+
+    private List<ActivityType> getActivityTypes() {
+
+        return callVertec(getActivityTypesQuery(), VRAPI.ContainerActivityType.Envelope.class)
+                .getBody()
+                .getQueryResponse()
+                .getActivityTypes();
+
+    }
 
     /**
      * called to build teamMap on each request
@@ -459,6 +482,32 @@ public class MapBuilder {
                 responseType).getBody();
     }
 
+    String getActivityTypesQuery() {
+        String header = "<Envelope>\n" +
+                "  <Header>\n" +
+                "    <BasicAuth>\n" +
+                "      <Name>" + this.username + "</Name>\n" +
+                "      <Password>" + this.password + "</Password>\n" +
+                "      </BasicAuth>\n" +
+                "  </Header>\n";
+
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
+
+        bodyStart += "<ocl>aktivitaetsTyp</ocl>\n";
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "           <member>bezeichnung</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + bodyStart + bodyEnd;
+    }
+
 
     public void setUsername(String username) {
         this.username = username;
@@ -467,4 +516,6 @@ public class MapBuilder {
     public void setPassword(String password) {
         this.password = password;
     }
+
+
 }

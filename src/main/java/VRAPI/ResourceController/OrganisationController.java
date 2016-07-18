@@ -1,15 +1,14 @@
 package VRAPI.ResourceController;
 
-import VRAPI.ContainerDetailedOrganisation.Envelope;
 import VRAPI.ContainerSimpleContactOrganisation.Contact;
-import VRAPI.ContainerTeam.ProjectWorker;
+import VRAPI.JSONContainerActivities.JSONActivity;
+import VRAPI.MergeClasses.ActivitiesForOrganisation;
 import VRAPI.Entities.Organisation;
 import VRAPI.Entities.OrganisationList;
 import VRAPI.Exceptions.*;
 import VRAPI.JSONContainerOrganisation.JSONContact;
 import VRAPI.JSONContainerOrganisation.JSONOrganisation;
 import VRAPI.JSONContainerOrganisation.JSONOrganisationList;
-import VRAPI.MapBuilder;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -29,7 +28,6 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.websocket.server.PathParam;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -37,21 +35,18 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.net.URI;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
-import static java.util.stream.Collectors.*;
 import static java.util.stream.Collectors.toList;
 import static org.w3c.dom.Node.ELEMENT_NODE;
-import static sun.tools.jstat.Alignment.keySet;
 
 @RestController
 @Scope("prototype")
 public class OrganisationController {
 
-    private static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.112.31";
+    private static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.112.101";
     private static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
 
 
@@ -73,10 +68,11 @@ public class OrganisationController {
 
     private Map<Long, String> teamIdMap;
     private Map<Long, List<String>> contactFollowerMap;
+    private Map<Long, Long> supervisorIdMap;
+    private Map<Long, String> activityTypeMap;
 
     @Autowired
     private HttpServletRequest request;
-    private Map<Long, Long> supervisorIdMap;
 
     public OrganisationController() {
 
@@ -102,9 +98,6 @@ public class OrganisationController {
     }
 
 
-    List<Long> assortedOrganisationAndContactIds = new ArrayList<>();
-
-//    //GET ORganisation in common represenation
     @ApiImplicitParams( {
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
@@ -112,7 +105,77 @@ public class OrganisationController {
                     dataType = "string",
                     paramType = "header")
     })
-    @RequestMapping(value = "/organisations/all")
+    @RequestMapping(value = "/organisation/{id}/activities", method = RequestMethod.GET)
+    public ResponseEntity<ActivitiesForOrganisation> getActivitiesForOrganisation(@PathVariable Long id) throws ParserConfigurationException {
+        ifUnauthorisedThrowErrorResponse();
+
+        String xmlQuery = queryBuilder.getActivitiesForOrganisation(id);
+        final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
+        //Query vertec with organisation id for list of activities associated with it.
+        List<Long> activityIdsForOrg = getObjrefsForOrganisationDocument(response);
+        String organisationName = getNameForOrganisationDocument(response);
+
+        List<JSONActivity> activities = getActivityDetails(activityIdsForOrg);
+        //Query vertec for details of each activity build response object
+        ActivitiesForOrganisation res = new ActivitiesForOrganisation(id, organisationName);
+        //set Activity list
+        res.setActivitiesForOrganisation(activities);
+
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
+    private List<JSONActivity> getActivityDetails(List<Long> activityIdsForOrg) {
+
+        activityTypeMap = StaticMaps.INSTANCE.getActivityTypeMap();
+
+        return getActivities(activityIdsForOrg).stream()
+                .map(activity -> {
+                    JSONActivity a = new JSONActivity(activity);
+                    Long ref = activity.getAssignee().getObjref();
+                    a.setAssignee(ref == null ? null : ref.toString());
+                    a.setType(activityTypeMap.get(activity.getType().getObjref()));
+                    return a;
+                }).collect(toList());
+
+    }
+
+    private List<VRAPI.ContainerActivity.Activity> getActivities(List<Long> ids) {
+        try{
+            return callVertec(queryBuilder.getActivities(ids), VRAPI.ContainerActivity.Envelope.class)
+                    .getBody()
+                    .getQueryResponse()
+                    .getActivities();
+        } catch (NullPointerException npe){
+            throw new HttpNotFoundException("No activities exist with the following v_ids: " + ids);
+        }
+    }
+
+    public List<Long> getObjrefsForOrganisationDocument(Document response) {
+        NodeList activityObjrefs =  response.getElementsByTagName("objref");
+        if (activityObjrefs.getLength() > 0) {
+            return IntStream.range(0, activityObjrefs.getLength())
+                    .mapToObj(index -> (Element) activityObjrefs.item(index))
+                    .map(objrefElement -> Long.parseLong(objrefElement.getTextContent()))
+                    .collect(toList());
+        } else {
+            return new ArrayList<>();
+        }
+    }
+
+    public String getNameForOrganisationDocument(Document response) {
+        return response.getElementsByTagName("name").item(0).getTextContent();
+    }
+
+
+    //    //GET ORganisation in common represenation
+    @ApiImplicitParams( {
+            @ApiImplicitParam(name = "Authorization",
+                    value = "username:password",
+                    required = true,
+                    dataType = "string",
+                    paramType = "header")
+    })
+    @RequestMapping(value = "/organisations/all", method = RequestMethod.GET)
     public ResponseEntity<OrganisationList> getAllOrganisations() throws ParserConfigurationException {
         System.out.println("Received request");
         ifUnauthorisedThrowErrorResponse();
