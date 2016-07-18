@@ -1,7 +1,10 @@
 package VRAPI.ResourceController;
 
+import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.ContainerSimpleContactOrganisation.Contact;
 import VRAPI.JSONContainerActivities.JSONActivity;
+import VRAPI.JSONContainerProject.JSONPhase;
+import VRAPI.JSONContainerProject.JSONProject;
 import VRAPI.MergeClasses.ActivitiesForOrganisation;
 import VRAPI.Entities.Organisation;
 import VRAPI.Entities.OrganisationList;
@@ -9,6 +12,7 @@ import VRAPI.Exceptions.*;
 import VRAPI.JSONContainerOrganisation.JSONContact;
 import VRAPI.JSONContainerOrganisation.JSONOrganisation;
 import VRAPI.JSONContainerOrganisation.JSONOrganisationList;
+import VRAPI.MergeClasses.ProjectsForOrganisation;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -97,6 +101,81 @@ public class OrganisationController {
 
     }
 
+//====================================================================================================================== GET /organisation/{id}/projects
+
+    @ApiImplicitParams( {
+            @ApiImplicitParam(name = "Authorization",
+                    value = "username:password",
+                    required = true,
+                    dataType = "string",
+                    paramType = "header")
+    })
+    @RequestMapping(value = "/organisation/{id}/projects", method = RequestMethod.GET)
+    public ResponseEntity<ProjectsForOrganisation> getProjectsForOrganisation(@PathVariable Long id)
+            throws ParserConfigurationException {
+        ifUnauthorisedThrowErrorResponse();
+
+        String xmlQuery = queryBuilder.getProjectsForOrganisation(id);
+        final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
+        List<Long> projectIdsForOrg = getObjrefsForOrganisationDocument(response);
+        String organisationName = getNameForOrganisationDocument(response);
+
+        List<JSONProject> projects = getDetailedProjects(projectIdsForOrg);
+        ProjectsForOrganisation res = new ProjectsForOrganisation(id, organisationName);
+        res.setProjects(projects);
+
+        return new ResponseEntity<>(res, HttpStatus.OK);
+        //TODO: include type and currency if we need them
+    }
+
+    private List<JSONProject> getDetailedProjects(List<Long> projectIdsForOrg) {
+        return getProjects(projectIdsForOrg).stream()
+                .map(this::asJsonProject)
+                .collect(toList());
+    }
+
+    private JSONProject asJsonProject(Project project) {
+        String accountManager = "";
+        if (project.getAccountManager() != null && project.getAccountManager().getObjref() != null) {
+            accountManager = project.getAccountManager().getObjref().toString();
+        }
+        String leader = "";
+        if (project.getLeader() != null && project.getLeader().getObjref() != null) {
+            leader = project.getLeader().getObjref().toString();
+        }
+        JSONProject proj = new JSONProject(project,
+                leader,
+                accountManager);
+        proj.setPhases(phasesFor(project));
+        return proj;
+    }
+
+    private List<JSONPhase> phasesFor(Project project) {
+        return getPhasesForProject(project.getPhases().getObjlist().getObjrefs()).stream()
+                .map(phase -> {
+                    String leader = "";
+                    if (project.getLeader() != null && project.getLeader().getObjref() != null) {
+                        leader = project.getLeader().getObjref().toString();
+                    }
+                    return new JSONPhase(phase, leader);
+                })
+                .collect(toList());
+    }
+
+    private List<VRAPI.ContainerPhases.ProjectPhase> getPhasesForProject(List<Long> phaseIds) {
+        return callVertec(
+                queryBuilder.getProjectPhases(phaseIds),
+                VRAPI.ContainerPhases.Envelope.class).getBody().getQueryResponse().getPhases();
+    }
+
+    private List<VRAPI.ContainerDetailedProjects.Project> getProjects(Collection<Long> projectIds) {
+        return callVertec(
+                queryBuilder.getProjectDetails(projectIds),
+                VRAPI.ContainerDetailedProjects.Envelope.class).getBody().getQueryResponse().getProjects();
+    }
+
+
+//====================================================================================================================== GET /organisation/{id}/activities
 
     @ApiImplicitParams( {
             @ApiImplicitParam(name = "Authorization",
@@ -106,7 +185,8 @@ public class OrganisationController {
                     paramType = "header")
     })
     @RequestMapping(value = "/organisation/{id}/activities", method = RequestMethod.GET)
-    public ResponseEntity<ActivitiesForOrganisation> getActivitiesForOrganisation(@PathVariable Long id) throws ParserConfigurationException {
+    public ResponseEntity<ActivitiesForOrganisation> getActivitiesForOrganisation(@PathVariable Long id)
+            throws ParserConfigurationException {
         ifUnauthorisedThrowErrorResponse();
 
         String xmlQuery = queryBuilder.getActivitiesForOrganisation(id);
@@ -166,6 +246,7 @@ public class OrganisationController {
         return response.getElementsByTagName("name").item(0).getTextContent();
     }
 
+//====================================================================================================================== GET /organisations/all
 
     //    //GET ORganisation in common represenation
     @ApiImplicitParams( {
@@ -331,7 +412,7 @@ public class OrganisationController {
     }
 
 
-//---------------------------------------------------------------------------------------------------------------------- GET /{id}
+//---------------------------------------------------------------------------------------------------------------------- GET /{ids}
 
 
     @ApiOperation(value = "Get organisation by list", nickname = "byList")
@@ -370,6 +451,7 @@ public class OrganisationController {
         return new ResponseEntity<>(jsonOrgs, HttpStatus.OK);
     }
 
+//---------------------------------------------------------------------------------------------------------------------- GET /{id}
 
     @ApiOperation(value = "GET organisation by id", nickname = "byId")
     @ApiImplicitParams({

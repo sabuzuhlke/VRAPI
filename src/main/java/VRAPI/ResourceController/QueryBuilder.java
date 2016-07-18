@@ -220,7 +220,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getProjectDetails(Set<Long> ids) {
+    String getProjectDetails(Collection<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";
@@ -480,5 +480,25 @@ public class QueryBuilder {
 
         return header + bodyStart + bodyEnd;
 
+    }
+
+    public String getProjectsForOrganisation(Long id) {
+
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
+
+        bodyStart += "<objref>" + id + "</objref>\n";
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "        <member>Name</member>\n" + //will return list of obj ref for each company
+                "        <member>projekte</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + bodyStart + bodyEnd;
     }
 }

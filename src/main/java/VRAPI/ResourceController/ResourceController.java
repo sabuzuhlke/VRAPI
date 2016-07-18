@@ -435,14 +435,14 @@ public class ResourceController {
                 .collect(toList());
     }
 
-    private List<ProjectPhase> getPhasesList(List<ProjectWithType> projectsBeforePhasesAssigned) {
-        List<Long> allPhaseIds = projectsBeforePhasesAssigned.stream()
-                .map(p -> p.project)
-                .map(p -> p.getPhases().getObjlist().getObjrefs())
-                .flatMap(Collection::stream)
-                .collect(toList());
-        return callVertec(queryBuilder.getProjectPhases(allPhaseIds), VRAPI.ContainerPhases.Envelope.class).getBody().getQueryResponse().getPhases();
-    }
+//    private List<ProjectPhase> getPhasesList(List<ProjectWithType> projectsBeforePhasesAssigned) {
+//        List<Long> allPhaseIds = projectsBeforePhasesAssigned.stream()
+//                .map(p -> p.project)
+//                .map(p -> p.getPhases().getObjlist().getObjrefs())
+//                .flatMap(Collection::stream)
+//                .collect(toList());
+//        return callVertec(queryBuilder.getProjectPhases(allPhaseIds), VRAPI.ContainerPhases.Envelope.class).getBody().getQueryResponse().getPhases();
+//    }
 
     private class ProjectWithType {
         private final Project project;

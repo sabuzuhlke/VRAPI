@@ -5,6 +5,7 @@ import VRAPI.Entities.OrganisationList;
 import VRAPI.JSONContainerOrganisation.JSONOrganisation;
 import VRAPI.JSONContainerOrganisation.JSONOrganisationList;
 import VRAPI.MergeClasses.ActivitiesForOrganisation;
+import VRAPI.MergeClasses.ProjectsForOrganisation;
 import VRAPI.MyAccessCredentials;
 import VRAPI.ResourceController.OrganisationController;
 import org.junit.Before;
@@ -260,6 +261,14 @@ public class OrganisationControllerTests {
         assertTrue("Activity Id Missing", activityIds.contains(18550676L));
         assertTrue("Activity Id Missing", activityIds.contains(25764191L));
 
+        doc = dBuilder.parse(new File("src/test/resources/response-projects-for-organisation"));
+
+        List<Long> projectIds = oc.getObjrefsForOrganisationDocument(doc);
+
+        assertEquals("Incorrect list size returned", 14, projectIds.size());
+        assertTrue("Project Id Missing", projectIds.contains(17927567L));
+        assertTrue("Project Id Missing", projectIds.contains(26471389L));
+
     }
 
     @Test
@@ -281,6 +290,14 @@ public class OrganisationControllerTests {
 
         System.out.println(res.getBody().toJSONString());
 
+    }
+
+    @Test
+    public void getProjectsForOrganisationReturnsCorrectly() {
+        String uri = baseURI + "/organisation/" + 17927493 + "/projects";
+        ResponseEntity<ProjectsForOrganisation> res = getFromVertec(uri, ProjectsForOrganisation.class);
+
+        System.out.println(res.getBody().toJSONString());
     }
 
 }

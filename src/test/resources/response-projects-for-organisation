@@ -1,0 +1,30 @@
+<Envelope>
+    <Body>
+        <QueryResponse>
+            <Firma>
+                <objid>17927493</objid>
+                <projekte>
+                    <objlist>
+                        <objref>17927567</objref>
+                        <objref>18566297</objref>
+                        <objref>18635592</objref>
+                        <objref>18864428</objref>
+                        <objref>18879228</objref>
+                        <objref>19529707</objref>
+                        <objref>20552673</objref>
+                        <objref>20777729</objref>
+                        <objref>22369966</objref>
+                        <objref>24046534</objref>
+                        <objref>24565682</objref>
+                        <objref>25525891</objref>
+                        <objref>26016823</objref>
+                        <objref>26471389</objref>
+                    </objlist>
+                </projekte>
+                <projekteAlsAuftraggeber>
+                    <objlist/>
+                </projekteAlsAuftraggeber>
+            </Firma>
+        </QueryResponse>
+    </Body>
+</Envelope>
