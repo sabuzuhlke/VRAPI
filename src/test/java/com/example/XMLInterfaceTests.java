@@ -11,6 +11,7 @@ import VRAPI.ContainerDetailedOrganisation.Objlist;
 import VRAPI.ContainerDetailedOrganisation.ParentFirm;
 import VRAPI.ContainerDetailedProjects.Project;
 import VRAPI.JSONContainerOrganisation.ZUKOrganisationResponse;
+import VRAPI.MapBuilder;
 import VRAPI.MyAccessCredentials;
 import VRAPI.ResourceController.QueryBuilder;
 import VRAPI.ResourceController.ResourceController;
@@ -690,6 +691,23 @@ public class XMLInterfaceTests {
         assertEquals(project.getLeader().getObjref().longValue(), 504354);
         assertEquals(project.getPhases().getObjlist().getObjrefs().size(), 4);
         assertEquals(project.getType().getObjref().longValue(), 505895);
+    }
+
+
+    @Test
+    public void canGetSupervisorTeamIdMap() {
+        MapBuilder mapBuilder = new MapBuilder();
+        MyAccessCredentials mac = new MyAccessCredentials();
+        mapBuilder.setUsername(mac.getUserName());
+        mapBuilder.setPassword(mac.getPass());
+
+        mapBuilder.createSupervisorMap();
+
+        System.out.println(mapBuilder.supervisorMap.keySet().size());
+
+        assertEquals(-5L, mapBuilder.supervisorMap.get(5295L).longValue());
+        assertEquals(-5L, mapBuilder.supervisorMap.get(504354L).longValue());
+        assertEquals(-5L, mapBuilder.supervisorMap.get(504749L).longValue());
     }
 
 }
