@@ -13,6 +13,7 @@ import VRAPI.JSONContainerOrganisation.JSONContact;
 import VRAPI.JSONContainerOrganisation.JSONOrganisation;
 import VRAPI.JSONContainerOrganisation.JSONOrganisationList;
 import VRAPI.MergeClasses.ProjectsForOrganisation;
+import VRAPI.VertecServerInfo;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -50,9 +51,8 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 @Scope("prototype")
 public class OrganisationController {
 
-    private static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.112.101";
-    private static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
-
+    private static final String DEFAULT_VERTEC_SERVER_HOST = VertecServerInfo.VERTEC_SERVER_HOST;
+    private static final String DEFAULT_VERTEC_SERVER_PORT = VertecServerInfo.VERTEC_SERVER_PORT;
 
     private final Long SALES_TEAM_IDENTIFIER = -5L;
 

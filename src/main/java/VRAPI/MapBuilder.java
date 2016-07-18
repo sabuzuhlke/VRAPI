@@ -1,6 +1,5 @@
 package VRAPI;
-import VRAPI.ContainerActivity.Activity;
-import VRAPI.ContainerActivity.Type;
+
 import VRAPI.ContainerActivityType.ActivityType;
 import VRAPI.Exceptions.HttpForbiddenException;
 import VRAPI.Exceptions.HttpInternalServerError;
@@ -33,12 +32,12 @@ import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
 public class MapBuilder {
-    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.112.101";
-    public static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
+
+    private static final String DEFAULT_VERTEC_SERVER_HOST = VertecServerInfo.VERTEC_SERVER_HOST;
+    private static final String DEFAULT_VERTEC_SERVER_PORT = VertecServerInfo.VERTEC_SERVER_PORT;
 
     private final Long SALES_TEAM_IDENTIFIER = -5L;
 

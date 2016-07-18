@@ -3,7 +3,6 @@ import VRAPI.ContainerActivity.Activity;
 import VRAPI.ContainerActivity.Type;
 import VRAPI.ContainerActivityType.ActivityType;
 import VRAPI.ContainerDetailedProjects.Project;
-import VRAPI.ContainerPhases.ProjectPhase;
 import VRAPI.ContainerProjectType.ProjectType;
 import VRAPI.ContainerProjects.ProjectWorker;
 import VRAPI.ContainerSimpleContactOrganisation.Contact;
@@ -19,16 +18,12 @@ import VRAPI.JSONContainerProject.JSONProject;
 import VRAPI.JSONContainerProject.ZUKProjectsResponse;
 import VRAPI.JSONTeam.TeamMember;
 import VRAPI.JSONTeam.ZUKTeam;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.base.Predicates;
+import VRAPI.VertecServerInfo;
 import com.google.common.collect.Lists;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.*;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -45,13 +40,6 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
-import springfox.documentation.builders.PathSelectors;
-import springfox.documentation.builders.RequestHandlerSelectors;
-import springfox.documentation.service.ApiInfo;
-import springfox.documentation.spi.DocumentationType;
-import springfox.documentation.spring.web.plugins.Docket;
-import springfox.documentation.swagger.web.UiConfiguration;
-import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
@@ -64,7 +52,6 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -79,8 +66,9 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 @RestController
 @Scope("prototype")
 public class ResourceController {
-    public static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.112.31";
-    public static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
+
+    public static final String DEFAULT_VERTEC_SERVER_HOST = VertecServerInfo.VERTEC_SERVER_HOST;
+    public static final String DEFAULT_VERTEC_SERVER_PORT = VertecServerInfo.VERTEC_SERVER_PORT;
 
     private final URI vertecURI;
 
