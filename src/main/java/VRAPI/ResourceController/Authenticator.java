@@ -1,6 +1,7 @@
 package VRAPI.ResourceController;
 
 import VRAPI.Exceptions.HttpInternalServerError;
+import VRAPI.VertecServerInfo;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
@@ -29,9 +30,8 @@ import static org.w3c.dom.Node.ELEMENT_NODE;
 
 public class Authenticator {
 
-    private static final String DEFAULT_VERTEC_SERVER_HOST = "172.18.112.101";
-    private static final String DEFAULT_VERTEC_SERVER_PORT = "8095";
-
+    public static final String DEFAULT_VERTEC_SERVER_HOST = VertecServerInfo.VERTEC_SERVER_HOST;
+    public static final String DEFAULT_VERTEC_SERVER_PORT = VertecServerInfo.VERTEC_SERVER_PORT;
     private final URI vertecURI;
 
     private final Integer BAD_REQUEST = 3;
