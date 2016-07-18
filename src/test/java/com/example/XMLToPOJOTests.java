@@ -1,6 +1,6 @@
 package com.example;
 
-import VRAPI.ContainerAddresses.Envelope;
+import VRAPI.XMLClasses.ContainerAddresses.Envelope;
 import org.junit.Test;
 
 import javax.xml.bind.JAXBContext;
@@ -17,7 +17,7 @@ import static org.junit.Assert.assertTrue;
 public class XMLToPOJOTests{
 
     @Test public void canParseTeamMembers(){
-        VRAPI.ContainerTeam.Envelope env = null;
+        VRAPI.XMLClasses.ContainerTeam.Envelope env = null;
 
         String xml = "<Envelope>" +
                 "   <Body>" +
@@ -38,10 +38,10 @@ public class XMLToPOJOTests{
 
         try{
 
-            JAXBContext jc = JAXBContext.newInstance(VRAPI.ContainerTeam.Envelope.class);
+            JAXBContext jc = JAXBContext.newInstance(VRAPI.XMLClasses.ContainerTeam.Envelope.class);
             Unmarshaller u = jc.createUnmarshaller();
             StringReader reader = new StringReader(xml);
-            env = (VRAPI.ContainerTeam.Envelope) u.unmarshal(reader);
+            env = (VRAPI.XMLClasses.ContainerTeam.Envelope) u.unmarshal(reader);
 
         }
         catch(Exception e){
@@ -120,7 +120,7 @@ public class XMLToPOJOTests{
 
     @Test
     public void canParseContactIds() {        //------------------------ Doesn't parse <Person>s
-        VRAPI.ContainerSimpleContactOrganisation.Envelope env = null;
+        VRAPI.XMLClasses.ContainerSimpleContactOrganisation.Envelope env = null;
 
         String xml = "<Envelope>" +
                 "   <Body>" +
@@ -143,10 +143,10 @@ public class XMLToPOJOTests{
 
         try {
 
-            JAXBContext jc = JAXBContext.newInstance(VRAPI.ContainerSimpleContactOrganisation.Envelope.class);
+            JAXBContext jc = JAXBContext.newInstance(VRAPI.XMLClasses.ContainerSimpleContactOrganisation.Envelope.class);
             Unmarshaller u = jc.createUnmarshaller();
             StringReader reader = new StringReader(xml);
-            env = (VRAPI.ContainerSimpleContactOrganisation.Envelope) u.unmarshal(reader);
+            env = (VRAPI.XMLClasses.ContainerSimpleContactOrganisation.Envelope) u.unmarshal(reader);
         } catch (Exception e) {
             System.out.println("ERROR in Unmarshall Addresses test: " + e);
         }
@@ -165,12 +165,12 @@ public class XMLToPOJOTests{
 
     @Test
     public void correctlyUnmarshallContactsResponse() {
-        VRAPI.ContainerDetailedContact.Envelope env = new VRAPI.ContainerDetailedContact.Envelope();
+        VRAPI.XMLClasses.ContainerDetailedContact.Envelope env = new VRAPI.XMLClasses.ContainerDetailedContact.Envelope();
         try {
             JAXBContext jc = JAXBContext.newInstance(env.getClass());
             Unmarshaller u = jc.createUnmarshaller();
             StringReader xmlReader = new StringReader(getDetailedContactXMLResponse());
-            env = (VRAPI.ContainerDetailedContact.Envelope) u.unmarshal(xmlReader);
+            env = (VRAPI.XMLClasses.ContainerDetailedContact.Envelope) u.unmarshal(xmlReader);
         } catch (Exception e) {
             System.out.println("ERROR in creating marshaller: " + e);
         }
@@ -192,12 +192,12 @@ public class XMLToPOJOTests{
 
     @Test
     public void correctlyUnmarshallOrganisationsResponse() {
-        VRAPI.ContainerDetailedOrganisation.Envelope env = new VRAPI.ContainerDetailedOrganisation.Envelope();
+        VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope env = new VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope();
         try {
             JAXBContext jc = JAXBContext.newInstance(env.getClass());
             Unmarshaller u = jc.createUnmarshaller();
             StringReader xmlReader = new StringReader(getDetailedOrganisationXMLResponse());
-            env = (VRAPI.ContainerDetailedOrganisation.Envelope) u.unmarshal(xmlReader);
+            env = (VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope) u.unmarshal(xmlReader);
         } catch (Exception e) {
             System.out.println("ERROR in creating marshaller: " + e);
         }

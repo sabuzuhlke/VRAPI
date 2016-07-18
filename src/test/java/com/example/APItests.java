@@ -5,16 +5,16 @@ package com.example;
  */
 
 import VRAPI.*;
-import VRAPI.JSONContainerActivities.JSONActivitiesResponse;
-import VRAPI.JSONContainerActivities.JSONActivity;
-import VRAPI.JSONContainerOrganisation.JSONContact;
-import VRAPI.JSONContainerOrganisation.JSONOrganisation;
-import VRAPI.JSONContainerOrganisation.ZUKOrganisationResponse;
-import VRAPI.JSONContainerProject.JSONPhase;
-import VRAPI.JSONContainerProject.JSONProject;
-import VRAPI.JSONContainerProject.ZUKProjectsResponse;
-import VRAPI.JSONTeam.ZUKTeam;
-import VRAPI.ResourceController.ResourceController;
+import VRAPI.JSONClasses.JSONContainerActivities.JSONActivitiesResponse;
+import VRAPI.JSONClasses.JSONContainerActivities.JSONActivity;
+import VRAPI.JSONClasses.JSONContainerOrganisation.JSONContact;
+import VRAPI.JSONClasses.JSONContainerOrganisation.JSONOrganisation;
+import VRAPI.JSONClasses.JSONContainerOrganisation.ZUKOrganisationResponse;
+import VRAPI.JSONClasses.JSONContainerProject.JSONPhase;
+import VRAPI.JSONClasses.JSONContainerProject.JSONProject;
+import VRAPI.JSONClasses.JSONContainerProject.ZUKProjectsResponse;
+import VRAPI.JSONClasses.JSONTeam.ZUKTeam;
+import VRAPI.ResourceController.ImportController;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -42,7 +42,7 @@ import static org.junit.Assert.assertTrue;
 @SpringApplicationConfiguration(Application.class)
 @WebIntegrationTest
 public class APItests {
-    private ResourceController rc;
+    private ImportController rc;
     private String username;
     private String password;
     private RestTemplate rt;
@@ -53,7 +53,7 @@ public class APItests {
     @Before
     public void setUp(){
         try {
-            this.rc = new ResourceController();
+            this.rc = new ImportController();
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         }

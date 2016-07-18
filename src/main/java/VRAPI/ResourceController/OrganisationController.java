@@ -1,17 +1,17 @@
 package VRAPI.ResourceController;
 
-import VRAPI.ContainerDetailedProjects.Project;
-import VRAPI.ContainerSimpleContactOrganisation.Contact;
-import VRAPI.JSONContainerActivities.JSONActivity;
-import VRAPI.JSONContainerProject.JSONPhase;
-import VRAPI.JSONContainerProject.JSONProject;
+import VRAPI.XMLClasses.ContainerDetailedProjects.Project;
+import VRAPI.XMLClasses.ContainerSimpleContactOrganisation.Contact;
+import VRAPI.JSONClasses.JSONContainerActivities.JSONActivity;
+import VRAPI.JSONClasses.JSONContainerProject.JSONPhase;
+import VRAPI.JSONClasses.JSONContainerProject.JSONProject;
 import VRAPI.MergeClasses.ActivitiesForOrganisation;
 import VRAPI.Entities.Organisation;
 import VRAPI.Entities.OrganisationList;
 import VRAPI.Exceptions.*;
-import VRAPI.JSONContainerOrganisation.JSONContact;
-import VRAPI.JSONContainerOrganisation.JSONOrganisation;
-import VRAPI.JSONContainerOrganisation.JSONOrganisationList;
+import VRAPI.JSONClasses.JSONContainerOrganisation.JSONContact;
+import VRAPI.JSONClasses.JSONContainerOrganisation.JSONOrganisation;
+import VRAPI.JSONClasses.JSONContainerOrganisation.JSONOrganisationList;
 import VRAPI.MergeClasses.ProjectsForOrganisation;
 import VRAPI.VertecServerInfo;
 import io.swagger.annotations.ApiImplicitParam;
@@ -62,11 +62,6 @@ public class OrganisationController {
     private DocumentBuilder documentBuilder = null;
 
     private final URI vertecURI;
-
-    private final Integer BAD_REQUEST = 3;
-    private final Integer UNAUTHORISED = 2;
-    private final Integer FORBIDDEN = 1;
-    private final Integer AUTHORISED = 0;
 
     public QueryBuilder queryBuilder;
 
@@ -162,16 +157,16 @@ public class OrganisationController {
                 .collect(toList());
     }
 
-    private List<VRAPI.ContainerPhases.ProjectPhase> getPhasesForProject(List<Long> phaseIds) {
+    private List<VRAPI.XMLClasses.ContainerPhases.ProjectPhase> getPhasesForProject(List<Long> phaseIds) {
         return callVertec(
                 queryBuilder.getProjectPhases(phaseIds),
-                VRAPI.ContainerPhases.Envelope.class).getBody().getQueryResponse().getPhases();
+                VRAPI.XMLClasses.ContainerPhases.Envelope.class).getBody().getQueryResponse().getPhases();
     }
 
-    private List<VRAPI.ContainerDetailedProjects.Project> getProjects(Collection<Long> projectIds) {
+    private List<VRAPI.XMLClasses.ContainerDetailedProjects.Project> getProjects(Collection<Long> projectIds) {
         return callVertec(
                 queryBuilder.getProjectDetails(projectIds),
-                VRAPI.ContainerDetailedProjects.Envelope.class).getBody().getQueryResponse().getProjects();
+                VRAPI.XMLClasses.ContainerDetailedProjects.Envelope.class).getBody().getQueryResponse().getProjects();
     }
 
 
@@ -219,9 +214,9 @@ public class OrganisationController {
 
     }
 
-    private List<VRAPI.ContainerActivity.Activity> getActivities(List<Long> ids) {
+    private List<VRAPI.XMLClasses.ContainerActivity.Activity> getActivities(List<Long> ids) {
         try{
-            return callVertec(queryBuilder.getActivities(ids), VRAPI.ContainerActivity.Envelope.class)
+            return callVertec(queryBuilder.getActivities(ids), VRAPI.XMLClasses.ContainerActivity.Envelope.class)
                     .getBody()
                     .getQueryResponse()
                     .getActivities();
@@ -275,7 +270,7 @@ public class OrganisationController {
 
     }
 
-    private List<Organisation> createOrganisationList(List<VRAPI.ContainerDetailedOrganisation.Organisation> organisations) {
+    private List<Organisation> createOrganisationList(List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> organisations) {
         return organisations.stream()
                 .map(vo -> {
                     Organisation o = new Organisation(vo);
@@ -284,7 +279,7 @@ public class OrganisationController {
                 }).collect(toList());
     }
 
-    private void setOwnerAndOwnedOnVertecBy(Organisation o, VRAPI.ContainerDetailedOrganisation.Organisation vo) {
+    private void setOwnerAndOwnedOnVertecBy(Organisation o, VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation vo) {
         Long supervisorId = supervisorIdMap.get(vo.getPersonResponsible().getObjref());
         if (supervisorId == 0L) {
             o.setOwnedOnVertecBy("Not ZUK");
@@ -299,7 +294,7 @@ public class OrganisationController {
 
     }
 
-    private String getSupervisingEmailForSubTeamMember(VRAPI.ContainerDetailedOrganisation.Organisation vo) {
+    private String getSupervisingEmailForSubTeamMember(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation vo) {
         //assumes vo.supervisor id is sub team member;
         Long supervisorId = 0L;
         Long idForMapGet = vo.getPersonResponsible().getObjref();
@@ -313,10 +308,10 @@ public class OrganisationController {
         return "OH DAMN SOMETHING WENT WRONG";
     }
 
-    public List<VRAPI.ContainerDetailedOrganisation.Organisation> getOrganisations(List<Long> ids) {
+    public List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> getOrganisations(List<Long> ids) {
         try{
-            return callVertec(queryBuilder.getOrganisationDetails(ids), VRAPI.ContainerDetailedOrganisation.Envelope.class).getBody().getQueryResponse().getOrganisationList().stream()
-                    .filter(VRAPI.ContainerDetailedOrganisation.Organisation::getActive)
+            return callVertec(queryBuilder.getOrganisationDetails(ids), VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class).getBody().getQueryResponse().getOrganisationList().stream()
+                    .filter(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation::getActive)
                     .collect(toList());
         } catch (NullPointerException npe) {
             throw new HttpNotFoundException("Did not find any of the listed organisations:" + ids );
@@ -327,8 +322,8 @@ public class OrganisationController {
         List<Long> cIds = new ArrayList<>();
         List<Long> oIds = new ArrayList<>();
         List<List<Long>> rIds = new ArrayList<>();
-        VRAPI.ContainerSimpleContactOrganisation.Envelope env
-                = callVertec(queryBuilder.getContactAndOrganisationIds(contactIds), VRAPI.ContainerSimpleContactOrganisation.Envelope.class);
+        VRAPI.XMLClasses.ContainerSimpleContactOrganisation.Envelope env
+                = callVertec(queryBuilder.getContactAndOrganisationIds(contactIds), VRAPI.XMLClasses.ContainerSimpleContactOrganisation.Envelope.class);
 
         cIds.addAll(
                 env.getBody().getQueryResponse().getContacts().stream()
@@ -336,7 +331,7 @@ public class OrganisationController {
                         .collect(toList()));
         oIds.addAll(
                 env.getBody().getQueryResponse().getOrgs().stream()
-                        .map(VRAPI.ContainerSimpleContactOrganisation.Organisation::getObjid)
+                        .map(VRAPI.XMLClasses.ContainerSimpleContactOrganisation.Organisation::getObjid)
                         .collect(toList()));
         rIds.add(cIds);
         rIds.add(oIds);
@@ -345,7 +340,7 @@ public class OrganisationController {
 
     public Set<Long> getAddressIdsSupervisedBy(Set<Long> employeeIds) {
         Set<Long> addressIds = new HashSet<>();
-        callVertec(queryBuilder.getSupervisedAddresses(employeeIds), VRAPI.ContainerAddresses.Envelope.class)
+        callVertec(queryBuilder.getSupervisedAddresses(employeeIds), VRAPI.XMLClasses.ContainerAddresses.Envelope.class)
                 .getBody().getQueryResponse().getWorkers()
                 .forEach(w -> addressIds.addAll(w.getAddresses().getList().getObjects()));
         return addressIds;
@@ -429,9 +424,9 @@ public class OrganisationController {
         ifUnauthorisedThrowErrorResponse();
 
         this.teamIdMap = StaticMaps.INSTANCE.getTeamIDMap();
-        VRAPI.ContainerDetailedOrganisation.Envelope organisationEnvelope
+        VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope organisationEnvelope
                 = callVertec(queryBuilder.getOrganisationDetails(ids),
-                             VRAPI.ContainerDetailedOrganisation.Envelope.class);
+                             VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class);
 
 
         if (organisationEnvelope.getBody().getQueryResponse() == null) {
@@ -469,9 +464,9 @@ public class OrganisationController {
         this.teamIdMap = StaticMaps.INSTANCE.getTeamIDMap();
         List<Long> idAsList = new ArrayList<>();
         idAsList.add(id);
-        VRAPI.ContainerDetailedOrganisation.Envelope organisationEnvelope
+        VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope organisationEnvelope
                 = callVertec(queryBuilder.getOrganisationDetails(idAsList),
-                             VRAPI.ContainerDetailedOrganisation.Envelope.class);
+                             VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class);
 
         if (organisationEnvelope.getBody().getQueryResponse() == null) {
             throw new HttpNotFoundException("Organisation with id: " + id + " could not be found");
@@ -485,15 +480,15 @@ public class OrganisationController {
 
     }
 
-    private JSONOrganisation xml2JSON(VRAPI.ContainerDetailedOrganisation.Organisation vertecOrg) {
+    private JSONOrganisation xml2JSON(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation vertecOrg) {
         JSONOrganisation org = new JSONOrganisation(vertecOrg);
         org.setContacts(getContactsForOrganisation(vertecOrg.getContacts().getObjlist().getObjref()));
         return org;
     }
 
     private List<JSONContact> getContactsForOrganisation(List<Long> objref) {
-        List<VRAPI.ContainerDetailedContact.Contact> xmlContacts =
-                callVertec(queryBuilder.getContactDetails(objref), VRAPI.ContainerDetailedContact.Envelope.class)
+        List<VRAPI.XMLClasses.ContainerDetailedContact.Contact> xmlContacts =
+                callVertec(queryBuilder.getContactDetails(objref), VRAPI.XMLClasses.ContainerDetailedContact.Envelope.class)
                         .getBody()
                         .getQueryResponse()
                         .getContactList();
@@ -523,11 +518,11 @@ public class OrganisationController {
         Authenticator authenticator = new Authenticator();
         String usernamePassword = request.getHeader("Authorization");
         Integer authLevel = authenticator.requestIsAuthorized(usernamePassword);
-        if (authLevel.longValue() == BAD_REQUEST) {
+        if (authLevel.longValue() == VertecServerInfo.BAD_REQUEST) {
             throw new HttpBadRequest("Username and password not correctly set in header");
-        } else if (authLevel.longValue() == UNAUTHORISED) {
+        } else if (authLevel.longValue() == VertecServerInfo.UNAUTHORISED) {
             throw new HttpUnauthorisedException("Wrong username or password");
-        } else if (authLevel.longValue() == FORBIDDEN) {
+        } else if (authLevel.longValue() == VertecServerInfo.FORBIDDEN) {
             throw new HttpForbiddenException("You have got limited access to the Vertec database, and were not authorised for this query!");
         }
         String[] usrpwd = usernamePassword.split(":");

@@ -2,8 +2,8 @@ package com.example;
 
 import VRAPI.Application;
 import VRAPI.Entities.OrganisationList;
-import VRAPI.JSONContainerOrganisation.JSONOrganisation;
-import VRAPI.JSONContainerOrganisation.JSONOrganisationList;
+import VRAPI.JSONClasses.JSONContainerOrganisation.JSONOrganisation;
+import VRAPI.JSONClasses.JSONContainerOrganisation.JSONOrganisationList;
 import VRAPI.MergeClasses.ActivitiesForOrganisation;
 import VRAPI.MergeClasses.ProjectsForOrganisation;
 import VRAPI.MyAccessCredentials;

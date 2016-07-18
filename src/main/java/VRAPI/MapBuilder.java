@@ -1,10 +1,10 @@
 package VRAPI;
 
-import VRAPI.ContainerActivityType.ActivityType;
+import VRAPI.XMLClasses.ContainerActivityType.ActivityType;
 import VRAPI.Exceptions.HttpForbiddenException;
 import VRAPI.Exceptions.HttpInternalServerError;
 import VRAPI.Exceptions.HttpUnauthorisedException;
-import VRAPI.FromContainer.GenericLinkContainer;
+import VRAPI.XMLClasses.FromContainer.GenericLinkContainer;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.RequestEntity;
@@ -43,15 +43,12 @@ public class MapBuilder {
 
     private final URI vertecURI;
 
-    private DocumentBuilder documentBuilder = null;
+    private DocumentBuilder documentBuilder;
 
     private String username;
     private String password;
 
     private RestTemplate rest;
-
-    private Map<Long, String> teamMap;
-    private Map<Long, List<String>> followerMap;
 
     //map of worker_id to their superior
     public Map<Long, Long> supervisorMap;
@@ -93,7 +90,7 @@ public class MapBuilder {
 
     private List<ActivityType> getActivityTypes() {
 
-        return callVertec(getActivityTypesQuery(), VRAPI.ContainerActivityType.Envelope.class)
+        return callVertec(getActivityTypesQuery(), VRAPI.XMLClasses.ContainerActivityType.Envelope.class)
                 .getBody()
                 .getQueryResponse()
                 .getActivityTypes();
@@ -354,7 +351,7 @@ public class MapBuilder {
 
     public Map<Long, List<String>> createFollowerMap() {
         Map<Long, List<String>> map = new HashMap<>();
-        VRAPI.ContainerFollower.Envelope leader;
+        VRAPI.XMLClasses.ContainerFollower.Envelope leader;
 
         List<Long> teamIds = getZUKTeamMemberIds();
 
@@ -365,7 +362,7 @@ public class MapBuilder {
 
 
             if (leader.getBody().getQueryResponse().getProjectWorker().getActive()) {
-                VRAPI.FromContainer.Envelope resFromContainer;
+                VRAPI.XMLClasses.FromContainer.Envelope resFromContainer;
 
                 //#3 query for generic Link Containers
                 resFromContainer = getFromContainer(leader.getBody().getQueryResponse().getProjectWorker().getFromLinks().getObjlist().getObjref());
@@ -393,12 +390,12 @@ public class MapBuilder {
 
     }
 
-    private VRAPI.FromContainer.Envelope getFromContainer(List<Long> ids) {
-        return callVertec(getXMLQuery_FromContainers(ids), VRAPI.FromContainer.Envelope.class);
+    private VRAPI.XMLClasses.FromContainer.Envelope getFromContainer(List<Long> ids) {
+        return callVertec(getXMLQuery_FromContainers(ids), VRAPI.XMLClasses.FromContainer.Envelope.class);
     }
 
-    private VRAPI.ContainerFollower.Envelope getGenericLinkContainers(Long id) {
-        return callVertec(getXMLQuery_LeadersFromLinks(id), VRAPI.ContainerFollower.Envelope.class);
+    private VRAPI.XMLClasses.ContainerFollower.Envelope getGenericLinkContainers(Long id) {
+        return callVertec(getXMLQuery_LeadersFromLinks(id), VRAPI.XMLClasses.ContainerFollower.Envelope.class);
     }
 
     private String getXMLQuery_FromContainers(List<Long> containerIds) {

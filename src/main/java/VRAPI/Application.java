@@ -2,7 +2,7 @@ package VRAPI;
 
 
 import VRAPI.ResourceController.OrganisationController;
-import VRAPI.ResourceController.ResourceController;
+import VRAPI.ResourceController.ImportController;
 import com.google.common.base.Predicates;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -18,7 +18,7 @@ import springfox.documentation.swagger.web.UiConfiguration;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
-@ComponentScan(basePackageClasses = {ResourceController.class, OrganisationController.class})
+@ComponentScan(basePackageClasses = {ImportController.class, OrganisationController.class})
 @EnableSwagger2
 @Configuration
 public class Application {

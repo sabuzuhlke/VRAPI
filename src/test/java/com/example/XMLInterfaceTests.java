@@ -1,20 +1,20 @@
 package com.example;
 import VRAPI.Application;
-import VRAPI.JSONContainerActivities.JSONActivitiesResponse;
-import VRAPI.ContainerActivity.Activity;
-import VRAPI.ContainerActivityType.ActivityType;
-import VRAPI.ContainerDetailedContact.Contact;
-import VRAPI.ContainerDetailedContact.Organisation;
-import VRAPI.ContainerDetailedContact.PersonResponsible;
-import VRAPI.ContainerDetailedOrganisation.DaughterFirms;
-import VRAPI.ContainerDetailedOrganisation.Objlist;
-import VRAPI.ContainerDetailedOrganisation.ParentFirm;
-import VRAPI.ContainerDetailedProjects.Project;
-import VRAPI.JSONContainerOrganisation.ZUKOrganisationResponse;
+import VRAPI.JSONClasses.JSONContainerActivities.JSONActivitiesResponse;
+import VRAPI.XMLClasses.ContainerActivity.Activity;
+import VRAPI.XMLClasses.ContainerActivityType.ActivityType;
+import VRAPI.XMLClasses.ContainerDetailedContact.Contact;
+import VRAPI.XMLClasses.ContainerDetailedContact.Organisation;
+import VRAPI.XMLClasses.ContainerDetailedContact.PersonResponsible;
+import VRAPI.XMLClasses.ContainerDetailedOrganisation.DaughterFirms;
+import VRAPI.XMLClasses.ContainerDetailedOrganisation.Objlist;
+import VRAPI.XMLClasses.ContainerDetailedOrganisation.ParentFirm;
+import VRAPI.XMLClasses.ContainerDetailedProjects.Project;
+import VRAPI.JSONClasses.JSONContainerOrganisation.ZUKOrganisationResponse;
 import VRAPI.MapBuilder;
 import VRAPI.MyAccessCredentials;
 import VRAPI.ResourceController.QueryBuilder;
-import VRAPI.ResourceController.ResourceController;
+import VRAPI.ResourceController.ImportController;
 import VRAPI.ResourceController.StaticMaps;
 import org.junit.BeforeClass;
 import org.junit.Ignore;
@@ -40,11 +40,11 @@ public class XMLInterfaceTests {
 
     public static final List<Long> KNOWN_SUPERVISOR_IDS = asList(504419L, 504749L, 1795374L, 6574798L, 8619482L, 8904906L, 10301189L, 12456812L);
     public static final long ADDRESS_BELONGING_TO_INACTIVE_TEAM_MEMBER = 1307942L;
-    private static ResourceController rc = null;
+    private static ImportController rc = null;
 
     static {
         try {
-            rc = new ResourceController();
+            rc = new ImportController();
             MyAccessCredentials mac = new MyAccessCredentials();
             rc.setPassword(mac.getPass());
             rc.setUsername(mac.getUserName());
@@ -99,7 +99,7 @@ public class XMLInterfaceTests {
     public void canGetDetailedProjects() {
         Set<Long> projectsIds = new HashSet<>(asList(getSomeProjectIds()));
 
-        List<VRAPI.ContainerDetailedProjects.Project> projects = rc.getDetailedProjects(projectsIds);
+        List<VRAPI.XMLClasses.ContainerDetailedProjects.Project> projects = rc.getDetailedProjects(projectsIds);
 
         assertTrue( ! projectsIds.isEmpty());
         assertTrue(projects.size() == 4);
@@ -130,7 +130,7 @@ public class XMLInterfaceTests {
     public void canGetListofPhases(){
         List<Long> phaseIds = new ArrayList<>(asList(getSomePhases()));
 
-        List<VRAPI.ContainerPhases.ProjectPhase> phases = rc.getPhasesForProject(phaseIds);
+        List<VRAPI.XMLClasses.ContainerPhases.ProjectPhase> phases = rc.getPhasesForProject(phaseIds);
 
         assertTrue(phases.size() == 3);
         assertTrue( ! phases.get(1).getActive());
@@ -178,7 +178,7 @@ public class XMLInterfaceTests {
         List<Project> projects = rc.getDetailedProjects(projectIds);
         Long currencyId = projects.get(0).getCurrency().getObjref(); //GBP
 
-        VRAPI.ContainerCurrency.Currency currency = rc.getCurrency(currencyId);
+        VRAPI.XMLClasses.ContainerCurrency.Currency currency = rc.getCurrency(currencyId);
 
         assertEquals("GBP", currency.getName());
 
@@ -218,7 +218,7 @@ public class XMLInterfaceTests {
         Long[] array = getSomeContactIds();
         List<Long> ids = new ArrayList<>(asList(array));
 
-        List<VRAPI.ContainerDetailedContact.Contact> contacts = rc.getActiveDetailedContacts(ids);
+        List<VRAPI.XMLClasses.ContainerDetailedContact.Contact> contacts = rc.getActiveDetailedContacts(ids);
 
         assertTrue( ! contacts.isEmpty());
         assertTrue(contacts.size() == 4);
@@ -249,18 +249,18 @@ public class XMLInterfaceTests {
 
     @Test
     public void canCompareContacts(){
-        VRAPI.ContainerDetailedContact.Contact a = new VRAPI.ContainerDetailedContact.Contact();
-        VRAPI.ContainerDetailedContact.Contact b = new VRAPI.ContainerDetailedContact.Contact();
-        VRAPI.ContainerDetailedContact.Contact c = new VRAPI.ContainerDetailedContact.Contact();
+        VRAPI.XMLClasses.ContainerDetailedContact.Contact a = new VRAPI.XMLClasses.ContainerDetailedContact.Contact();
+        VRAPI.XMLClasses.ContainerDetailedContact.Contact b = new VRAPI.XMLClasses.ContainerDetailedContact.Contact();
+        VRAPI.XMLClasses.ContainerDetailedContact.Contact c = new VRAPI.XMLClasses.ContainerDetailedContact.Contact();
         int r;
 
 
         a.setFirstName("Ronald McDonald");
         b.setFirstName("The King");
         c.setFirstName("The Colonel");
-        a.setOrganisation(new VRAPI.ContainerDetailedContact.Organisation(1L));
-        b.setOrganisation(new VRAPI.ContainerDetailedContact.Organisation(null));
-        c.setOrganisation(new VRAPI.ContainerDetailedContact.Organisation(3L));
+        a.setOrganisation(new VRAPI.XMLClasses.ContainerDetailedContact.Organisation(1L));
+        b.setOrganisation(new VRAPI.XMLClasses.ContainerDetailedContact.Organisation(null));
+        c.setOrganisation(new VRAPI.XMLClasses.ContainerDetailedContact.Organisation(3L));
 
         r = rc.contactComparator.compare(a,a);
         assertTrue(r == 0);
@@ -466,7 +466,7 @@ public class XMLInterfaceTests {
         Long[] array = getSomeOrgIds();
         List<Long> ids = new ArrayList<>(asList(array));
 
-        List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs = rc.getOrganisations(ids);
+        List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> orgs = rc.getOrganisations(ids);
 
         assertTrue( ! orgs.isEmpty());
         assertTrue(orgs.size() == 3);
@@ -486,10 +486,10 @@ public class XMLInterfaceTests {
 
     }
 
-    public List<VRAPI.ContainerDetailedOrganisation.Organisation> getsomeOrgs(){
-        VRAPI.ContainerDetailedOrganisation.Organisation o1 = new VRAPI.ContainerDetailedOrganisation.Organisation();
-        VRAPI.ContainerDetailedOrganisation.Organisation o2 = new VRAPI.ContainerDetailedOrganisation.Organisation();
-        List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs = new ArrayList<>();
+    public List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> getsomeOrgs(){
+        VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation o1 = new VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation();
+        VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation o2 = new VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation();
+        List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> orgs = new ArrayList<>();
 
         o1.setObjId(1L);
         o2.setObjId(2L);
@@ -515,8 +515,8 @@ public class XMLInterfaceTests {
         o1.setZip("666");
         o2.setZip("777");
 
-        o1.setPersonResponsible(new VRAPI.ContainerDetailedOrganisation.PersonResponsible());
-        o2.setPersonResponsible(new VRAPI.ContainerDetailedOrganisation.PersonResponsible());
+        o1.setPersonResponsible(new VRAPI.XMLClasses.ContainerDetailedOrganisation.PersonResponsible());
+        o2.setPersonResponsible(new VRAPI.XMLClasses.ContainerDetailedOrganisation.PersonResponsible());
 
         o1.getPersonResponsible().setObjref(1L);
         o2.getPersonResponsible().setObjref(1L);
@@ -547,7 +547,7 @@ public class XMLInterfaceTests {
 //        List<Long> teamids = rc.getZUKTeamMemberIds();
 //        List<Long> addrids = rc.getAddressIdsSupervisedBy(teamids);
 //        List<List<Long>> CO = rc.getSimpleContactsandOrgs(addrids);
-//        List<VRAPI.ContainerDetailedOrganisation.Organisation> orgs = rc.getOrganisations(CO.get(1));
+//        List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> orgs = rc.getOrganisations(CO.get(1));
 //
 //
 //        System.out.println("Nr contacts: " + CO.get(0).size());
@@ -598,7 +598,7 @@ public class XMLInterfaceTests {
         teamMembers.add(8619482L);
         List<Long> activityRefs = rc.getActivityIds(teamMembers);
 
-        List<VRAPI.ContainerActivity.Activity> actList = rc.getActivities(activityRefs);
+        List<VRAPI.XMLClasses.ContainerActivity.Activity> actList = rc.getActivities(activityRefs);
 
         assertTrue(actList.size() >= 10);
         System.out.println(actList.get(1));
@@ -683,8 +683,8 @@ public class XMLInterfaceTests {
     public void canGetProjectByCode(){
         String code = "c15823";
 
-        VRAPI.ContainerDetailedProjects.Project project =  rc.callVertec(rc.queryBuilder.getProjectByCode(code),
-                                                                        VRAPI.ContainerDetailedProjects.Envelope.class)
+        VRAPI.XMLClasses.ContainerDetailedProjects.Project project =  rc.callVertec(rc.queryBuilder.getProjectByCode(code),
+                                                                        VRAPI.XMLClasses.ContainerDetailedProjects.Envelope.class)
                                                                         .getBody().getQueryResponse().getProjects().get(0);
 
         assertEquals(project.getId().longValue(), 12065530);

@@ -6,9 +6,7 @@ we do not haveto reuild these maps everz single time.
  */
 import VRAPI.MapBuilder;
 import VRAPI.MyAccessCredentials;
-import VRAPI.ResourceController.ResourceController;
 
-import javax.xml.parsers.ParserConfigurationException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

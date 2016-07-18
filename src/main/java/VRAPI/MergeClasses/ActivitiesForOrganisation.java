@@ -1,6 +1,6 @@
 package VRAPI.MergeClasses;
 
-import VRAPI.JSONContainerActivities.JSONActivity;
+import VRAPI.JSONClasses.JSONContainerActivities.JSONActivity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;

@@ -2,7 +2,6 @@ package VRAPI.ResourceController;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Created by gebo on 02/06/2016.
@@ -60,7 +59,7 @@ public class QueryBuilder {
     }
 
 //---------------------------------------------------------------------------------------------------------------------- POST
-    String postOrganisation(VRAPI.ContainerDetailedOrganisation.Organisation organisation) {
+    String postOrganisation(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation organisation) {
 
         String body = "<Body>\n" +
                 "    <Create>\n" +

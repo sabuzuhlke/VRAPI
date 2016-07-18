@@ -1,7 +1,5 @@
 package VRAPI.Entities;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
 public class Organisation {
 
     private Long vertecId;
@@ -21,6 +19,8 @@ public class Organisation {
     private String country;
     private String zip;
 
+    private Long parentOrganisation;
+
     private String modified;
     private String created;
 
@@ -29,7 +29,7 @@ public class Organisation {
      * IMPORTANT!!!! must set owned_on_vertec_by and supervisor email outside constructor
      * @param vo
      */
-    public Organisation(VRAPI.ContainerDetailedOrganisation.Organisation vo) {
+    public Organisation(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation vo) {
         vertecId = vo .getObjId();
         active = vo.getActive();
         name = vo.getName();
@@ -47,6 +47,8 @@ public class Organisation {
         city = vo.getCity();
         country = vo.getCountry();
         zip = vo.getZip();
+
+        parentOrganisation = vo.getParentFirm() == null ? null : vo.getParentFirm().getObjref();
 
         modified = vo.getModified();
         created = vo.getCreationTime(); //TODO: change to common format
@@ -165,6 +167,14 @@ public class Organisation {
 
     public void setZip(String zip) {
         this.zip = zip;
+    }
+
+    public Long getParentOrganisation() {
+        return parentOrganisation;
+    }
+
+    public void setParentOrganisation(Long parentOrganisation) {
+        this.parentOrganisation = parentOrganisation;
     }
 
     public String getModified() {
