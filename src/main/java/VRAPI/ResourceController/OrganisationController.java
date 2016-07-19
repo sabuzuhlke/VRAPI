@@ -1,17 +1,15 @@
 package VRAPI.ResourceController;
 
+import VRAPI.JSONClasses.JSONContainerProject.JSONProject;
 import VRAPI.XMLClasses.ContainerDetailedProjects.Project;
 import VRAPI.XMLClasses.ContainerSimpleContactOrganisation.Contact;
 import VRAPI.JSONClasses.JSONContainerActivities.JSONActivity;
 import VRAPI.JSONClasses.JSONContainerProject.JSONPhase;
-import VRAPI.JSONClasses.JSONContainerProject.JSONProject;
 import VRAPI.MergeClasses.ActivitiesForOrganisation;
 import VRAPI.Entities.Organisation;
 import VRAPI.Entities.OrganisationList;
 import VRAPI.Exceptions.*;
 import VRAPI.JSONClasses.JSONContainerOrganisation.JSONContact;
-import VRAPI.JSONClasses.JSONContainerOrganisation.JSONOrganisation;
-import VRAPI.JSONClasses.JSONContainerOrganisation.JSONOrganisationList;
 import VRAPI.MergeClasses.ProjectsForOrganisation;
 import VRAPI.VertecServerInfo;
 import io.swagger.annotations.ApiImplicitParam;
@@ -27,7 +25,6 @@ import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConvert
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
@@ -45,25 +42,21 @@ import java.util.stream.Stream;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
-import static org.w3c.dom.Node.ELEMENT_NODE;
 
 @RestController
-@Scope("prototype")
+@Scope("prototype") //This enforces that an organisation controller is created per request
 public class OrganisationController {
 
     private static final String DEFAULT_VERTEC_SERVER_HOST = VertecServerInfo.VERTEC_SERVER_HOST;
     private static final String DEFAULT_VERTEC_SERVER_PORT = VertecServerInfo.VERTEC_SERVER_PORT;
 
-    private final Long SALES_TEAM_IDENTIFIER = -5L;
-
     private RestTemplate rest;
-
 
     private DocumentBuilder documentBuilder = null;
 
     private final URI vertecURI;
 
-    public QueryBuilder queryBuilder;
+    private QueryBuilder queryBuilder;
 
     private Map<Long, String> teamIdMap;
     private Map<Long, List<String>> contactFollowerMap;
@@ -96,8 +89,11 @@ public class OrganisationController {
 
     }
 
-//====================================================================================================================== GET /organisation/{id}/projects
+//======================================================================================================================
+// GET /organisations
+//======================================================================================================================
 
+//---------------------------------------------------------------------------------------------------------------------- /{id}/projects
     @ApiImplicitParams( {
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
@@ -105,7 +101,7 @@ public class OrganisationController {
                     dataType = "string",
                     paramType = "header")
     })
-    @RequestMapping(value = "/organisation/{id}/projects", method = RequestMethod.GET)
+    @RequestMapping(value = "/organisation/{id}/projects", method = RequestMethod.GET) //TODO: write test for this function
     public ResponseEntity<ProjectsForOrganisation> getProjectsForOrganisation(@PathVariable Long id)
             throws ParserConfigurationException {
         ifUnauthorisedThrowErrorResponse();
@@ -125,11 +121,11 @@ public class OrganisationController {
 
     private List<JSONProject> getDetailedProjects(List<Long> projectIdsForOrg) {
         return getProjects(projectIdsForOrg).stream()
-                .map(this::asJsonProject)
+                .map(this::asJSONProject)
                 .collect(toList());
     }
-
-    private JSONProject asJsonProject(Project project) {
+    //TODO: add support for projectType and currency map
+    private JSONProject asJSONProject(Project project) {
         String accountManager = "";
         if (project.getAccountManager() != null && project.getAccountManager().getObjref() != null) {
             accountManager = project.getAccountManager().getObjref().toString();
@@ -169,9 +165,8 @@ public class OrganisationController {
                 VRAPI.XMLClasses.ContainerDetailedProjects.Envelope.class).getBody().getQueryResponse().getProjects();
     }
 
-
-//====================================================================================================================== GET /organisation/{id}/activities
-
+//====================================================================================================================== /{id}/activities
+    //TODO: change activities to common representation
     @ApiImplicitParams( {
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
@@ -179,7 +174,7 @@ public class OrganisationController {
                     dataType = "string",
                     paramType = "header")
     })
-    @RequestMapping(value = "/organisation/{id}/activities", method = RequestMethod.GET)
+    @RequestMapping(value = "/organisation/{id}/activities", method = RequestMethod.GET) //TODO: write test for this function
     public ResponseEntity<ActivitiesForOrganisation> getActivitiesForOrganisation(@PathVariable Long id)
             throws ParserConfigurationException {
         ifUnauthorisedThrowErrorResponse();
@@ -225,25 +220,7 @@ public class OrganisationController {
         }
     }
 
-    public List<Long> getObjrefsForOrganisationDocument(Document response) {
-        NodeList activityObjrefs =  response.getElementsByTagName("objref");
-        if (activityObjrefs.getLength() > 0) {
-            return IntStream.range(0, activityObjrefs.getLength())
-                    .mapToObj(index -> (Element) activityObjrefs.item(index))
-                    .map(objrefElement -> Long.parseLong(objrefElement.getTextContent()))
-                    .collect(toList());
-        } else {
-            return new ArrayList<>();
-        }
-    }
-
-    public String getNameForOrganisationDocument(Document response) {
-        return response.getElementsByTagName("name").item(0).getTextContent();
-    }
-
-//====================================================================================================================== GET /organisations/all
-
-    //    //GET ORganisation in common represenation
+//====================================================================================================================== /all
     @ApiImplicitParams( {
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
@@ -251,7 +228,7 @@ public class OrganisationController {
                     dataType = "string",
                     paramType = "header")
     })
-    @RequestMapping(value = "/organisations/all", method = RequestMethod.GET)
+    @RequestMapping(value = "/organisations/all", method = RequestMethod.GET)//TODO: write tests for this
     public ResponseEntity<OrganisationList> getAllOrganisations() throws ParserConfigurationException {
         System.out.println("Received request");
         ifUnauthorisedThrowErrorResponse();
@@ -270,45 +247,7 @@ public class OrganisationController {
 
     }
 
-    private List<Organisation> createOrganisationList(List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> organisations) {
-        return organisations.stream()
-                .map(vo -> {
-                    Organisation o = new Organisation(vo);
-                    setOwnerAndOwnedOnVertecBy(o, vo);
-                    return o;
-                }).collect(toList());
-    }
-
-    private void setOwnerAndOwnedOnVertecBy(Organisation o, VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation vo) {
-        Long supervisorId = supervisorIdMap.get(vo.getPersonResponsible().getObjref());
-        if (supervisorId == 0L) {
-            o.setOwnedOnVertecBy("Not ZUK");
-            o.setSupervisingEmail("blahdeblahdeblah");//TODO:change this
-        } else if (supervisorId.longValue() == SALES_TEAM_IDENTIFIER ) {
-            o.setOwnedOnVertecBy("Sales Team");
-            o.setSupervisingEmail(teamIdMap.get(vo.getPersonResponsible().getObjref()));
-        } else {
-            o.setOwnedOnVertecBy("ZUK Sub Team");
-            o.setSupervisingEmail(getSupervisingEmailForSubTeamMember(vo));
-        }
-
-    }
-
-    private String getSupervisingEmailForSubTeamMember(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation vo) {
-        //assumes vo.supervisor id is sub team member;
-        Long supervisorId = 0L;
-        Long idForMapGet = vo.getPersonResponsible().getObjref();
-        while (supervisorId.longValue() != SALES_TEAM_IDENTIFIER) {
-            supervisorId = supervisorIdMap.get(idForMapGet);
-            if (supervisorId.longValue() == SALES_TEAM_IDENTIFIER) {
-                return teamIdMap.get(idForMapGet);
-            }
-            idForMapGet = supervisorId;
-        }
-        return "OH DAMN SOMETHING WENT WRONG";
-    }
-
-    public List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> getOrganisations(List<Long> ids) {
+    private List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> getOrganisations(List<Long> ids) {
         try{
             return callVertec(queryBuilder.getOrganisationDetails(ids), VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class).getBody().getQueryResponse().getOrganisationList().stream()
                     .filter(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation::getActive)
@@ -318,12 +257,12 @@ public class OrganisationController {
         }
     }
 
-    public List<List<Long>> getSimpleContactsandOrgs(Collection<Long> contactIds) {
+    private List<List<Long>> getSimpleContactsandOrgs(Collection<Long> addressIds) {
         List<Long> cIds = new ArrayList<>();
         List<Long> oIds = new ArrayList<>();
         List<List<Long>> rIds = new ArrayList<>();
         VRAPI.XMLClasses.ContainerSimpleContactOrganisation.Envelope env
-                = callVertec(queryBuilder.getContactAndOrganisationIds(contactIds), VRAPI.XMLClasses.ContainerSimpleContactOrganisation.Envelope.class);
+                = callVertec(queryBuilder.getContactAndOrganisationIds(addressIds), VRAPI.XMLClasses.ContainerSimpleContactOrganisation.Envelope.class);
 
         cIds.addAll(
                 env.getBody().getQueryResponse().getContacts().stream()
@@ -338,7 +277,7 @@ public class OrganisationController {
         return rIds;
     }
 
-    public Set<Long> getAddressIdsSupervisedBy(Set<Long> employeeIds) {
+    private Set<Long> getAddressIdsSupervisedBy(Set<Long> employeeIds) {
         Set<Long> addressIds = new HashSet<>();
         callVertec(queryBuilder.getSupervisedAddresses(employeeIds), VRAPI.XMLClasses.ContainerAddresses.Envelope.class)
                 .getBody().getQueryResponse().getWorkers()
@@ -346,24 +285,119 @@ public class OrganisationController {
         return addressIds;
     }
 
-    private Boolean toBoolean(String s) {
-        return s.equals("1");
+//---------------------------------------------------------------------------------------------------------------------- /{ids}
+    @ApiOperation(value = "Get organisation by list", nickname = "byList")
+    @ApiImplicitParams( {
+            @ApiImplicitParam(name = "Authorization",
+                    value = "username:password",
+                    required = true,
+                    dataType = "string",
+                    paramType = "header")
+    })
+    @RequestMapping(value = "/org/{ids}", method = RequestMethod.GET)
+    public ResponseEntity<OrganisationList> getOrganisationList(@PathVariable List<Long> ids)
+            throws ParserConfigurationException {
+        ifUnauthorisedThrowErrorResponse();
+
+        this.teamIdMap = StaticMaps.INSTANCE.getTeamIDMap();
+        VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope organisationEnvelope
+                = callVertec(queryBuilder.getOrganisationDetails(ids),
+                             VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class);
+
+
+        if (organisationEnvelope.getBody().getQueryResponse() == null) {
+            throw new HttpNotFoundException("Some or all of the ids requested could not be found as organisations");
+        }
+
+        OrganisationList res = new OrganisationList();
+        res.setOrganisations(createOrganisationList(organisationEnvelope.getBody().getQueryResponse().getOrganisationList()));
+
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-    private List<Long> getZUKTeamMemberIds() {
-        String xmlQuery = queryBuilder.getLeadersTeam();
-        final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
-        return elementIn(response, "QueryResponse")
-                .map(queryResponse -> queryResponse.getElementsByTagName("objref"))
-                .map(OrganisationController::asIdList)
-                .orElse(new ArrayList<>());
+//---------------------------------------------------------------------------------------------------------------------- /{id}
+    @ApiOperation(value = "GET organisation by id", nickname = "byId")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization",
+                    value = "username:password",
+                    required = true,
+                    dataType = "string",
+                    paramType = "header")
+    })
+    @RequestMapping(value = "/organisation/{id}", method = RequestMethod.GET)
+    public ResponseEntity<Organisation> getOrganisation(@PathVariable Long id)
+            throws ParserConfigurationException {
+        ifUnauthorisedThrowErrorResponse();
+
+        this.teamIdMap = StaticMaps.INSTANCE.getTeamIDMap();
+        List<Long> idAsList = new ArrayList<>();
+        idAsList.add(id);
+        VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope organisationEnvelope
+                = callVertec(queryBuilder.getOrganisationDetails(idAsList),
+                             VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class);
+
+        if (organisationEnvelope.getBody().getQueryResponse() == null) {
+            throw new HttpNotFoundException("Organisation with id: " + id + " could not be found");
+        }
+        //techincally we recieve a list of organisations (length 1) so we take the first item from list
+        Organisation res = xml2json(organisationEnvelope.getBody().getQueryResponse().getOrganisationList().get(0));
+
+        return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-    private static Optional<Element> elementIn(Document document, String tagname) {
-        final NodeList queryResponses = document.getElementsByTagName(tagname);
-        return queryResponses.getLength() == 1 && queryResponses.item(0).getNodeType() == ELEMENT_NODE
-                ? Optional.of((Element) queryResponses.item(0))
-                : Optional.empty();
+    private List<JSONContact> getContactsForOrganisation(List<Long> objref) {
+        List<VRAPI.XMLClasses.ContainerDetailedContact.Contact> xmlContacts =
+                callVertec(queryBuilder.getContactDetails(objref), VRAPI.XMLClasses.ContainerDetailedContact.Envelope.class)
+                        .getBody()
+                        .getQueryResponse()
+                        .getContactList();
+
+        this.contactFollowerMap = StaticMaps.INSTANCE.getFollowerMap();
+
+        return xmlContacts.stream()
+                .map(xmlContact -> {
+                    JSONContact cont = new JSONContact(xmlContact);
+                    cont.setOwner(teamIdMap.get(xmlContact.getPersonResponsible().getObjref()));
+                    cont.setFollowers(contactFollowerMap.get(xmlContact.getObjId()));
+                    return cont;
+                })
+                .collect(toList());
+    }
+
+//======================================================================================================================
+// POST /organisations/
+//======================================================================================================================
+
+    //---------------------------------------------------------------------------------------------------------------------- POST /{id}
+    @ApiOperation(value = "Post organisation to vertec", nickname = "post")
+    @ApiImplicitParams( {
+            @ApiImplicitParam(name = "Authorization",
+                    value = "username:password",
+                    required = true,
+                    dataType = "string",
+                    paramType = "header")
+    })
+    @RequestMapping(value = "/org", method = RequestMethod.POST)
+    public ResponseEntity<Organisation> postOrganisation(@RequestBody Organisation orgToPost) {
+
+        System.out.println(orgToPost.toJsonString());
+
+        //TODO: Finish this
+
+        return new ResponseEntity<>(new Organisation(), HttpStatus.OK);
+    }
+
+//======================================================================================================================
+// Helper Methods
+//======================================================================================================================
+
+    public List<Long> getObjrefsForOrganisationDocument(Document response) {
+        NodeList activityObjrefs =  response.getElementsByTagName("objref");
+        return asIdList(activityObjrefs);
+    }
+
+    public String getNameForOrganisationDocument(Document response) {
+        return response.getElementsByTagName("name").item(0).getTextContent();
     }
 
     private static List<Long> asIdList(NodeList nodeList) {
@@ -385,128 +419,38 @@ public class OrganisationController {
         }
     }
 
-
-//---------------------------------------------------------------------------------------------------------------------- POST /{id}
-
-    @ApiOperation(value = "Post organisation to vertec", nickname = "post")
-    @ApiImplicitParams( {
-            @ApiImplicitParam(name = "Authorization",
-                    value = "username:password",
-                    required = true,
-                    dataType = "string",
-                    paramType = "header")
-    })
-    @RequestMapping(value = "/org", method = RequestMethod.POST)
-    public ResponseEntity<JSONOrganisation> postOrganisation(@RequestBody JSONOrganisation orgToPost) {
-
-        System.out.println(orgToPost.toPrettyJSON());
-
-        //TODO: Finish this
-
-        return new ResponseEntity<>(new JSONOrganisation(), HttpStatus.OK);
+    private List<Organisation> createOrganisationList(List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> organisations) {
+        return organisations.stream()
+                .map(this::xml2json).collect(toList());
     }
 
+    private Organisation xml2json(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation vo) {
+        Organisation o = new Organisation(vo);
+        setOwnedOnVertecBy(o, vo);
+        return o;
+    }
 
-//---------------------------------------------------------------------------------------------------------------------- GET /{ids}
-
-
-    @ApiOperation(value = "Get organisation by list", nickname = "byList")
-    @ApiImplicitParams( {
-            @ApiImplicitParam(name = "Authorization",
-                    value = "username:password",
-                    required = true,
-                    dataType = "string",
-                    paramType = "header")
-    })
-    @RequestMapping(value = "/org/{ids}", method = RequestMethod.GET)
-    public ResponseEntity<JSONOrganisationList> getOrganisationList(@PathVariable List<Long> ids)
-            throws ParserConfigurationException {
-        ifUnauthorisedThrowErrorResponse();
-
-        this.teamIdMap = StaticMaps.INSTANCE.getTeamIDMap();
-        VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope organisationEnvelope
-                = callVertec(queryBuilder.getOrganisationDetails(ids),
-                             VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class);
-
-
-        if (organisationEnvelope.getBody().getQueryResponse() == null) {
-            throw new HttpNotFoundException("Some or all of the ids requested could not be found as organisations");
+    private void setOwnedOnVertecBy(Organisation o, VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation vo) {
+        Long supervisorId = supervisorIdMap.get(vo.getPersonResponsible().getObjref());
+        Long SALES_TEAM_IDENTIFIER = -5L; //members of the top sales team, including wolfgang have their 'supervisorId' set to -5 within the map;
+        if (supervisorId == 0L) {
+            o.setOwnedOnVertecBy("Not ZUK");
+        } else if (supervisorId.longValue() == SALES_TEAM_IDENTIFIER) {
+            o.setOwnedOnVertecBy("Sales Team");
+        } else {
+            o.setOwnedOnVertecBy("ZUK Sub Team");
         }
 
-        JSONOrganisationList jsonOrgs = new JSONOrganisationList();
-        jsonOrgs.setOrganisations(organisationEnvelope.getBody().getQueryResponse().getOrganisationList().stream()
-                .map(vertecOrg -> {
-                    JSONOrganisation jsonOrganisation = xml2JSON(vertecOrg);
-                    jsonOrganisation.setOwner(teamIdMap.get(vertecOrg.getPersonResponsible().getObjref()));
-                    return jsonOrganisation;
-                })
-                .collect(toList()));
-
-
-        return new ResponseEntity<>(jsonOrgs, HttpStatus.OK);
     }
 
-//---------------------------------------------------------------------------------------------------------------------- GET /{id}
-
-    @ApiOperation(value = "GET organisation by id", nickname = "byId")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization",
-                    value = "username:password",
-                    required = true,
-                    dataType = "string",
-                    paramType = "header")
-    })
-    @RequestMapping(value = "/organisation/{id}", method = RequestMethod.GET)
-    public ResponseEntity<JSONOrganisation> getOrganisation(@PathVariable Long id)
-            throws ParserConfigurationException {
-        ifUnauthorisedThrowErrorResponse();
-
-        this.teamIdMap = StaticMaps.INSTANCE.getTeamIDMap();
-        List<Long> idAsList = new ArrayList<>();
-        idAsList.add(id);
-        VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope organisationEnvelope
-                = callVertec(queryBuilder.getOrganisationDetails(idAsList),
-                             VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class);
-
-        if (organisationEnvelope.getBody().getQueryResponse() == null) {
-            throw new HttpNotFoundException("Organisation with id: " + id + " could not be found");
-        }
-
-        JSONOrganisation jsonOrganisation = xml2JSON(organisationEnvelope.getBody().getQueryResponse().getOrganisationList().get(0));
-        Long orgId = organisationEnvelope.getBody().getQueryResponse().getOrganisationList().get(0).getPersonResponsible().getObjref();
-        jsonOrganisation.setOwner(teamIdMap.get(orgId));
-
-        return new ResponseEntity<>(jsonOrganisation, HttpStatus.OK);
-
-    }
-
-    private JSONOrganisation xml2JSON(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation vertecOrg) {
-        JSONOrganisation org = new JSONOrganisation(vertecOrg);
-        org.setContacts(getContactsForOrganisation(vertecOrg.getContacts().getObjlist().getObjref()));
-        return org;
-    }
-
-    private List<JSONContact> getContactsForOrganisation(List<Long> objref) {
-        List<VRAPI.XMLClasses.ContainerDetailedContact.Contact> xmlContacts =
-                callVertec(queryBuilder.getContactDetails(objref), VRAPI.XMLClasses.ContainerDetailedContact.Envelope.class)
-                        .getBody()
-                        .getQueryResponse()
-                        .getContactList();
-
-        this.contactFollowerMap = StaticMaps.INSTANCE.getFollowerMap();
-
-        return xmlContacts.stream()
-                .map(xmlContact -> {
-                    JSONContact cont = new JSONContact(xmlContact);
-                    cont.setOwner(teamIdMap.get(xmlContact.getPersonResponsible().getObjref()));
-                    cont.setFollowers(contactFollowerMap.get(xmlContact.getObjId()));
-                    return cont;
-                })
-                .collect(toList());
-
-    }
-
-//---------------------------------------------------------------------------------------------------------------------- UTIL
+   /* private List<Long> getZUKTeamMemberIds() {
+        String xmlQuery = queryBuilder.getLeadersTeam();
+        final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
+        return elementIn(response, "QueryResponse")
+                .map(queryResponse -> queryResponse.getElementsByTagName("objref"))
+                .map(OrganisationController::asIdList)
+                .orElse(new ArrayList<>());
+    }*/ //-- Currently unused within class
 
     /**
      * Call this function at the start of every request handler

@@ -1,12 +1,14 @@
 package VRAPI.Entities;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 public class Organisation {
 
     private Long vertecId;
     private String ownedOnVertecBy;
     private Boolean active;
 
-    private String supervisingEmail;
+    private Long ownerId;
 
     private String name;
     private String website;
@@ -26,12 +28,14 @@ public class Organisation {
 
     /**
      * Used to create an organisation class from what we recieve from vertec
-     * IMPORTANT!!!! must set owned_on_vertec_by and supervisor email outside constructor
+     * IMPORTANT!!!! must set owned_on_vertec_by outside constructor
      * @param vo
      */
     public Organisation(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation vo) {
         vertecId = vo .getObjId();
         active = vo.getActive();
+        ownerId = vo.getPersonResponsible().getObjref();
+
         name = vo.getName();
         website = vo.getWebsite();
         category = "CATEGORY PLACEHOLDER";//TODO: replace with actual value
@@ -81,12 +85,12 @@ public class Organisation {
         this.active = active;
     }
 
-    public String getSupervisingEmail() {
-        return supervisingEmail;
+    public Long getOwnerId() {
+        return ownerId;
     }
 
-    public void setSupervisingEmail(String supervisingEmail) {
-        this.supervisingEmail = supervisingEmail;
+    public void setOwnerId(Long ownerId) {
+        this.ownerId = ownerId;
     }
 
     public String getName() {
@@ -191,5 +195,18 @@ public class Organisation {
 
     public void setCreated(String created) {
         this.created = created;
+    }
+
+    public String toJsonString(){
+        String retStr = null;
+        ObjectMapper m = new ObjectMapper();
+        try{
+
+            retStr = m.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+        }
+        catch(Exception e){
+            System.out.println("Could not convert XML Envelope to JSON: " + e.toString());
+        }
+        return retStr;
     }
 }
