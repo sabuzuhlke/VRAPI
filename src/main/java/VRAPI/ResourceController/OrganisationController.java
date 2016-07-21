@@ -4,7 +4,7 @@ import VRAPI.Entities.Activity;
 import VRAPI.Entities.Contact;
 import VRAPI.Entities.Organisation;
 import VRAPI.Entities.OrganisationList;
-import VRAPI.Exceptions.*;
+import VRAPI.Exceptions.HttpNotFoundException;
 import VRAPI.JSONClasses.JSONContainerProject.JSONPhase;
 import VRAPI.JSONClasses.JSONContainerProject.JSONProject;
 import VRAPI.MergeClasses.ActivitiesForOrganisation;
@@ -17,46 +17,26 @@ import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
-import org.springframework.http.*;
-import org.springframework.http.converter.FormHttpMessageConverter;
-import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.StringHttpMessageConverter;
-import org.springframework.http.converter.xml.Jaxb2RootElementHttpMessageConverter;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-import org.xml.sax.SAXException;
 
 import javax.servlet.http.HttpServletRequest;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.net.URI;
 import java.util.*;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
 import static java.util.stream.Collectors.toList;
 
 @RestController
 @Scope("prototype") //This enforces that an organisation controller is created per request
-public class OrganisationController {
-
-    private static final String DEFAULT_VERTEC_SERVER_HOST = VertecServerInfo.VERTEC_SERVER_HOST;
-    private static final String DEFAULT_VERTEC_SERVER_PORT = VertecServerInfo.VERTEC_SERVER_PORT;
-
-    private RestTemplate rest;
-
-    private DocumentBuilder documentBuilder = null;
-
-    private final URI vertecURI;
-
-    private QueryBuilder queryBuilder;
+public class OrganisationController extends Controller {
 
     private Map<Long, Long> supervisorIdMap;
     private Map<Long, String> activityTypeMap;
@@ -65,33 +45,71 @@ public class OrganisationController {
     private HttpServletRequest request;
 
     public OrganisationController() {
-
-        vertecURI = URI.create("http://" + DEFAULT_VERTEC_SERVER_HOST + ":" + DEFAULT_VERTEC_SERVER_PORT + "/xml");
-
-        this.rest = new RestTemplate();
-        List<HttpMessageConverter<?>> converters = new ArrayList<>();
-        Jaxb2RootElementHttpMessageConverter jaxbMC = new Jaxb2RootElementHttpMessageConverter();
-        List<MediaType> mediaTypes = new ArrayList<>();
-        mediaTypes.add(MediaType.TEXT_XML);
-        jaxbMC.setSupportedMediaTypes(mediaTypes);
-        converters.add(jaxbMC);
-        converters.add(new FormHttpMessageConverter());
-        converters.add(new StringHttpMessageConverter());
-        rest.setMessageConverters(converters);
-
-        try {
-            this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-        } catch (ParserConfigurationException e) {
-            e.printStackTrace();
-        }
-
+        super();
     }
+
+
+//======================================================================================================================
+// MERGE /organisations
+//======================================================================================================================
+    @ApiImplicitParams( {
+            @ApiImplicitParam(name = "Authorization",
+                    value = "username:password",
+                    required = true,
+                    dataType = "string",
+                    paramType = "header")
+    })
+    @RequestMapping(value = "/organisation/{mergingId}/mergeInto/{survivingId}", method = RequestMethod.GET) //TODO: write test for this function
+    public ResponseEntity<String> getProjectsForOrganisation(@PathVariable Long mergingId, @PathVariable Long survivingId)
+            throws ParserConfigurationException {
+
+        queryBuilder = VertecServerInfo.ifUnauthorisedThrowErrorResponse(request);
+
+        VertecServerInfo.log.info("=============================== START MERGE FOR ID: " + mergingId + " INTO ID: " + survivingId + "===============================");
+        //Get Names of organisations from vertec for logging
+        String mergingQuery = queryBuilder.getProjectsForOrganisation(mergingId);
+        String survivingQuery = queryBuilder.getProjectsForOrganisation(survivingId);
+
+        final Document mergeResponse = responseFor(new RequestEntity<>(mergingQuery, HttpMethod.POST, vertecURI));
+        final Document suviveResponse = responseFor(new RequestEntity<>(survivingQuery, HttpMethod.POST, vertecURI));
+
+        String orgToMerge = getNameForOrganisationDocument(mergeResponse);
+        String orgToSurvive = getNameForOrganisationDocument(suviveResponse);
+
+        VertecServerInfo.log.info("Merging organisation: '" + orgToMerge + "' into '" + orgToSurvive + "'");
+        //for the mergingOrg, get all projects, get all activities, get all contacts
+        ResponseEntity<ActivitiesForOrganisation> activityRes = getActivitiesForOrganisation(mergingId);
+        ResponseEntity<ProjectsForOrganisation> projectRes = getProjectsForOrganisation(mergingId);
+        ResponseEntity<ContactsForOrganisation> contactRes = getContactsForOrganisation(mergingId);
+        //log that we plan on updating each of these to point to surviving org
+
+        VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING PROJECTS =========================");
+
+        projectRes.getBody().getProjects().forEach(project -> {
+            VertecServerInfo.log.info("Updating Project name: " + project.getTitle() + ", Code: " + project.getCode() + " to be linked to Organisation ID: " + mergingId);
+        });
+
+        VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING ACTIVITIES =========================");
+
+        activityRes.getBody().getActivitiesForOrganisation().forEach(activity -> {
+            VertecServerInfo.log.info("Updating Activity name: " + activity.getSubject() + ", Type: " + activity.getvType() + " , id" + activity.getVertecId()+ activity.getDoneDate() + activity.getDueDate() + " to be linked to Organisation ID: " + mergingId);
+        });
+
+        VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING CONTACTS =========================");
+
+        contactRes.getBody().getContacts().forEach(contact -> {
+            VertecServerInfo.log.info("Updating Contact name: " + contact.getFirstName() + " " + contact.getSurname() + " Email: " + (contact.getEmails().size() > 0 ? contact.getEmails().get(0).getValue() : "null") + " to be linked to Organisation ID: " + mergingId);
+        });
+
+        return new ResponseEntity<>("Recieved call to merge organisation with id: " + mergingId + " into organisation with id: " + survivingId, HttpStatus.OK);
+    }
+
 
 //======================================================================================================================
 // GET /organisations
 //======================================================================================================================
 
-//---------------------------------------------------------------------------------------------------------------------- /{id}/contacts
+    //---------------------------------------------------------------------------------------------------------------------- /{id}/contacts
     @ApiImplicitParams( {
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
@@ -266,7 +284,7 @@ public class OrganisationController {
         }
     }
 
-//====================================================================================================================== /all
+    //====================================================================================================================== /all
     @ApiImplicitParams( {
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
@@ -330,7 +348,7 @@ public class OrganisationController {
         return addressIds;
     }
 
-//---------------------------------------------------------------------------------------------------------------------- /{ids}
+    //---------------------------------------------------------------------------------------------------------------------- /{ids}
     @ApiOperation(value = "Get organisation by list", nickname = "byList")
     @ApiImplicitParams( {
             @ApiImplicitParam(name = "Authorization",
@@ -346,7 +364,7 @@ public class OrganisationController {
 
         VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope organisationEnvelope
                 = callVertec(queryBuilder.getOrganisationDetails(ids),
-                             VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class);
+                VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class);
 
 
         if (organisationEnvelope.getBody().getQueryResponse() == null) {
@@ -359,7 +377,7 @@ public class OrganisationController {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-//---------------------------------------------------------------------------------------------------------------------- /{id}
+    //---------------------------------------------------------------------------------------------------------------------- /{id}
     @ApiOperation(value = "GET organisation by id", nickname = "byId")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization",
@@ -377,7 +395,7 @@ public class OrganisationController {
         idAsList.add(id);
         VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope organisationEnvelope
                 = callVertec(queryBuilder.getOrganisationDetails(idAsList),
-                             VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class);
+                VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class);
 
         if (organisationEnvelope.getBody().getQueryResponse() == null) {
             throw new HttpNotFoundException("Organisation with id: " + id + " could not be found");
@@ -415,32 +433,8 @@ public class OrganisationController {
 // Helper Methods
 //======================================================================================================================
 
-    public List<Long> getObjrefsForOrganisationDocument(Document response) {
-        NodeList activityObjrefs =  response.getElementsByTagName("objref");
-        return asIdList(activityObjrefs);
-    }
-
     public String getNameForOrganisationDocument(Document response) {
         return response.getElementsByTagName("name").item(0).getTextContent();
-    }
-
-    private static List<Long> asIdList(NodeList nodeList) {
-        return asStream(nodeList).map(Long::parseLong).collect(toList());
-    }
-
-    private static Stream<String> asStream(NodeList nodeList) {
-        return IntStream.range(0, nodeList.getLength())
-                .mapToObj(nodeList::item)
-                .map(Node::getTextContent);
-    }
-
-    private Document responseFor(RequestEntity<String> req) throws HttpInternalServerError {
-        try {
-            final ResponseEntity<String> res = this.rest.exchange(req, String.class);
-            return documentBuilder.parse(new ByteArrayInputStream(res.getBody().getBytes(UTF_8)));
-        } catch (SAXException| IOException e) {
-            throw new HttpInternalServerError(e);
-        }
     }
 
     private List<Organisation> createOrganisationList(List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> organisations) {
@@ -475,22 +469,5 @@ public class OrganisationController {
             return "ZUK Sub Team";
         }
     }
-
-   /* private List<Long> getZUKTeamMemberIds() {
-        String xmlQuery = queryBuilder.getLeadersTeam();
-        final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
-        return elementIn(response, "QueryResponse")
-                .map(queryResponse -> queryResponse.getElementsByTagName("objref"))
-                .map(OrganisationController::asIdList)
-                .orElse(new ArrayList<>());
-    }*/ //-- Currently unused within class
-
-    private <T> T callVertec(String query, Class<T> responseType) {
-        System.out.println("Calling vertec, querying for: " + responseType.getName());
-        return rest.exchange(
-                new RequestEntity<>(query, HttpMethod.POST, vertecURI),
-                responseType).getBody();
-    }
-
 
 }

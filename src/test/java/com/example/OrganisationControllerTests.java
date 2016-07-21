@@ -1,84 +1,35 @@
 package com.example;
 
 import VRAPI.Application;
-import VRAPI.Entities.OrganisationList;
-import VRAPI.JSONClasses.JSONContainerOrganisation.JSONOrganisation;
-import VRAPI.JSONClasses.JSONContainerOrganisation.JSONOrganisationList;
-import VRAPI.MergeClasses.ActivitiesForOrganisation;
-import VRAPI.MergeClasses.ProjectsForOrganisation;
-import VRAPI.MyAccessCredentials;
 import VRAPI.ResourceController.OrganisationController;
-import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
-import org.springframework.util.LinkedMultiValueMap;
-import org.springframework.util.MultiValueMap;
-import org.springframework.web.client.HttpClientErrorException;
-import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(Application.class)
 @WebIntegrationTest
-public class OrganisationControllerTests {
+public class OrganisationControllerTests extends ControllerTests {
 
     private final Long organisationIdPresentInVertec = 28055040L;
     private final List<Long> organisationIdsPresentInVertec = new ArrayList<>(Arrays.asList(28055040L, 28055047L, 28055033L, 28055109L));
-
-    private String username;
-    private String password;
-    private RestTemplate rt;
-
-    public static final String DEFAULT_OWN_IP = "localhost";
-    public static final String DEFAULT_OWN_PORT = "9999";
-
-    public final String baseURI = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT;
-
-    @Before
-    public void setUp() {
-        MyAccessCredentials mac = new MyAccessCredentials();
-        this.username = mac.getUserName();
-        this.password = mac.getPass();
-        this.rt = new RestTemplate();
-    }
-
-    static {
-        //for localhost testing only
-        javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(
-                (hostname, sslSession) -> hostname.equals("localhost"));
-    }
-
-    private <RES> ResponseEntity<RES> getFromVertec(String uri, Class<RES> responseType) {
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("Authorization", username + ':' + password);
-        return rt.exchange(
-                new RequestEntity<>(headers, HttpMethod.GET, URI.create(uri)),
-                responseType);
-    }
 
 
     @Test

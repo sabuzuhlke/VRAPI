@@ -26,38 +26,9 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(Application.class)
 @WebIntegrationTest
-public class AuthenticatorTests {
+public class AuthenticatorTests extends ControllerTests {
 
-    private String username;
-    private String password;
-    private RestTemplate rt;
-
-    public static final String DEFAULT_OWN_IP = "localhost";
-    public static final String DEFAULT_OWN_PORT = "9999";
-
-    public final String uri = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT + "/organisation/" + 1;
-
-    @Before
-    public void setUp() {
-        MyAccessCredentials mac = new MyAccessCredentials();
-        this.username = mac.getUserName();
-        this.password = mac.getPass();
-        this.rt = new RestTemplate();
-    }
-
-    static {
-        //for localhost testing only
-        javax.net.ssl.HttpsURLConnection.setDefaultHostnameVerifier(
-                (hostname, sslSession) -> hostname.equals("localhost"));
-    }
-
-    private <RES> ResponseEntity<RES> getFromVertec(String uri, Class<RES> responseType) {
-        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-        headers.add("Authorization", username + ':' + password);
-        return rt.exchange(
-                new RequestEntity<>(headers, HttpMethod.GET, URI.create(uri)),
-                responseType);
-    }
+    private final String uri = baseURI + "/organisation/" + 1;
 
     @Test
     public void queryWithAuthorizedCredentialsReturnsOK() {
@@ -72,8 +43,8 @@ public class AuthenticatorTests {
     @Test
     public void queryWithLimitedAccessCredetialsReturnsForbidden() {
         MyLimitedCredentials mlc = new MyLimitedCredentials();
-        this.username = mlc.getUserName();
-        this.password = mlc.getPass();
+        username = mlc.getUserName();
+        password = mlc.getPass();
         try {
             ResponseEntity<String> res = getFromVertec(uri, String.class);
         } catch (HttpClientErrorException e) {
@@ -84,8 +55,8 @@ public class AuthenticatorTests {
     @Test
     public void queryWithIncorrectCredetialsReturnsUnauthorized() {
 
-        this.username = "qwerty";
-        this.password = "Passfsdadsada";
+        username = "qwerty";
+        password = "Passfsdadsada";
         try{
             ResponseEntity<String> res = getFromVertec(uri, String.class);
         } catch (HttpClientErrorException e) {

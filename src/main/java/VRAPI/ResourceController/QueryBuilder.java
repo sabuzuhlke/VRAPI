@@ -114,6 +114,29 @@ public class QueryBuilder {
                 "</Envelope>";
     }
 
+    String getTeamDetails(Collection<Long> teamIDs) {
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n" +
+                "        <objref>5295</objref>\n";
+
+        for (Long id : teamIDs) {
+            bodyStart += "<objref>" + id + "</objref>\n";
+        }
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "        <member>name</member>\n" + //will return list of obj ref for each company
+                "        <member>Aktiv</member>\n" +
+                "        <member>briefEmail</member>\n" + //will return Email address of team member
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + bodyStart + bodyEnd;
+    }
+
     String getSupervisedAddresses(Collection<Long> memberIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
