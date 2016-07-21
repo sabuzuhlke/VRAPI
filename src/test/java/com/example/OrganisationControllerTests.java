@@ -353,7 +353,7 @@ public class OrganisationControllerTests extends ControllerTests {
 //    }
 //
 ////---------------------------------------------------------------------------------------------------------------------- GET /{ids}
-//
+
 //    @Test
 //    public void queryingForOrganisationsListWithValidListReturnsOrganisations() {
 //        String idsAsString = "";
@@ -365,7 +365,7 @@ public class OrganisationControllerTests extends ControllerTests {
 //            }
 //        }
 //
-//        String uri = baseURI + "/org/" + idsAsString;
+//        String uri = baseURI + "/organisation/" + idsAsString;
 //        ResponseEntity<JSONOrganisationList> res = getFromVertec(uri, JSONOrganisationList.class);
 //
 //        assertNotNull(res);

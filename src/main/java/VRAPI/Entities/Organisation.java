@@ -8,6 +8,7 @@ public class Organisation {
     private String ownedOnVertecBy;
     private Boolean active;
 
+
     private Long ownerId;
 
     private String name;
