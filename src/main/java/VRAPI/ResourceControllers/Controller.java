@@ -1,6 +1,7 @@
-package VRAPI.ResourceController;
+package VRAPI.ResourceControllers;
 
 import VRAPI.Exceptions.HttpInternalServerError;
+import VRAPI.Util.QueryBuilder;
 import VRAPI.VertecServerInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpMethod;
@@ -83,11 +84,11 @@ public class Controller {
         return asIdList(activityObjrefs);
     }
 
-    private static List<Long> asIdList(NodeList nodeList) {
+    public static List<Long> asIdList(NodeList nodeList) {
         return asStream(nodeList).map(Long::parseLong).collect(toList());
     }
 
-    private static Stream<String> asStream(NodeList nodeList) {
+    public static Stream<String> asStream(NodeList nodeList) {
         return IntStream.range(0, nodeList.getLength())
                 .mapToObj(nodeList::item)
                 .map(Node::getTextContent);

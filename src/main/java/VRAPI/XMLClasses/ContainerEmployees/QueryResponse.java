@@ -8,10 +8,8 @@ public class QueryResponse {
 
     private List<ProjectWorker> workers;
 
-
     public QueryResponse() {
         this.workers = new ArrayList<>();
-        ;
     }
 
     @XmlElement(name = "Projektbearbeiter")

@@ -1,4 +1,4 @@
-package VRAPI.ResourceController;
+package VRAPI.ResourceControllers;
 
 import VRAPI.Entities.Activity;
 import VRAPI.Entities.Contact;
@@ -10,6 +10,7 @@ import VRAPI.JSONClasses.JSONContainerProject.JSONProject;
 import VRAPI.MergeClasses.ActivitiesForOrganisation;
 import VRAPI.MergeClasses.ContactsForOrganisation;
 import VRAPI.MergeClasses.ProjectsForOrganisation;
+import VRAPI.Util.StaticMaps;
 import VRAPI.VertecServerInfo;
 import VRAPI.XMLClasses.ContainerDetailedProjects.Project;
 import io.swagger.annotations.ApiImplicitParam;
@@ -23,14 +24,10 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.ParserConfigurationException;
 import java.util.*;
-import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 

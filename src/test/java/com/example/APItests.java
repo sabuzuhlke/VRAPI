@@ -14,7 +14,7 @@ import VRAPI.JSONClasses.JSONContainerProject.JSONPhase;
 import VRAPI.JSONClasses.JSONContainerProject.JSONProject;
 import VRAPI.JSONClasses.JSONContainerProject.ZUKProjectsResponse;
 import VRAPI.JSONClasses.JSONTeam.ZUKTeam;
-import VRAPI.ResourceController.ImportController;
+import VRAPI.ResourceControllers.ImportController;
 import org.junit.Ignore;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;

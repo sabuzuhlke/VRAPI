@@ -3,8 +3,8 @@ package VRAPI;
 import VRAPI.Exceptions.HttpBadRequest;
 import VRAPI.Exceptions.HttpForbiddenException;
 import VRAPI.Exceptions.HttpUnauthorisedException;
-import VRAPI.ResourceController.Authenticator;
-import VRAPI.ResourceController.QueryBuilder;
+import VRAPI.ResourceControllers.Authenticator;
+import VRAPI.Util.QueryBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

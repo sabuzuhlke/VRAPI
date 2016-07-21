@@ -1,7 +1,7 @@
 package com.example;
 
 import VRAPI.Application;
-import VRAPI.ResourceController.OrganisationController;
+import VRAPI.ResourceControllers.OrganisationController;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;

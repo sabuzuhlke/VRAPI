@@ -1,4 +1,4 @@
-package VRAPI.ResourceController;
+package VRAPI.ResourceControllers;
 
 import VRAPI.Entities.Employee;
 import VRAPI.Entities.EmployeeList;
@@ -7,7 +7,6 @@ import VRAPI.XMLClasses.ContainerEmployees.Envelope;
 import VRAPI.XMLClasses.ContainerEmployees.ProjectWorker;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -18,10 +17,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
 import org.w3c.dom.Document;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.ParserConfigurationException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -32,7 +29,6 @@ public class EmployeeController extends Controller {
     public EmployeeController() {
         super();
     }
-
 
 //======================================================================================================================
 // GET /employees/pipedrive
@@ -74,9 +70,5 @@ public class EmployeeController extends Controller {
     private List<ProjectWorker> getEmployessFromVertec(List<Long> teamIds) {
         return callVertec(queryBuilder.getTeamDetails(teamIds), Envelope.class).getBody().getQueryResponse().getWorkers();
     }
-
-//======================================================================================================================
-// Helper Methods
-//======================================================================================================================
 
 }

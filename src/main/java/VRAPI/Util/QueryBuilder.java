@@ -1,4 +1,4 @@
-package VRAPI.ResourceController;
+package VRAPI.Util;
 
 import java.util.Collection;
 import java.util.List;
@@ -98,7 +98,7 @@ public class QueryBuilder {
     /**
      * Wolfgang's Team
      */
-    String getLeadersTeam() {
+    public String getLeadersTeam() {
         return header +
                 "\n" +
                 "  <Body>\n" +
@@ -114,7 +114,7 @@ public class QueryBuilder {
                 "</Envelope>";
     }
 
-    String getTeamDetails(Collection<Long> teamIDs) {
+    public String getTeamDetails(Collection<Long> teamIDs) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n" +
@@ -137,7 +137,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getSupervisedAddresses(Collection<Long> memberIds) {
+    public String getSupervisedAddresses(Collection<Long> memberIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n" +
@@ -160,7 +160,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getContactAndOrganisationIds(Collection<Long> contactIds) {
+    public String getContactAndOrganisationIds(Collection<Long> contactIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";
@@ -179,7 +179,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getContactDetails(List<Long> contactIds) {
+    public String getContactDetails(List<Long> contactIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";
@@ -209,7 +209,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getOrganisationDetails(List<Long> ids) {
+    public String getOrganisationDetails(List<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";
@@ -242,7 +242,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getProjectDetails(Collection<Long> ids) {
+    public String getProjectDetails(Collection<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";
@@ -273,7 +273,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getProjectIds(List<Long> memberIds) {
+    public String getProjectIds(List<Long> memberIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n" +
@@ -295,7 +295,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getProjectPhases(List<Long> ids) {
+    public String getProjectPhases(List<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";
@@ -330,7 +330,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getProjectTypes(List<Long> ids) {
+    public String getProjectTypes(List<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";
@@ -351,7 +351,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getCurrency(Long id) {
+    public String getCurrency(Long id) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";
@@ -369,7 +369,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getActivityIds(List<Long> memberIds) {
+    public String getActivityIds(List<Long> memberIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n" +
@@ -391,7 +391,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getActivities(List<Long> ids) {
+    public String getActivities(List<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";
@@ -421,7 +421,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getActivityTypes(List<Long> ids) {
+    public String getActivityTypes(List<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";
@@ -440,7 +440,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    String getUserEmail(Long id){
+    public String getUserEmail(Long id){
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";

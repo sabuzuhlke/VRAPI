@@ -1,4 +1,6 @@
-package VRAPI.ResourceController;
+package VRAPI.ResourceControllers;
+import VRAPI.Util.QueryBuilder;
+import VRAPI.Util.StaticMaps;
 import VRAPI.XMLClasses.ContainerActivity.Activity;
 import VRAPI.XMLClasses.ContainerActivity.Type;
 import VRAPI.XMLClasses.ContainerActivityType.ActivityType;
