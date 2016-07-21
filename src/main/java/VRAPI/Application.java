@@ -1,6 +1,7 @@
 package VRAPI;
 
 
+import VRAPI.ResourceController.MergeController;
 import VRAPI.ResourceController.OrganisationController;
 import VRAPI.ResourceController.ImportController;
 import com.google.common.base.Predicates;
@@ -18,12 +19,13 @@ import springfox.documentation.swagger.web.UiConfiguration;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
-@ComponentScan(basePackageClasses = {ImportController.class, OrganisationController.class})
+@ComponentScan(basePackageClasses = {ImportController.class, OrganisationController.class, MergeController.class})
 @EnableSwagger2
 @Configuration
 public class Application {
 
 	public static void main(String[] args) {
+		VertecServerInfo.log.info("testmessage, we got it");
 		SpringApplication.run(Application.class, args);
 	}
 

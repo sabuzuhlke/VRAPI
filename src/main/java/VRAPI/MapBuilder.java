@@ -149,7 +149,6 @@ public class MapBuilder {
                     final NodeList objid = teamMemberElement.getElementsByTagName("objid");
                     Long id = Long.parseLong(objid.item(0).getTextContent());
                    // if (toBoolean(active.item(0).getTextContent())) {
-                        System.out.println("Adding SalesTeam member to map " + id);
                         supervisorMap.put(id, SALES_TEAM_IDENTIFIER );
                     //}
                     if (id != 5295L) {
@@ -160,14 +159,11 @@ public class MapBuilder {
                                 .mapToObj(index -> Long.parseLong(team.item(index).getTextContent()))
                                 .collect(toList());
 
-                        System.out.println("SalesTeam member" + id + " has " + subTeamIds.size() + " subordinates");
-
                         subTeamIds.forEach(subId -> {
                             supervisorMap.put(subId, id);
                         });
                         handleSubTeamMembers(subTeamIds);
 
-                        System.out.println("=================================");
                     }
 
                 });
@@ -206,14 +202,10 @@ public class MapBuilder {
                                 .mapToObj(index -> Long.parseLong(team.item(index).getTextContent()))
                                 .collect(toList());
 
-                        System.out.println("Sub member" + id + " has " + subTeamIds.size() + " subordinates");
-
                         subTeamIds.forEach(subId -> {
                             supervisorMap.put(subId, id);
                         });
                         handleSubTeamMembers(subTeamIds);
-
-                        System.out.println("--------------------------------");
                     });
         });
 

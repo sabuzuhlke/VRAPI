@@ -1,5 +1,6 @@
 package VRAPI.MergeClasses;
 
+import VRAPI.Entities.Activity;
 import VRAPI.JSONClasses.JSONContainerActivities.JSONActivity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -9,7 +10,7 @@ public class ActivitiesForOrganisation {
 
     private Long organisationId;
     private String name;
-    private List<JSONActivity> activitiesForOrganisation;
+    private List<Activity> activitiesForOrganisation;
 
     public ActivitiesForOrganisation() {
     }
@@ -35,11 +36,11 @@ public class ActivitiesForOrganisation {
         this.organisationId = organisationId;
     }
 
-    public List<JSONActivity> getActivitiesForOrganisation() {
+    public List<Activity> getActivitiesForOrganisation() {
         return activitiesForOrganisation;
     }
 
-    public void setActivitiesForOrganisation(List<JSONActivity> activitiesForOrganisation) {
+    public void setActivitiesForOrganisation(List<Activity> activitiesForOrganisation) {
         this.activitiesForOrganisation = activitiesForOrganisation;
     }
 

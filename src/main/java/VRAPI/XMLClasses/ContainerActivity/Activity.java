@@ -18,6 +18,7 @@ public class Activity {
     private Assignee assignee;
     private String doneDate;
     private String creationDateTime;
+    private String modifiedDateTime;
 
     public Activity() {
 
@@ -129,5 +130,14 @@ public class Activity {
 
     public void setCreationDateTime(String creationDateTime) {
         this.creationDateTime = creationDateTime;
+    }
+
+    @XmlElement(name = "modifiedDateTime")
+    public String getModifiedDateTime() {
+        return modifiedDateTime;
+    }
+
+    public void setModifiedDateTime(String modifiedDateTime) {
+        this.modifiedDateTime = modifiedDateTime;
     }
 }

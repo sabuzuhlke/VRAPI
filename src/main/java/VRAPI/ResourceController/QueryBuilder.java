@@ -389,6 +389,7 @@ public class QueryBuilder {
                 "           <member>zustaendig</member>\n" +
                 "           <member>erledigtdatum</member>\n" +
                 "           <member>creationDateTime</member>\n" +
+                "           <member>modifiedDateTime</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +
@@ -493,6 +494,25 @@ public class QueryBuilder {
                 "      <Resultdef>\n" +
                 "        <member>Name</member>\n" + //will return list of obj ref for each company
                 "        <member>projekte</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + bodyStart + bodyEnd;
+    }
+
+    public String getContactsForOrganisation(Long id) {
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
+
+        bodyStart += "<objref>" + id + "</objref>\n";
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "        <member>Name</member>\n" + //will return list of obj ref for each company
+                "        <member>kontakte</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +

@@ -24,6 +24,8 @@ public enum StaticMaps {
     private Map<Long, List<String>> followerMap = new HashMap<>();
     private Map<Long, Long> supervisorMap = new HashMap();
     private Map<Long, String> activityTypeMap = new HashMap<>();
+    private Map<Long, String> projectTypeMap = new HashMap<>(); //TODO: populate map
+    private Map<Long, String> currencyMap = new HashMap<>(); //TODO: populate map
 
     public Map<Long, Long> getSupervisorMap() {
         if (supervisorMap.isEmpty()) {

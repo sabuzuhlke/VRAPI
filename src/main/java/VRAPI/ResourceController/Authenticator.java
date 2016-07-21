@@ -43,7 +43,7 @@ public class Authenticator {
 
     private final DocumentBuilder documentBuilder;
 
-    Authenticator() throws ParserConfigurationException {
+    public Authenticator() throws ParserConfigurationException {
 
         this.rest = new RestTemplate();
         vertecURI = URI.create("http://" + DEFAULT_VERTEC_SERVER_HOST + ":" + DEFAULT_VERTEC_SERVER_PORT + "/xml");
@@ -59,7 +59,7 @@ public class Authenticator {
      *         2 if user is not authenticated
      *         3 if bad request
      */
-    Integer requestIsAuthorized(String authorizationHeader) {
+    public Integer requestIsAuthorized(String authorizationHeader) {
         final String[] nameAndPassword = authorizationHeader.split(":");
         if (nameAndPassword.length != 2) {
             return BAD_REQUEST;
