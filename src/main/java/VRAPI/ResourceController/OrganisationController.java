@@ -274,7 +274,7 @@ public class OrganisationController {
                     dataType = "string",
                     paramType = "header")
     })
-    @RequestMapping(value = "/organisation/all", method = RequestMethod.GET)//TODO: write tests for this
+    @RequestMapping(value = "/organisations/all", method = RequestMethod.GET)//TODO: write tests for this
     public ResponseEntity<OrganisationList> getAllOrganisations() throws ParserConfigurationException {
         System.out.println("Received request");
         queryBuilder = VertecServerInfo.ifUnauthorisedThrowErrorResponse(request);
@@ -339,10 +339,13 @@ public class OrganisationController {
                     dataType = "string",
                     paramType = "header")
     })
-    @RequestMapping(value = "/organisation/{ids}", method = RequestMethod.GET)
+    @RequestMapping(value = "/organisations/{ids}", method = RequestMethod.GET)
     public ResponseEntity<OrganisationList> getOrganisationList(@PathVariable List<Long> ids)
             throws ParserConfigurationException {
         queryBuilder = VertecServerInfo.ifUnauthorisedThrowErrorResponse(request);
+
+
+        this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
 
         VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope organisationEnvelope
                 = callVertec(queryBuilder.getOrganisationDetails(ids),
@@ -372,6 +375,9 @@ public class OrganisationController {
     public ResponseEntity<Organisation> getOrganisation(@PathVariable Long id)
             throws ParserConfigurationException {
         queryBuilder = VertecServerInfo.ifUnauthorisedThrowErrorResponse(request);
+
+
+        this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
 
         List<Long> idAsList = new ArrayList<>();
         idAsList.add(id);
@@ -467,6 +473,8 @@ public class OrganisationController {
     private String getOwnedOnVertecByStringForOwnerId(Long ownerId) {
         Long supervisorId = supervisorIdMap.get(ownerId);
         Long SALES_TEAM_IDENTIFIER = -5L; //members of the top sales team, including wolfgang have their 'supervisorId' set to -5 within the map;
+        if(supervisorId == null) return "No Owner";
+
         if (supervisorId == 0L) {
             return "Not ZUK";
         } else if (supervisorId.longValue() == SALES_TEAM_IDENTIFIER) {

@@ -41,6 +41,7 @@ public class Activity {
 
         this.dueDate = a.getDate();
         this.doneDate = a.getDoneDate();
+
         this.created = a.getCreationDateTime();
         this.modified = a.getModifiedDateTime();
 
