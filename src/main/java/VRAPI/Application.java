@@ -1,9 +1,9 @@
 package VRAPI;
 
 
-import VRAPI.ResourceController.EmployeeController;
-import VRAPI.ResourceController.ImportController;
-import VRAPI.ResourceController.OrganisationController;
+import VRAPI.ResourceControllers.EmployeeController;
+import VRAPI.ResourceControllers.ImportController;
+import VRAPI.ResourceControllers.OrganisationController;
 import com.google.common.base.Predicates;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

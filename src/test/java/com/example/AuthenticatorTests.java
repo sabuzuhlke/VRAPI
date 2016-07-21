@@ -28,7 +28,7 @@ import static org.junit.Assert.assertNotNull;
 @WebIntegrationTest
 public class AuthenticatorTests extends ControllerTests {
 
-    private final String uri = baseURI + "/organisation/" + 1;
+    private final String uri = baseURI + "/organisation/" + 28055047;
 
     @Test
     public void queryWithAuthorizedCredentialsReturnsOK() {

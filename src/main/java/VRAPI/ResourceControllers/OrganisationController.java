@@ -354,7 +354,7 @@ public class OrganisationController extends Controller {
                     dataType = "string",
                     paramType = "header")
     })
-    @RequestMapping(value = "/organisation/{ids}", method = RequestMethod.GET)
+    @RequestMapping(value = "/organisations/{ids}", method = RequestMethod.GET)
     public ResponseEntity<OrganisationList> getOrganisationList(@PathVariable List<Long> ids)
             throws ParserConfigurationException {
         queryBuilder = VertecServerInfo.ifUnauthorisedThrowErrorResponse(request);
@@ -394,7 +394,7 @@ public class OrganisationController extends Controller {
                 = callVertec(queryBuilder.getOrganisationDetails(idAsList),
                 VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class);
 
-        if (organisationEnvelope.getBody().getQueryResponse() == null) {
+        if (organisationEnvelope.getBody().getQueryResponse() == null || organisationEnvelope.getBody().getQueryResponse().getOrganisationList().size() == 0) {
             throw new HttpNotFoundException("Organisation with id: " + id + " could not be found");
         }
         //techincally we recieve a list of organisations (length 1) so we take the first item from list

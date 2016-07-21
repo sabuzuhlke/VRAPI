@@ -1,6 +1,7 @@
 package VRAPI.XMLClasses.ContainerDetailedOrganisation;
 
 import javax.xml.bind.annotation.XmlElement;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -11,6 +12,7 @@ public class QueryResponse {
     private List<Organisation> organisationList;
 
     public QueryResponse() {
+        organisationList = new ArrayList<>();
     }
 
     @XmlElement(name = "Firma")
