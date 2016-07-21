@@ -1,5 +1,6 @@
-package VRAPI;
+package VRAPI.Util;
 
+import VRAPI.VertecServerInfo;
 import VRAPI.XMLClasses.ContainerActivityType.ActivityType;
 import VRAPI.Exceptions.HttpForbiddenException;
 import VRAPI.Exceptions.HttpInternalServerError;

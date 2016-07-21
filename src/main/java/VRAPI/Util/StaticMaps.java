@@ -1,10 +1,9 @@
-package VRAPI.ResourceController;
+package VRAPI.Util;
 
 /*
 This class serves to persist the teamId and follower maps in the API. A new Resource Controller is created on every request, this way
 we do not haveto reuild these maps everz single time.
  */
-import VRAPI.MapBuilder;
 import VRAPI.MyAccessCredentials;
 
 import java.util.HashMap;
