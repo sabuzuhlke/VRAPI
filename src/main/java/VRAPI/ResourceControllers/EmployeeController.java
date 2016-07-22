@@ -43,7 +43,7 @@ public class EmployeeController extends Controller {
     })
     @RequestMapping(value = "/employees/pipedrive", method = RequestMethod.GET)
     public ResponseEntity<EmployeeList> getSalesTeamDetails() throws ParserConfigurationException {
-        queryBuilder = VertecServerInfo.ifUnauthorisedThrowErrorResponse(request);
+        queryBuilder = AuthenticateThenReturnQueryBuilder();
         VertecServerInfo.log.info("Recieved Request to Pipedrive Team from " + request.getHeader("Authorization").split(":")[0]);
 
         String xmlQuery = queryBuilder.getLeadersTeam();

@@ -16,7 +16,6 @@ import VRAPI.XMLClasses.ContainerDetailedProjects.Project;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -25,7 +24,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.w3c.dom.Document;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.xml.parsers.ParserConfigurationException;
 import java.util.*;
 
@@ -38,9 +36,6 @@ public class OrganisationController extends Controller {
     private Map<Long, Long> supervisorIdMap;
     private Map<Long, String> activityTypeMap;
 
-    @Autowired
-    private HttpServletRequest request;
-
     public OrganisationController() {
         super();
     }
@@ -49,6 +44,7 @@ public class OrganisationController extends Controller {
 //======================================================================================================================
 // MERGE /organisations
 //======================================================================================================================
+@ApiOperation(value = "Merge two vertec organisations", nickname = "merge")
     @ApiImplicitParams( {
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
@@ -60,7 +56,7 @@ public class OrganisationController extends Controller {
     public ResponseEntity<String> getProjectsForOrganisation(@PathVariable Long mergingId, @PathVariable Long survivingId)
             throws ParserConfigurationException {
 
-        queryBuilder = VertecServerInfo.ifUnauthorisedThrowErrorResponse(request);
+        queryBuilder = AuthenticateThenReturnQueryBuilder();
 
         VertecServerInfo.log.info("=============================== START MERGE FOR ID: " + mergingId + " INTO ID: " + survivingId + "===============================");
         //Get Names of organisations from vertec for logging
@@ -107,6 +103,7 @@ public class OrganisationController extends Controller {
 //======================================================================================================================
 
     //---------------------------------------------------------------------------------------------------------------------- /{id}/contacts
+    @ApiOperation(value = "Get contacts for organisation", nickname = "contacts")
     @ApiImplicitParams( {
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
@@ -116,8 +113,7 @@ public class OrganisationController extends Controller {
     })
     @RequestMapping(value = "/organisation/{id}/contacts", method = RequestMethod.GET) //TODO: write test for this function
     public ResponseEntity<ContactsForOrganisation> getContactsForOrganisation(@PathVariable Long id) throws ParserConfigurationException {
-        queryBuilder = VertecServerInfo.ifUnauthorisedThrowErrorResponse(request);
-
+        queryBuilder = AuthenticateThenReturnQueryBuilder();
 
         this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
 
@@ -147,7 +143,7 @@ public class OrganisationController extends Controller {
     }
 
     private List<VRAPI.XMLClasses.ContainerDetailedContact.Contact> getContacts(List<Long> contactIdsForOrg) {
-        //TODO: add support for recieving mulptiple contact details for contact
+        //TODO: add support for recieving multiple contact details for contact
         return callVertec(
                 queryBuilder.getContactDetails(contactIdsForOrg),
                 VRAPI.XMLClasses.ContainerDetailedContact.Envelope.class).getBody().getQueryResponse().getContactList();
@@ -155,6 +151,7 @@ public class OrganisationController extends Controller {
 
 
     //---------------------------------------------------------------------------------------------------------------------- /{id}/projects
+    @ApiOperation(value = "Get projects for organisation", nickname = "projects")
     @ApiImplicitParams( {
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
@@ -165,7 +162,7 @@ public class OrganisationController extends Controller {
     @RequestMapping(value = "/organisation/{id}/projects", method = RequestMethod.GET) //TODO: write test for this function
     public ResponseEntity<ProjectsForOrganisation> getProjectsForOrganisation(@PathVariable Long id)
             throws ParserConfigurationException {
-        queryBuilder = VertecServerInfo.ifUnauthorisedThrowErrorResponse(request);
+        queryBuilder = AuthenticateThenReturnQueryBuilder();
 
         String xmlQuery = queryBuilder.getProjectsForOrganisation(id);
         final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
@@ -228,6 +225,7 @@ public class OrganisationController extends Controller {
 
     //====================================================================================================================== /{id}/activities
     //TODO: change activities to common representation
+    @ApiOperation(value = "Get activities for organisation", nickname = "activities")
     @ApiImplicitParams( {
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
@@ -238,7 +236,7 @@ public class OrganisationController extends Controller {
     @RequestMapping(value = "/organisation/{id}/activities", method = RequestMethod.GET) //TODO: write test for this function
     public ResponseEntity<ActivitiesForOrganisation> getActivitiesForOrganisation(@PathVariable Long id)
             throws ParserConfigurationException {
-        queryBuilder = VertecServerInfo.ifUnauthorisedThrowErrorResponse(request);
+        queryBuilder = AuthenticateThenReturnQueryBuilder();
 
         String xmlQuery = queryBuilder.getActivitiesForOrganisation(id);
         final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
@@ -282,6 +280,7 @@ public class OrganisationController extends Controller {
     }
 
     //====================================================================================================================== /all
+    @ApiOperation(value = "Get all organisations owned by ZUK employees", nickname = "all")
     @ApiImplicitParams( {
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
@@ -292,7 +291,7 @@ public class OrganisationController extends Controller {
     @RequestMapping(value = "/organisations/all", method = RequestMethod.GET)//TODO: write tests for this
     public ResponseEntity<OrganisationList> getAllOrganisations() throws ParserConfigurationException {
         System.out.println("Received request");
-        queryBuilder = VertecServerInfo.ifUnauthorisedThrowErrorResponse(request);
+        queryBuilder = AuthenticateThenReturnQueryBuilder();
         System.out.println("Authenticated request");
         this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
         Set<Long> allEmployeeIds = supervisorIdMap.keySet();
@@ -357,7 +356,7 @@ public class OrganisationController extends Controller {
     @RequestMapping(value = "/organisations/{ids}", method = RequestMethod.GET)
     public ResponseEntity<OrganisationList> getOrganisationList(@PathVariable List<Long> ids)
             throws ParserConfigurationException {
-        queryBuilder = VertecServerInfo.ifUnauthorisedThrowErrorResponse(request);
+        queryBuilder = AuthenticateThenReturnQueryBuilder();
 
 
         this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
@@ -367,7 +366,8 @@ public class OrganisationController extends Controller {
                 VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class);
 
 
-        if (organisationEnvelope.getBody().getQueryResponse() == null) {
+        if (organisationEnvelope.getBody().getQueryResponse() == null
+                || organisationEnvelope.getBody().getQueryResponse().getOrganisationList().size() == 0) {
             throw new HttpNotFoundException("Some or all of the ids requested could not be found as organisations");
         }
 
@@ -389,7 +389,7 @@ public class OrganisationController extends Controller {
     @RequestMapping(value = "/organisation/{id}", method = RequestMethod.GET)
     public ResponseEntity<Organisation> getOrganisation(@PathVariable Long id)
             throws ParserConfigurationException {
-        queryBuilder = VertecServerInfo.ifUnauthorisedThrowErrorResponse(request);
+        queryBuilder = AuthenticateThenReturnQueryBuilder();
 
 
         this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
@@ -400,7 +400,8 @@ public class OrganisationController extends Controller {
                 = callVertec(queryBuilder.getOrganisationDetails(idAsList),
                 VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class);
 
-        if (organisationEnvelope.getBody().getQueryResponse() == null || organisationEnvelope.getBody().getQueryResponse().getOrganisationList().size() == 0) {
+        if (organisationEnvelope.getBody().getQueryResponse() == null
+                || organisationEnvelope.getBody().getQueryResponse().getOrganisationList().size() == 0) {
             throw new HttpNotFoundException("Organisation with id: " + id + " could not be found");
         }
         //techincally we recieve a list of organisations (length 1) so we take the first item from list
@@ -436,6 +437,11 @@ public class OrganisationController extends Controller {
 // Helper Methods
 //======================================================================================================================
 
+    /**
+     * Returns the first 'name' field returned by vertec as String
+     * @param response
+     * @return
+     */
     public String getNameForOrganisationDocument(Document response) {
         return response.getElementsByTagName("name").item(0).getTextContent();
     }

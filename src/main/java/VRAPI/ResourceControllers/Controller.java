@@ -1,6 +1,9 @@
 package VRAPI.ResourceControllers;
 
+import VRAPI.Exceptions.HttpBadRequest;
+import VRAPI.Exceptions.HttpForbiddenException;
 import VRAPI.Exceptions.HttpInternalServerError;
+import VRAPI.Exceptions.HttpUnauthorisedException;
 import VRAPI.Util.QueryBuilder;
 import VRAPI.VertecServerInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -79,16 +82,21 @@ public class Controller {
         }
     }
 
+    /**
+     * Extracts all objrefs from an xml Response
+     * @param response
+     * @return
+     */
     public List<Long> getObjrefsForOrganisationDocument(Document response) {
         NodeList activityObjrefs =  response.getElementsByTagName("objref");
         return asIdList(activityObjrefs);
     }
 
-    public static List<Long> asIdList(NodeList nodeList) {
+    static List<Long> asIdList(NodeList nodeList) {
         return asStream(nodeList).map(Long::parseLong).collect(toList());
     }
 
-    public static Stream<String> asStream(NodeList nodeList) {
+    static Stream<String> asStream(NodeList nodeList) {
         return IntStream.range(0, nodeList.getLength())
                 .mapToObj(nodeList::item)
                 .map(Node::getTextContent);
@@ -100,5 +108,28 @@ public class Controller {
                 new RequestEntity<>(query, HttpMethod.POST, vertecURI),
                 responseType).getBody();
     }
+
+
+    /**
+     * Call this function at the start of every request handler
+     * This will make a request for 'ZUK TEAM' from vertec and either setUp the query builder with provided username and pwd
+     * or will throw appropriate error
+     * @throws ParserConfigurationException
+     */
+    public QueryBuilder AuthenticateThenReturnQueryBuilder() throws ParserConfigurationException {
+        Authenticator authenticator = new Authenticator();
+        String usernamePassword = request.getHeader("Authorization");
+        Integer authLevel = authenticator.requestIsAuthorized(usernamePassword);
+        if (authLevel.longValue() == VertecServerInfo.BAD_REQUEST) {
+            throw new HttpBadRequest("Username and password not correctly set in header");
+        } else if (authLevel.longValue() == VertecServerInfo.UNAUTHORISED) {
+            throw new HttpUnauthorisedException("Wrong username or password");
+        } else if (authLevel.longValue() == VertecServerInfo.FORBIDDEN) {
+            throw new HttpForbiddenException("You have got limited access to the Vertec database, and were not authorised for this query!");
+        }
+        String[] usrpwd = usernamePassword.split(":");
+        return new QueryBuilder(usrpwd[0], usrpwd[1]);
+    }
+
 
 }

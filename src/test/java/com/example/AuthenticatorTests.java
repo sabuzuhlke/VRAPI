@@ -37,7 +37,6 @@ public class AuthenticatorTests extends ControllerTests {
         assertNotNull("Response is null", res);
         assertEquals("Status code is not OK", res.getStatusCode(), HttpStatus.OK);
         assertNotNull("Response body is null", res.getBody());
-        assertEquals("Incorrect response", res.getBody(), "Requested Organisation From Vertec, ID: 1");
     }
 
     @Test
