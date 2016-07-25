@@ -256,7 +256,7 @@ public class APItests {
 
         assertTrue( ! phase.getActive());
         assertEquals(phase.getCode(), "10_INITIAL_BUILD");
-        assertEquals(phase.getPersonResponsible(), "keith.braithwaite@zuhlke.com");
+        assertEquals(phase.getPersonResponsibleEmail(), "keith.braithwaite@zuhlke.com");
 
         System.out.println(res.getBody().toJSONString());
     }
@@ -314,7 +314,7 @@ public class APItests {
 
         assertTrue( ! phase.getActive());
         assertEquals(phase.getCode(), "10_INITIAL_BUILD");
-        assertEquals(phase.getPersonResponsible(), "keith.braithwaite@zuhlke.com");
+        assertEquals(phase.getPersonResponsibleEmail(), "keith.braithwaite@zuhlke.com");
 
         System.out.println(res.getBody().toJSONString());
     }

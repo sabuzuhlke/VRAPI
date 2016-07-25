@@ -543,4 +543,51 @@ public class QueryBuilder {
 
         return header + bodyStart + bodyEnd;
     }
+
+    public String setOrganisationActive(Boolean active,Long id) {
+        String body = "<Body>\n" +
+                "  <Update>\n" +
+                "     <Firma> \n" +
+                "                <objref>" + id + "</objref>\n" +
+                "                <aktiv>" + (active ? 1 : 0) + "</aktiv>\n" +
+                "      </Firma>\n" +
+                "    </Update>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + body;
+    }
+
+    public String getTypeOfId(Long id) {
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
+
+        bodyStart += "<objref>" + id + "</objref>\n";
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + bodyStart + bodyEnd;
+    }
+
+    public String setContactOrganisationLink(Long id, Long orgId) {
+        String body = "<Body>\n" +
+                "  <Update>\n" +
+                "     <Kontakt> \n" +
+                "       <objref>" + id + "</objref>\n" +
+                "       <firma>\n" +
+                "           <objref>" + orgId + "</objref>\n" +
+                "       </firma>\n" +
+                "      </Kontakt>\n" +
+                "    </Update>\n" +
+                "  </Body>" +
+                "</Envelope>";
+
+        return header + body;
+    }
 }

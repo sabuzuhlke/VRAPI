@@ -37,26 +37,32 @@ public class Organisation {
         active = vo.getActive();
         ownerId = vo.getPersonResponsible().getObjref();
 
-        name = vo.getName();
-        website = vo.getWebsite();
+        name = setString(vo.getName());
+        website = setString(vo.getWebsite());
         category = "CATEGORY PLACEHOLDER";//TODO: replace with actual value
         businessDomain = "BUSINESS DOMAIN PLACEHOLDER";
-        buildingName = vo.getAdditionalAddressName();
+        buildingName = setString(vo.getAdditionalAddressName());
         String[] addressParts = vo.getStreetAddress().split(" ");
         if (addressParts.length == 2) {
-            street_no = addressParts[0];
-            street = addressParts[1];
+            street_no = setString(addressParts[0]);
+            street = setString(addressParts[1]);
         } else {
-            street = vo.getStreetAddress();
+            street_no = "";
+            street = setString(vo.getStreetAddress());
         }
-        city = vo.getCity();
-        country = vo.getCountry();
-        zip = vo.getZip();
+        city = setString(vo.getCity());
+        country = setString(vo.getCountry());
+        zip = setString(vo.getZip());
 
         parentOrganisation = vo.getParentFirm() == null ? null : vo.getParentFirm().getObjref();
 
         modified = vo.getModified();
         created = vo.getCreationTime(); //TODO: change to common format
+    }
+
+    private String setString(String string){
+        if(string == null) return "";
+        else return string;
     }
 
     public Organisation() {

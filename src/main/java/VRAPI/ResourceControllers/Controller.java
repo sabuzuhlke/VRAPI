@@ -92,7 +92,7 @@ public class Controller {
         return asIdList(activityObjrefs);
     }
 
-    static List<Long> asIdList(NodeList nodeList) {
+    static public List<Long> asIdList(NodeList nodeList) {
         return asStream(nodeList).map(Long::parseLong).collect(toList());
     }
 
@@ -131,5 +131,29 @@ public class Controller {
         return new QueryBuilder(usrpwd[0], usrpwd[1]);
     }
 
+    /**
+     * Can only be called by a fucntion that is an endpoint due to querybuilder having to be built
+     * @param id
+     * @return
+     */
+    public Boolean isIdOfType(Long id, String vertecType) {
+        String xmlQuery = queryBuilder.getTypeOfId(id);
+        Document res = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
+        return (res.getElementsByTagName(vertecType).getLength() > 0);
+    }
+
+    /**
+     * Call to extract text field of xml response, used for seeing if an item has been updated
+     * @param response
+     * @return
+     */
+    public String getTextField(Document response){
+        Node res = response.getElementsByTagName("text").item(0);
+        if(res != null){
+            return res.getTextContent();
+        } else {
+            return "";
+        }
+    }
 
 }

@@ -44,5 +44,21 @@ class ControllerTests {
                 responseType);
     }
 
+    <RES> ResponseEntity<RES> putToVertec(String uri, Class<RES> responseType) {
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", username + ':' + password);
+        return rt.exchange(
+                new RequestEntity<>(headers, HttpMethod.PUT, URI.create(uri)),
+                responseType);
+    }
+
+    <RES> ResponseEntity<RES> deleteFromVertec(String uri, Class<RES> responseType) {
+        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
+        headers.add("Authorization", username + ':' + password);
+        return rt.exchange(
+                new RequestEntity<>(headers, HttpMethod.DELETE, URI.create(uri)),
+                responseType);
+    }
+
 
 }

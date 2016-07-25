@@ -4,6 +4,7 @@ import VRAPI.Entities.Activity;
 import VRAPI.Entities.Contact;
 import VRAPI.Entities.Organisation;
 import VRAPI.Entities.OrganisationList;
+import VRAPI.Exceptions.HttpInternalServerError;
 import VRAPI.Exceptions.HttpNotFoundException;
 import VRAPI.JSONClasses.JSONContainerProject.JSONPhase;
 import VRAPI.JSONClasses.JSONContainerProject.JSONProject;
@@ -40,11 +41,68 @@ public class OrganisationController extends Controller {
         super();
     }
 
+//======================================================================================================================
+// PUT /organisations
+//======================================================================================================================
+    @ApiOperation(value = "Set Organisation to inactive", nickname = "activities")
+    @ApiImplicitParams( {
+            @ApiImplicitParam(name = "Authorization",
+                    value = "username:password",
+                    required = true,
+                    dataType = "string",
+                    paramType = "header")
+    })
+    @RequestMapping(value = "/organisation/{id}", method = RequestMethod.DELETE)
+    public ResponseEntity<Long> setInactive(@PathVariable Long id) throws ParserConfigurationException {
 
-//======================================================================================================================
-// MERGE /organisations
-//======================================================================================================================
-@ApiOperation(value = "Merge two vertec organisations", nickname = "merge")
+        queryBuilder = AuthenticateThenReturnQueryBuilder();
+        if ( ! isIdOfType(id, "Firma")) {
+            throw new HttpNotFoundException("Organisation with id: " + id + " does not exist");
+        }
+        String putQuery = queryBuilder.setOrganisationActive(false, id);
+        //send put request to vertec
+        Document res = responseFor(new RequestEntity<>(putQuery, HttpMethod.POST,vertecURI));
+
+        if (getTextField(res).equals("Updated 1 Objects")) {
+            return new ResponseEntity<>(id,HttpStatus.OK);
+        } else {
+            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
+        }
+        //if we receive "updated 1 object" then we were successful, else throw some error
+
+    }
+    @ApiOperation(value = "Set Organisation to active", nickname = "activities")
+    @ApiImplicitParams( {
+            @ApiImplicitParam(name = "Authorization",
+                    value = "username:password",
+                    required = true,
+                    dataType = "string",
+                    paramType = "header")
+    })
+    @RequestMapping(value = "/organisation/{id}/activate", method = RequestMethod.PUT)
+    public ResponseEntity<Long> setActive(@PathVariable Long id) throws ParserConfigurationException {
+
+        queryBuilder = AuthenticateThenReturnQueryBuilder();
+        if ( ! isIdOfType(id, "Firma")) {
+            throw new HttpNotFoundException("Organisation with id: " + id + " does not exist");
+        }
+        String putQuery = queryBuilder.setOrganisationActive(true, id);
+        //send put request to vertec
+        Document res = responseFor(new RequestEntity<>(putQuery, HttpMethod.POST,vertecURI));
+
+        if (getTextField(res).equals("Updated 1 Objects")) {
+            return new ResponseEntity<>(id,HttpStatus.OK);
+        } else {
+            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
+        }
+        //if we receive "updated 1 object" then we were successful, else throw some error
+
+    }
+
+  //======================================================================================================================//
+ // MERGE /organisations                                                                                                 //=
+//======================================================================================================================//==
+    @ApiOperation(value = "Merge two vertec organisations", nickname = "merge")
     @ApiImplicitParams( {
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
@@ -53,7 +111,7 @@ public class OrganisationController extends Controller {
                     paramType = "header")
     })
     @RequestMapping(value = "/organisation/{mergingId}/mergeInto/{survivingId}", method = RequestMethod.GET) //TODO: write test for this function
-    public ResponseEntity<String> getProjectsForOrganisation(@PathVariable Long mergingId, @PathVariable Long survivingId)
+    public ResponseEntity<String> mergeOrganisations(@PathVariable Long mergingId, @PathVariable Long survivingId)
             throws ParserConfigurationException {
 
         queryBuilder = AuthenticateThenReturnQueryBuilder();
@@ -80,19 +138,25 @@ public class OrganisationController extends Controller {
 
         projectRes.getBody().getProjects().forEach(project -> {
             VertecServerInfo.log.info("Updating Project name: " + project.getTitle() + ", Code: " + project.getCode() + " to be linked to Organisation ID: " + mergingId);
+
+            //PUT Project
         });
 
         VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING ACTIVITIES =========================");
 
         activityRes.getBody().getActivitiesForOrganisation().forEach(activity -> {
             VertecServerInfo.log.info("Updating Activity name: " + activity.getSubject() + ", Type: " + activity.getvType() + " , id" + activity.getVertecId()+ activity.getDoneDate() + activity.getDueDate() + " to be linked to Organisation ID: " + mergingId);
+            //PUT Activity
         });
 
         VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING CONTACTS =========================");
 
         contactRes.getBody().getContacts().forEach(contact -> {
             VertecServerInfo.log.info("Updating Contact name: " + contact.getFirstName() + " " + contact.getSurname() + " Email: " + (contact.getEmails().size() > 0 ? contact.getEmails().get(0).getValue() : "null") + " to be linked to Organisation ID: " + mergingId);
+            //PUT contact
         });
+
+        //PUT org to inactive
 
         return new ResponseEntity<>("Recieved call to merge organisation with id: " + mergingId + " into organisation with id: " + survivingId, HttpStatus.OK);
     }
@@ -101,6 +165,7 @@ public class OrganisationController extends Controller {
 //======================================================================================================================
 // GET /organisations
 //======================================================================================================================
+
 
     //---------------------------------------------------------------------------------------------------------------------- /{id}/contacts
     @ApiOperation(value = "Get contacts for organisation", nickname = "contacts")
@@ -159,7 +224,7 @@ public class OrganisationController extends Controller {
                     dataType = "string",
                     paramType = "header")
     })
-    @RequestMapping(value = "/organisation/{id}/projects", method = RequestMethod.GET) //TODO: write test for this function
+    @RequestMapping(value = "/organisation/{id}/projects", method = RequestMethod.GET)
     public ResponseEntity<ProjectsForOrganisation> getProjectsForOrganisation(@PathVariable Long id)
             throws ParserConfigurationException {
         queryBuilder = AuthenticateThenReturnQueryBuilder();
@@ -275,7 +340,7 @@ public class OrganisationController extends Controller {
                     .getQueryResponse()
                     .getActivities();
         } catch (NullPointerException npe){
-            throw new HttpNotFoundException("No activities exist with the following v_ids: " + ids);
+            throw new HttpNotFoundException("At leas one of the supplied Ids does not belong to an activity: " + ids);
         }
     }
 
@@ -368,7 +433,7 @@ public class OrganisationController extends Controller {
 
         if (organisationEnvelope.getBody().getQueryResponse() == null
                 || organisationEnvelope.getBody().getQueryResponse().getOrganisationList().size() == 0) {
-            throw new HttpNotFoundException("Some or all of the ids requested could not be found as organisations");
+            throw new HttpNotFoundException("Some or all of the ids requested are not organisations");
         }
 
         OrganisationList res = new OrganisationList();
@@ -470,11 +535,11 @@ public class OrganisationController extends Controller {
     private String getOwnedOnVertecByStringForOwnerId(Long ownerId) {
         Long supervisorId = supervisorIdMap.get(ownerId);
         Long SALES_TEAM_IDENTIFIER = -5L; //members of the top sales team, including wolfgang have their 'supervisorId' set to -5 within the map;
-        if(supervisorId == null) return "No Owner";
+        if(ownerId == null) return "No Owner";
 
-        if (supervisorId == 0L) {
-            return "Not ZUK";
-        } else if (supervisorId.longValue() == SALES_TEAM_IDENTIFIER) {
+        if(supervisorId == null || supervisorId == 0L) return "Not ZUK"; // might be wrong
+
+        if (supervisorId.longValue() == SALES_TEAM_IDENTIFIER) {
             return "Sales Team";
         } else {
             return "ZUK Sub Team";

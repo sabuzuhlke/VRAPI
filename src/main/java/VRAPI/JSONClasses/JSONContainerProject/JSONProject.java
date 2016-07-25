@@ -20,8 +20,10 @@ public class JSONProject {
     private String code;
     @JsonProperty("client_ref")
     private Long clientRef;
+    @JsonProperty("leader_email")
+    private String leader_email;
     @JsonProperty("leader_ref")
-    private String leaderRef;
+    private Long leader_ref;
     @JsonProperty("customer_ref")
     private Long customerId;
     @JsonProperty("type")
@@ -47,11 +49,12 @@ public class JSONProject {
         this.active = pr.getActive();
         this.code = pr.getCode();
         this.clientRef = pr.getClient().getObjref();
-        this.leaderRef = leaderEmail;
+        this.leader_email = leaderEmail;
         this.customerId = pr.getCustomer().getObjref();
         this.modifiedDate = pr.getModifiedDate();
         this.creationDate = pr.getCreationDate();
         this.accountManager = aManagerEmail;
+        this.leader_ref = pr.getLeader().getObjref();
 
         //set phases outside of constructor
         //set Type outside of constructor
@@ -98,12 +101,12 @@ public class JSONProject {
         this.clientRef = clientRef;
     }
 
-    public String getLeaderRef() {
-        return leaderRef;
+    public String getLeader_email() {
+        return leader_email;
     }
 
-    public void setLeaderRef(String leaderRef) {
-        this.leaderRef = leaderRef;
+    public void setLeader_email(String leader_email) {
+        this.leader_email = leader_email;
     }
 
     public List<JSONPhase> getPhases() {
@@ -160,6 +163,14 @@ public class JSONProject {
 
     public void setAccountManager(String accountManager) {
         this.accountManager = accountManager;
+    }
+
+    public Long getLeader_ref() {
+        return leader_ref;
+    }
+
+    public void setLeader_ref(Long leader_ref) {
+        this.leader_ref = leader_ref;
     }
 
     public String toJSONString(){

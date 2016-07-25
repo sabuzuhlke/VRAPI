@@ -239,11 +239,11 @@ public class ImportController {
         return jOrg;
     }
 
-    @ApiOperation(value = "Get an contact by id")
+    @ApiOperation(value = "Get a contact by id")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
     })
-    @RequestMapping(value = "/contacts/{id}", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/contact/{id}", method = RequestMethod.GET, produces = "application/json")
     public JSONContact getContactbyId(@PathVariable Long id) {
         List<Long> ids = new ArrayList<>();
         ids.add(id);

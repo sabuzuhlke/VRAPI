@@ -5,7 +5,7 @@ import javax.xml.bind.annotation.XmlElement;
 /**
  * Created by gebo on 23/05/2016.
  */
-public class Phase {
+public class  Phase {
     private Long objref;
 
     public Phase() {

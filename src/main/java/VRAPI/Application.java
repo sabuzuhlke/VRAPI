@@ -4,6 +4,7 @@ package VRAPI;
 import VRAPI.ResourceControllers.EmployeeController;
 import VRAPI.ResourceControllers.ImportController;
 import VRAPI.ResourceControllers.OrganisationController;
+import VRAPI.ResourceControllers.ContactController;
 import com.google.common.base.Predicates;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,7 +20,7 @@ import springfox.documentation.swagger.web.UiConfiguration;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
 @SpringBootApplication
-@ComponentScan(basePackageClasses = {ImportController.class, OrganisationController.class, EmployeeController.class})
+@ComponentScan(basePackageClasses = {ImportController.class, OrganisationController.class, EmployeeController.class, ContactController.class})
 @EnableSwagger2
 @Configuration
 public class Application {

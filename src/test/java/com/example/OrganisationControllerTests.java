@@ -1,13 +1,22 @@
 package com.example;
 
 import VRAPI.Application;
+import VRAPI.Entities.Activity;
+import VRAPI.Entities.Organisation;
+import VRAPI.Entities.OrganisationList;
+import VRAPI.JSONClasses.JSONContainerProject.JSONPhase;
+import VRAPI.MergeClasses.ActivitiesForOrganisation;
+import VRAPI.MergeClasses.ProjectsForOrganisation;
 import VRAPI.ResourceControllers.OrganisationController;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
 
@@ -17,10 +26,10 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -28,11 +37,10 @@ import static org.junit.Assert.assertTrue;
 @WebIntegrationTest
 public class OrganisationControllerTests extends ControllerTests {
 
-    private final Long organisationIdPresentInVertec = 28055040L;
-    private final List<Long> organisationIdsPresentInVertec = new ArrayList<>(Arrays.asList(28055040L, 28055047L, 28055033L, 28055109L));
+    private final Long TESTorganisationIdPresentInVertec1 = 28055040L;
+    private final Long TESTorganisationIdPresentInVertec2 = 28055047L;
 
-
-    @Test
+    @Test @Ignore("Unnecessary ATM")
     public void callingMergeOnTwoIdsWillShowAGoodLog() {
 
         Long id1 = 711840L;
@@ -45,6 +53,63 @@ public class OrganisationControllerTests extends ControllerTests {
 
     }
 
+    @Test
+    public void canSetOrgToActiveAndInactive() {
+
+        String uri = baseURI + "/organisation/" + TESTorganisationIdPresentInVertec1 + "/activate";
+
+        Long id = putToVertec(uri, Long.class).getBody();
+
+        assertEquals("Could not activate organisation before setting it to inactive again!", TESTorganisationIdPresentInVertec1, id);
+
+        uri = baseURI + "/organisation/" + TESTorganisationIdPresentInVertec1;
+
+        Organisation org = getFromVertec(uri,Organisation.class).getBody();
+
+        assertTrue("Organisation did not get set to active",org.getActive());
+
+        id = 0L;
+
+        id =  deleteFromVertec(uri, Long.class).getBody();
+
+        assertEquals("Could not deactivate Organisation", TESTorganisationIdPresentInVertec1, id);
+
+        org = getFromVertec(uri,Organisation.class).getBody();
+
+        assertFalse("Organisation did not get set to inactive",org.getActive());
+
+    }
+
+    @Test
+    public void cannotSetRandomIdToActive(){
+        Long id = 937645234724623746L;
+        String uri = baseURI + "/organisation/" + id + "/activate";
+
+        try{
+
+            id = putToVertec(uri, Long.class).getBody();
+            assertTrue("Found organisation with random id",false);
+        } catch (HttpStatusCodeException e){
+            assertEquals(e.getStatusCode(), HttpStatus.NOT_FOUND);
+        }
+
+    }
+
+    @Test
+    public void cannotSetRandomIdToInactive(){
+        Long id = 937645234724623746L;
+        String uri = baseURI + "/organisation/" + id;
+
+        try{
+
+            id = deleteFromVertec(uri, Long.class).getBody();
+            assertTrue("Found organisation with random id",false);
+        } catch (HttpStatusCodeException e){
+            assertEquals(e.getStatusCode(), HttpStatus.NOT_FOUND);
+        }
+
+    }
+
 
     /*
     TESTS FOR GET ProjectsForOrganisation
@@ -54,95 +119,100 @@ public class OrganisationControllerTests extends ControllerTests {
      * Get projects for known organisation
      * Assert values match known values
      * Assert org details returned match known values
+     * tests whether project and its phases are built correctly
      */
     @Test
     public void canGetProjectsForOrganisation() {
-        assertTrue(false);
+        Long orgID = 709814L; //existing vertec Organisation
+        String uri =  baseURI + "/organisation/" + orgID + "/projects";
+
+        ProjectsForOrganisation pfo = getFromVertec(uri,ProjectsForOrganisation.class).getBody();
+        assertEquals("Got wrong organisation",orgID, pfo.getOrganisationId());
+        assertTrue("Deutsche Telekom".equals(pfo.getOrganisationName()));
+
+        assertTrue(2 <= pfo.getProjects().size());
+        assertEquals(pfo.getProjects().get(0).getV_id().longValue(), 2073414L);
+        assertEquals(pfo.getProjects().get(1).getV_id().longValue(), 16909140L);
+
+        List<JSONPhase> phasesForProj1 = pfo.getProjects().get(0).getPhases();
+        List<JSONPhase> phasesForProj2 = pfo.getProjects().get(1).getPhases();
+
+        assertEquals("Wrong phases gotten", phasesForProj1.size() , 2); //project inactve so should not change in the future,
+        assertEquals("Wrong phases gotten", phasesForProj2.size() , 3); //but if these assertions fail check on vertec how many phases the project has
+
+
+        assertEquals(2073433L, phasesForProj1.get(0).getV_id().longValue());
+        assertEquals(2073471L, phasesForProj1.get(1).getV_id().longValue());
+
+        assertEquals(16909162L, phasesForProj2.get(0).getV_id().longValue());
+        assertEquals(17092562L, phasesForProj2.get(1).getV_id().longValue());
+        assertEquals(17093158L, phasesForProj2.get(2).getV_id().longValue());
+
+        assertTrue(pfo.getProjects().get(0).getTitle().equals("T-Mobile, Internet Architect"));
+        assertFalse(pfo.getProjects().get(0).getActive());
+        assertTrue(pfo.getProjects().get(0).getCode().equals("C11583"));
+        assertEquals(pfo.getProjects().get(0).getClientRef().longValue(), 709814L);
+        assertEquals(pfo.getProjects().get(0).getCustomerId(), null);
+        assertEquals(pfo.getProjects().get(0).getLeader_ref().longValue(), 504354L);
+        //type not uses
+        //currency not used
+        assertTrue(pfo.getProjects().get(0).getCreationDate().equals("2008-08-27T14:22:47"));
+        //modifiedDate will change so check is not very useful here
+
+        //phases
+        JSONPhase phase = phasesForProj1.get(1);
+        assertFalse(phase.getActive());
+        assertTrue(phase.getDescription().equals("Proposal"));
+        assertTrue(phase.getCode().equals("10_PROPOSAL"));
+        assertEquals(3, phase.getStatus());
+        assertTrue(phase.getSalesStatus().contains("30"));
+        assertTrue(phase.getExternalValue().equals("96,000.00"));
+        assertTrue(phase.getStartDate().equals(""));
+        assertTrue(phase.getEndDate().equals(""));
+        assertTrue(phase.getOfferedDate().equals("2008-08-27"));
+        assertTrue(phase.getCompletionDate().equals(""));
+        assertTrue(phase.getLostReason().contains("suitable resource"));
+        assertTrue(phase.getCreationDate().equals("2008-08-27T14:25:38"));
+        assertTrue(phase.getRejectionDate().equals("2008-10-31"));
+
+        assertEquals(504354, phase.getPersonResponsible().longValue());
     }
 
-    /**
-     * Given list of known project ids, returns list of JSON project
-     * Assert values match known values
-     */
-    @Test
-    public void canGetDetailedProjectsFromListOfIds() {
-        assertTrue(false);
-    }
-
-    /**
-     * Given xml project recieved from vertec, can correctly convert it to a JSONProject
-     */
-    @Test
-    public void canCreateJsonProjectFromXmlProject() {
-        assertTrue(false);
-    }
-
-    /**
-     * Given xml Project recieved from vertec, will return List of JsonPhase
-     * Phases include internal phases
-     * Assert value match with known values
-     */
-    @Test
-    public void canGetPhasesForProject() {
-        assertTrue(false);
-    }
-
-    /**
-     * Given List of phase Ids will return list of xml Phases from vertec
-     * Assert values match with known values
-     */
-    @Test
-    public void canGetXMLPhasesFromListOfPhaseIds() {
-        assertTrue(false);
-    }
-
-    /**
-     * Given collection of project IDs will return List of xml projects
-     * Assert values match known values
-     */
-    @Test
-    public void canGetXMLProjectsFromListOfProjectIds() {
-        assertTrue(false);
-    }
-
-    /*
-    TESTS FOR GET ActivitiesForOrganisation
-     */
 
     /**
      * Given id of org, correctly returns activities for org
      * Assert value match known values
+     * also tests construction of JSON activities and their conversion to 'Entity.Activity's
      */
     @Test
     public void canGetActivitiesForOrganisation() {
-        assertTrue(false);
-    }
+        Long orgID = 9206250L; //existing Vertec organisation
+        String uri =  baseURI + "/organisation/" + orgID + "/activities";
 
-    /**
-     * Given list of activity IDs will return list of activities
-     * Assert values match known values
-     */
-    @Test
-    public void canGetActivitiesFromListOfActivityIDs() {
-        assertTrue(false);
-    }
+        ActivitiesForOrganisation afo = getFromVertec(uri, ActivitiesForOrganisation.class).getBody();
 
-    /**
-     * Given xml activity from vertec, correctly converts to json Activity
-     * assert values match
-     */
-    @Test
-    public void canCreateActivityFromXMLActivity() {
-        assertTrue(false);
-    }
+        assertEquals(orgID, afo.getOrganisationId());
+        assertTrue("Quanta Fluid Solutions Ltd".equals(afo.getName()));
 
-    /**
-     * Given list of activityIds will return list of xml activities
-     * Assert values match known values
-     */
-    @Test
-    public void canGetXMLActivitiesFromListOfIds() {
-        assertTrue(false);
+        List<VRAPI.Entities.Activity> activities = afo.getActivitiesForOrganisation();
+
+        assertTrue("Not al activities got", activities.size() >= 10);
+
+        assertEquals(9206485L, activities.get(0).getVertecId().longValue());
+        assertEquals(27450368L, activities.get(9).getVertecId().longValue());
+
+        Activity activity = activities.get(0);
+        assertTrue(activity.getDone());
+        assertTrue(activity.getvType().equals("EMail"));
+        assertTrue(activity.getText().contains("and Mr Peter Templeton (Quanta)"));
+        assertTrue(activity.getDueDate().equals("2011-10-20"));
+        assertTrue(activity.getDoneDate().equals("2016-06-17"));
+        assertTrue(activity.getCreated().equals("2011-10-20T10:19:12"));
+
+        assertEquals(activity.getVertecDealLink(), null);
+        assertEquals(activity.getVertecProjectLink().longValue(), 9206384L);
+        assertEquals(activity.getVertecOrganisationLink(), orgID);
+        assertEquals(activity.getVertecContactLink(), null);
     }
 
     /*
@@ -150,62 +220,79 @@ public class OrganisationControllerTests extends ControllerTests {
      */
 
     /**
-     * Will return all organisations owned by ZUK
-     * Not sure how best to test this
+     * Tests construction of JSON Organisations, as well as of 'Entities.Organisation's
      */
     @Test
-    public void canGetAllOrganisations() {
-        assertTrue(false);
+    public void canGetListOfOrganisations(){
+        Long orgid1 = 709814L;
+        Long orgid2 = 9206250L;
+        List<Long> orgids = new ArrayList<>();
+        orgids.add(orgid1);
+        orgids.add(orgid2);
+
+        String idsAsString = "";
+        for(int i = 0; i < orgids.size(); i++) {
+            if (i < orgids.size() -1) {
+                idsAsString += orgids.get(i) + ",";
+            } else {
+                idsAsString += orgids.get(i);
+            }
+        }
+
+        String uri =  baseURI + "/organisations/" + idsAsString;
+
+        OrganisationList organisationList = getFromVertec(uri, OrganisationList.class).getBody();
+
+        assertEquals(orgids.size(), organisationList.getOrganisations().size());
+
+        Organisation firstOrg = organisationList.getOrganisations().get(0);
+        Organisation secOrg = organisationList.getOrganisations().get(1);
+
+        assertEquals(orgids.get(0), firstOrg.getVertecId());
+        assertEquals(5295L, firstOrg.getOwnerId().longValue());
+        assertEquals(null, firstOrg.getParentOrganisation());
+
+        assertTrue("Sales Team".equals(firstOrg.getOwnedOnVertecBy()));
+        assertTrue("Deutsche Telekom".equals(firstOrg.getName()));
+        assertTrue("".equals(firstOrg.getWebsite()));
+        //category not set yet
+        //nor is business domain
+        assertTrue("".equals(firstOrg.getBuildingName()));
+        assertTrue("".equals(firstOrg.getStreet_no()));
+        assertTrue("Hatfield Business Park".equals(firstOrg.getStreet()));
+        assertTrue("Hatfield".equals(firstOrg.getCity()));
+        assertTrue("United Kingdom".equals(firstOrg.getCountry()));
+        assertTrue("AL10 9BW".equals(firstOrg.getZip()));
+        assertTrue("2002-01-18T15:47:03".equals(firstOrg.getCreated()));
+        assertTrue(firstOrg.getActive());
+
+        assertEquals(orgids.get(1), secOrg.getVertecId());
     }
-
-    /**
-     * Given list of organisationIDs will get xml organisations
-     * Assert values match known values
-     */
-    @Test
-    public void canGetXMlOrganisationsGivenIDList() {
-        assertTrue(false);
-    }
-
-    /**
-     * Given list of org and contact ids will return list of lists
-     * with first list containing contact ids and second list containing org ids
-     * Assert each list contains correct ids
-     */
-    @Test
-    public void givenListOfAssortedOrganisationAndContactIdsCanSeperateThem() {
-        assertTrue(false);
-    }
-
-    /**
-     * Given employee ids then will return set of addresses they own
-     * Assert set contains correct values
-     */
-    @Test
-    public void givenEmployeeIdListReturnsIdsOfAllAdressesTheySupervise() {
-        assertTrue(false);
-    }
-
-    /*
-    TESTS FOR GET organisationList
-     */
-
-    /**
-     * Given List Of organisation Ids will return ORganisations
-     * Assert values match known values
-     */
-    @Test
-    public void canGetOrganisationListByIdsList() {
-        assertTrue(false);
-    }
-
-    /**
-     * Given organisation id will return organisation
-     * Assert values match expected
-     */
+   
     @Test
     public void canGetOrganisationByID() {
-        assertTrue(false);
+        Long orgID= 709814L; //actually exists
+
+        String uri =  baseURI + "/organisation/" + orgID;
+        
+        Organisation organsiation = getFromVertec(uri, Organisation.class).getBody();
+        assertEquals(orgID, organsiation.getVertecId());
+        assertEquals(5295L, organsiation.getOwnerId().longValue());
+        assertEquals(null, organsiation.getParentOrganisation());
+
+        assertTrue("Sales Team".equals(organsiation.getOwnedOnVertecBy()));
+        assertTrue("Deutsche Telekom".equals(organsiation.getName()));
+        assertTrue("".equals(organsiation.getWebsite()));
+        //category not set yet
+        //nor is business domain
+        assertTrue("".equals(organsiation.getBuildingName()));
+        assertTrue("".equals(organsiation.getStreet_no()));
+        assertTrue("Hatfield Business Park".equals(organsiation.getStreet()));
+        assertTrue("Hatfield".equals(organsiation.getCity()));
+        assertTrue("United Kingdom".equals(organsiation.getCountry()));
+        assertTrue("AL10 9BW".equals(organsiation.getZip()));
+        assertTrue("2002-01-18T15:47:03".equals(organsiation.getCreated()));
+        assertTrue(organsiation.getActive());
     }
 
     /*
@@ -252,46 +339,6 @@ public class OrganisationControllerTests extends ControllerTests {
         assertEquals("Name incorrectly extracted", "HM Revenue & Customs", name);
     }
 
-    /**
-     * Given NodeList of objref nodes, will return list of ids contained within
-     */
-    @Test
-    public void canGetIdsListFromNodeList() {
-        assertTrue(false);
-    }
-
-    /**
-     * Given NodeList wiill return Stream of String where string is textContent of each node
-     */
-    @Test
-    public void canGetStreamOfStringsFromNodeList() {
-        assertTrue(false);
-    }
-
-    /**
-     * Given requestEntity will query vertec and return Document of reponse
-     */
-    @Test
-    public void canGetVertecResponseForQueryInDocumentForm() {
-        assertTrue(false);
-    }
-
-    /**
-     * Given List of xml organisations will return list of json organisations
-     */
-    @Test
-    public void canGetListOfOrganisationFromListOfXMLOrganisation() {
-        assertTrue(false);
-    }
-
-    /**
-     * Given XML ORganisation will return JsonOrganisation
-     * method: xml2JSon
-     */
-    @Test
-    public void canCreateOrganisationFromXMLOrganisation() {
-        assertTrue(false);
-    }
 
     /**
      * Given Organisation o and XMLORganisation vo will set owned_on_vertec_by correctly
@@ -299,7 +346,37 @@ public class OrganisationControllerTests extends ControllerTests {
      */
     @Test
     public void canSetOwnedOnVertecBy() {
-        assertTrue(false);
+        Long salesTeamOwnedOrgId = 709814L;
+        Long nonZUKOrg = 1359817L; //actually exists
+        List<Long> orgids = new ArrayList<>();
+
+        orgids.add(salesTeamOwnedOrgId);
+        orgids.add(TESTorganisationIdPresentInVertec1);
+        orgids.add(TESTorganisationIdPresentInVertec2);
+        orgids.add(nonZUKOrg);
+
+        String idsAsString = "";
+        for(int i = 0; i < orgids.size(); i++) {
+            if (i < orgids.size() -1) {
+                idsAsString += orgids.get(i) + ",";
+            } else {
+                idsAsString += orgids.get(i);
+            }
+        }
+
+        String uri =  baseURI + "/organisations/" + idsAsString;
+
+        OrganisationList organisationList = getFromVertec(uri, OrganisationList.class).getBody();
+        List<Organisation> orgs  = organisationList.getOrganisations();
+
+        System.out.println(orgs.get(0).getOwnedOnVertecBy());
+        System.out.println(orgs.get(1).getOwnedOnVertecBy());
+        System.out.println(orgs.get(2).getOwnedOnVertecBy());
+        System.out.println(orgs.get(3).getOwnedOnVertecBy());
+        assertTrue(orgs.get(0).getOwnedOnVertecBy().equals("Sales Team"));
+        assertTrue(orgs.get(1).getOwnedOnVertecBy().equals("Not ZUK"));
+        assertTrue(orgs.get(2).getOwnedOnVertecBy().equals("ZUK Sub Team"));
+        assertTrue(orgs.get(3).getOwnedOnVertecBy().equals("No Owner"));
     }
 
     /*
@@ -447,12 +524,12 @@ public class OrganisationControllerTests extends ControllerTests {
 //    @Test
 //    public void queryingForOrganisationByPresentIdReturnsOrganisation() {
 //        //Get organisation we know to be present in test database
-//        String uri = baseURI + "/organisation/" + organisationIdPresentInVertec;
+//        String uri = baseURI + "/organisation/" + TESTorganisationIdPresentInVertec1;
 //        ResponseEntity<JSONOrganisation> res = getFromVertec(uri, JSONOrganisation.class);
 //        assertNotNull("Response is null", res);
 //        assertNotNull("Response body is null", res.getBody());
 //        //check organisation we recieve has same id as requested
-//        assertEquals("Incorrect organisation returned", organisationIdPresentInVertec, res.getBody().getObjid());
+//        assertEquals("Incorrect organisation returned", TESTorganisationIdPresentInVertec1, res.getBody().getObjid());
 //        JSONOrganisation org = res.getBody();
 //        //check various fields arent null
 //        assertNotNull(org.getName());

@@ -22,8 +22,10 @@ public class JSONPhase {
     private String salesStatus;
     @JsonProperty("external_value")
     private String externalValue;
+    @JsonProperty("person_responsible_email")
+    private String personResponsibleEmail;
     @JsonProperty("person_responsible")
-    private String personResponsible;
+    private Long personResponsible;
     @JsonProperty("start_date")
     private String startDate;
     @JsonProperty("end_date")
@@ -47,31 +49,38 @@ public class JSONPhase {
     public JSONPhase() {
     }
 
-    public JSONPhase (VRAPI.XMLClasses.ContainerPhases.ProjectPhase ph, String personResponsible){
+    public JSONPhase (VRAPI.XMLClasses.ContainerPhases.ProjectPhase ph, String personResponsibleEmail){
         this.v_id = ph.getObjid();
         this.active = ph.getActive();
         this.description = ph.getDescription();
         this.code = ph.getCode();
         this.status = ph.getStatus();
         this.externalValue = ph.getExternalValue();
-        this.startDate = ph.getStartDate();
-        this.endDate = ph.getEndDate();
+        this.startDate = setDate(ph.getStartDate());
+        this.endDate = setDate(ph.getEndDate());
 
-        this.offeredDate = ph.getOfferedDate();
-        if(this.offeredDate.equals("")) this.offeredDate = null;
+        this.offeredDate = setDate(ph.getOfferedDate());
 
         this.salesStatus = ph.getSalesStatus();
         this.lostReason = ph.getLostReason();
         this.modifiedDate = ph.getModifiedDate();
         this.creationDate = ph.getCreationDate();
         //this.grantedDate = ph
-        this.personResponsible = personResponsible;
+        this.personResponsibleEmail = personResponsibleEmail;
 
-        this.completionDate = ph.getCompletionDate();
-        if(this.completionDate.equals("")) this.completionDate = null;
+        this.completionDate = setDate(ph.getCompletionDate());
 
-        this.rejectionDate = ph.getRejectionDate();
-        if(this.rejectionDate.equals("")) this.rejectionDate = null;
+        this.rejectionDate = setDate(ph.getRejectionDate());
+
+        this.personResponsible = ph.getPersonResponsible().getObjref();
+    }
+
+    private String setDate(String date){
+        if(date == null){
+            return "";
+        } else  {
+            return date;
+        }
     }
 
     public Long getV_id() {
@@ -123,12 +132,12 @@ public class JSONPhase {
         this.externalValue = externalValue;
     }
 
-    public String getPersonResponsible() {
-        return personResponsible;
+    public String getPersonResponsibleEmail() {
+        return personResponsibleEmail;
     }
 
-    public void setPersonResponsible(String personResponsible) {
-        this.personResponsible = personResponsible;
+    public void setPersonResponsibleEmail(String personResponsibleEmail) {
+        this.personResponsibleEmail = personResponsibleEmail;
     }
 
     public String getStartDate() {
@@ -210,6 +219,14 @@ public class JSONPhase {
 
     public void setRejectionDate(String rejectionDate) {
         this.rejectionDate = rejectionDate;
+    }
+
+    public Long getPersonResponsible() {
+        return personResponsible;
+    }
+
+    public void setPersonResponsible(Long personResponsible) {
+        this.personResponsible = personResponsible;
     }
 
     public String toJSONString(){
