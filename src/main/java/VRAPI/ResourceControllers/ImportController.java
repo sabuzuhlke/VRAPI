@@ -406,6 +406,23 @@ public class ImportController {
         return res;
     }
 
+    @ApiOperation(value = "Get Activity by ID, do not filter anything")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
+    })
+    @RequestMapping(value = "/activities/{v_id}/noFilter", method = RequestMethod.GET, produces = "application/json")
+    public JSONActivitiesResponse getActivityByIdNoFilter(@PathVariable Long v_id){
+        checkUserAndPW();
+        this.teamMap = StaticMaps.INSTANCE.getTeamIDMap();
+
+        final List<Activity> activities = getActivities(singletonList(v_id));
+
+        JSONActivitiesResponse res = buildJSONActivitiesResponseNoFilter(activities, getActivityTypes(activities));
+        //System.out.println(res.toPrettyJSON());
+
+        return res;
+    }
+
 
     private List<JSONProject> projectsForTeam(List<Long> teamMemberIDs) {
         List<ProjectWithType> projectsBeforePhasesAssigned = getDetailedProjects(getProjectsTeamAreWorkingOn(teamMemberIDs)).stream()
@@ -486,7 +503,6 @@ public class ImportController {
         String leaderEmail = teamMap.get(pwt.project.getLeader().getObjref());
 
         if(pwt.project.getAccountManager() != null){
-            System.out.println("Account Manager added: " + pwt.project.getAccountManager().getObjref());
             aManagerEmail = teamMap.get(pwt.project.getAccountManager().getObjref());
         }
 
@@ -887,6 +903,28 @@ public class ImportController {
                                         || type.contains("Offer")))
                                         //TODO see whether this is how Wolfgang wants it to be
                                 .orElse(true))
+                        .collect(toList()));
+    }
+    public JSONActivitiesResponse buildJSONActivitiesResponseNoFilter(List<Activity> activities, List<ActivityType> types) {
+        Map<Long, String> typeMap = new HashMap<>();
+
+        for (ActivityType t : types) {
+            typeMap.put(t.getObjid(), t.getTypename());
+        }
+
+
+        return new JSONActivitiesResponse(
+                activities.stream()
+                        .map(activity ->{
+                            JSONActivity act =  new JSONActivity(
+                                    activity,
+                                    teamMap.get(activity.getAssignee().getObjref()),
+                                    typeMap.get(activity.getType().getObjref()));
+
+                            if(act.getCreation_date_time() == null) act.setCreation_date_time("");
+
+                            return act;
+                        })
                         .collect(toList()));
     }
 

@@ -36,9 +36,7 @@ import static org.junit.Assert.assertTrue;
 @SpringApplicationConfiguration(Application.class)
 @WebIntegrationTest
 public class OrganisationControllerTests extends ControllerTests {
-
-    private final Long TESTorganisationIdPresentInVertec1 = 28055040L;
-    private final Long TESTorganisationIdPresentInVertec2 = 28055047L;
+    
 
     @Test @Ignore("Unnecessary ATM")
     public void callingMergeOnTwoIdsWillShowAGoodLog() {
@@ -56,13 +54,13 @@ public class OrganisationControllerTests extends ControllerTests {
     @Test
     public void canSetOrgToActiveAndInactive() {
 
-        String uri = baseURI + "/organisation/" + TESTorganisationIdPresentInVertec1 + "/activate";
+        String uri = baseURI + "/organisation/" + TESTVertecOrganisation1 + "/activate";
 
         Long id = putToVertec(uri, Long.class).getBody();
 
-        assertEquals("Could not activate organisation before setting it to inactive again!", TESTorganisationIdPresentInVertec1, id);
+        assertEquals("Could not activate organisation before setting it to inactive again!", TESTVertecOrganisation1, id);
 
-        uri = baseURI + "/organisation/" + TESTorganisationIdPresentInVertec1;
+        uri = baseURI + "/organisation/" + TESTVertecOrganisation1;
 
         Organisation org = getFromVertec(uri,Organisation.class).getBody();
 
@@ -72,7 +70,7 @@ public class OrganisationControllerTests extends ControllerTests {
 
         id =  deleteFromVertec(uri, Long.class).getBody();
 
-        assertEquals("Could not deactivate Organisation", TESTorganisationIdPresentInVertec1, id);
+        assertEquals("Could not deactivate Organisation", TESTVertecOrganisation1, id);
 
         org = getFromVertec(uri,Organisation.class).getBody();
 
@@ -351,8 +349,8 @@ public class OrganisationControllerTests extends ControllerTests {
         List<Long> orgids = new ArrayList<>();
 
         orgids.add(salesTeamOwnedOrgId);
-        orgids.add(TESTorganisationIdPresentInVertec1);
-        orgids.add(TESTorganisationIdPresentInVertec2);
+        orgids.add(TESTVertecOrganisation1);
+        orgids.add(TESTVertecOrganisation2);
         orgids.add(nonZUKOrg);
 
         String idsAsString = "";
@@ -524,12 +522,12 @@ public class OrganisationControllerTests extends ControllerTests {
 //    @Test
 //    public void queryingForOrganisationByPresentIdReturnsOrganisation() {
 //        //Get organisation we know to be present in test database
-//        String uri = baseURI + "/organisation/" + TESTorganisationIdPresentInVertec1;
+//        String uri = baseURI + "/organisation/" + TESTVertecOrganisation1;
 //        ResponseEntity<JSONOrganisation> res = getFromVertec(uri, JSONOrganisation.class);
 //        assertNotNull("Response is null", res);
 //        assertNotNull("Response body is null", res.getBody());
 //        //check organisation we recieve has same id as requested
-//        assertEquals("Incorrect organisation returned", TESTorganisationIdPresentInVertec1, res.getBody().getObjid());
+//        assertEquals("Incorrect organisation returned", TESTVertecOrganisation1, res.getBody().getObjid());
 //        JSONOrganisation org = res.getBody();
 //        //check various fields arent null
 //        assertNotNull(org.getName());

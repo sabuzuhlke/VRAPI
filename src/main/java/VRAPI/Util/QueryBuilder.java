@@ -590,4 +590,36 @@ public class QueryBuilder {
 
         return header + body;
     }
+
+    public String setProjectOrgLink(Long projId, Long orgId){
+        String body =  "<Body>\n" +
+                "  <Update>\n" +
+                "     <Projekt> \n" +
+                "       <objref>" + projId + "</objref>\n" +
+                "       <kunde>\n" +
+                "           <objref>" + orgId + "</objref>\n" +
+                "       </kunde>\n" +
+                "      </Projekt>\n" +
+                "    </Update>\n" +
+                "  </Body>" +
+                "</Envelope>";
+
+        return header + body;
+    }
+
+    public String setActivityOrgLink(Long activityID, Long orgID){
+        String body =  "<Body>\n" +
+                "  <Update>\n" +
+                "     <Avtivitaet> \n" +
+                "       <objref>" + activityID + "</objref>\n" +
+                "       <adresseintrag>\n" +
+                "           <objref>" + orgID + "</objref>\n" +
+                "       </adresseintrag>\n" +
+                "      </Aktivitaet>\n" +
+                "    </Update>\n" +
+                "  </Body>" +
+                "</Envelope>";
+
+        return header + body;
+    }
 }

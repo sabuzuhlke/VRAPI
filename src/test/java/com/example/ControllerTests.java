@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.w3c.dom.Document;
 
 import java.net.URI;
 
@@ -21,6 +22,12 @@ class ControllerTests {
     private static final String DEFAULT_OWN_PORT = "9999";
 
     final String baseURI = "https://" + DEFAULT_OWN_IP + ":" + DEFAULT_OWN_PORT;
+
+
+    Long TESTVertecContact = 28055069L;
+    Long TESTVertecOrganisation1 = 28055040L;
+    Long TESTVertecOrganisation2 = 28055047L;
+    Long TESTRandomID = 9542823859193471L; //this id does not exist on vertec
 
     @Before
     public void setUp() {
@@ -59,6 +66,4 @@ class ControllerTests {
                 new RequestEntity<>(headers, HttpMethod.DELETE, URI.create(uri)),
                 responseType);
     }
-
-
 }

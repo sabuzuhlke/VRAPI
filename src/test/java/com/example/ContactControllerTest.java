@@ -19,10 +19,6 @@ import static junit.framework.TestCase.assertTrue;
 @SpringApplicationConfiguration(Application.class)
 @WebIntegrationTest
 public class ContactControllerTest extends ControllerTests {
-    private Long TESTVertecContact = 28055069L;
-    private Long TESTVertecOrganisation1 = 28055040L;
-    private Long TESTVertecOrganisation2 = 28055047L;
-    private Long TESTRandomID = 9542823859193471L; //this id does not exist on vertec
 
     /**
      * As other tests might modify the organisation link of the given contact,

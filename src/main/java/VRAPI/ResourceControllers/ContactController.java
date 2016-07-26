@@ -12,27 +12,24 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.util.ArrayList;
 import java.util.List;
 
-@RestController
-@Scope("prototype") //This enforces that an organisation controller is created per request
 
+@RestController
+@Scope("prototype")
 public class ContactController extends Controller {
 
     public ContactController() {
         super();
     }
-    //======================================================================================================================
-// PUT /contact
-//======================================================================================================================
+  //======================================================================================================================//
+ // PUT /contact                                                                                                         //
+//======================================================================================================================//
     /**
      * @return: Id returned is that of the organisation the contact is now linked to
      */
@@ -45,14 +42,13 @@ public class ContactController extends Controller {
                     paramType = "header")
     })
     @RequestMapping(value = "/contact/{id}/setOrganisationLink/{orgId}", method = RequestMethod.PUT)
-
     public ResponseEntity<Long> updateOrganisationLink(@PathVariable Long id, @PathVariable Long orgId) throws ParserConfigurationException {
         queryBuilder = AuthenticateThenReturnQueryBuilder();
         if ( ! isIdOfType(id, "Kontakt")) {
             throw new HttpNotFoundException("Contact with id: " + id + " does not exist");
         }
         if ( ! isIdOfType(orgId, "Firma")) {
-            throw new HttpNotFoundException("Organisation with id" + id + " does not exist");
+            throw new HttpNotFoundException("Organisation with id" + orgId + " does not exist");
         }
 
         String xmlQuery = queryBuilder.setContactOrganisationLink(id, orgId);

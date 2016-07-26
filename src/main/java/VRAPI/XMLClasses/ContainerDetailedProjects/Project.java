@@ -4,9 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import javax.xml.bind.annotation.XmlElement;
 
-/**
- * Created by sabu on 13/05/2016.
- */
 public class Project {
 
     private Long id;

@@ -103,7 +103,6 @@ public class Controller {
     }
 
     <T> T callVertec(String query, Class<T> responseType) {
-        System.out.println("Calling vertec, querying for: " + responseType.getName());
         return rest.exchange(
                 new RequestEntity<>(query, HttpMethod.POST, vertecURI),
                 responseType).getBody();

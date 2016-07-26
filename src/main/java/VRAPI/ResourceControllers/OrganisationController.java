@@ -139,24 +139,25 @@ public class OrganisationController extends Controller {
         projectRes.getBody().getProjects().forEach(project -> {
             VertecServerInfo.log.info("Updating Project name: " + project.getTitle() + ", Code: " + project.getCode() + " to be linked to Organisation ID: " + mergingId);
 
-            //PUT Project
+            //PUT Project --DONE
         });
 
         VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING ACTIVITIES =========================");
 
         activityRes.getBody().getActivitiesForOrganisation().forEach(activity -> {
             VertecServerInfo.log.info("Updating Activity name: " + activity.getSubject() + ", Type: " + activity.getvType() + " , id" + activity.getVertecId()+ activity.getDoneDate() + activity.getDueDate() + " to be linked to Organisation ID: " + mergingId);
-            //PUT Activity
+            //PUT Activity -- DONE
         });
 
         VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING CONTACTS =========================");
 
         contactRes.getBody().getContacts().forEach(contact -> {
             VertecServerInfo.log.info("Updating Contact name: " + contact.getFirstName() + " " + contact.getSurname() + " Email: " + (contact.getEmails().size() > 0 ? contact.getEmails().get(0).getValue() : "null") + " to be linked to Organisation ID: " + mergingId);
-            //PUT contact
+            //PUT contact -- DONE now actually puts, so write new function to simply log
+
         });
 
-        //PUT org to inactive
+        //PUT org to inactive -- DONE now actually puts, so write new function to simply log
 
         return new ResponseEntity<>("Recieved call to merge organisation with id: " + mergingId + " into organisation with id: " + survivingId, HttpStatus.OK);
     }

@@ -33,7 +33,6 @@ public class JSONActivity {
         //setAssignee oustide
         this.assignee = null;
         if(a.getAddressEntry() != null){
-
             this.customer_link = a.getAddressEntry().getObjref();
         }
         else{
@@ -64,6 +63,7 @@ public class JSONActivity {
         this.done_date = a.getDoneDate();
 
         this.creation_date_time = a.getCreationDateTime();
+
     }
 
     public JSONActivity(Activity activity, String assignee, String typeName) {
