@@ -1,9 +1,13 @@
 package VRAPI.ResourceControllers;
 
 
-import VRAPI.Entities.Contact;
 import VRAPI.Exceptions.HttpInternalServerError;
 import VRAPI.Exceptions.HttpNotFoundException;
+import VRAPI.VertecServerInfo;
+import VRAPI.XMLClasses.ContainerDetailedContact.Contact;
+import VRAPI.XMLClasses.ContainerDetailedContact.Envelope;
+import VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation;
+import VRAPI.XMLClasses.ContainerDetailedProjects.Project;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -18,6 +22,8 @@ import org.w3c.dom.Document;
 import javax.xml.parsers.ParserConfigurationException;
 import java.util.ArrayList;
 import java.util.List;
+
+import static java.util.Collections.singletonList;
 
 
 @RestController
@@ -41,24 +47,57 @@ public class ContactController extends Controller {
                     dataType = "string",
                     paramType = "header")
     })
-    @RequestMapping(value = "/contact/{id}/setOrganisationLink/{orgId}", method = RequestMethod.PUT)
-    public ResponseEntity<Long> updateOrganisationLink(@PathVariable Long id, @PathVariable Long orgId) throws ParserConfigurationException {
+    @RequestMapping(value = "/contact/{id}/setOrganisationLink/{orgID}", method = RequestMethod.PUT)
+    public ResponseEntity<Long> updateOrganisationLink(@PathVariable Long id, @PathVariable Long orgID) throws ParserConfigurationException {
+        VertecServerInfo.log.info("--------------- Setting Organisation Link of Contact ---------------------------->");
+
         queryBuilder = AuthenticateThenReturnQueryBuilder();
         if ( ! isIdOfType(id, "Kontakt")) {
             throw new HttpNotFoundException("Contact with id: " + id + " does not exist");
         }
-        if ( ! isIdOfType(orgId, "Firma")) {
-            throw new HttpNotFoundException("Organisation with id" + orgId + " does not exist");
+        if ( ! isIdOfType(orgID, "Firma")) {
+            throw new HttpNotFoundException("Organisation with id" + orgID + " does not exist");
         }
 
-        String xmlQuery = queryBuilder.setContactOrganisationLink(id, orgId);
-        Document res = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
+        String xmlQuery = queryBuilder.setContactOrganisationLink(id, orgID);
 
-        if (getTextField(res).equals("Updated 1 Objects")) {
-            return new ResponseEntity<>(orgId ,HttpStatus.OK);
+        //Get contact first
+        Contact contact = callVertec(queryBuilder.getContactDetails(singletonList(id))
+                , Envelope.class)
+                .getBody().getQueryResponse().getContactList().get(0); //TODO see whether refactor is possible
 
-        } else {
-            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
+        Organisation organisation = callVertec(queryBuilder.getOrganisationDetails(singletonList(orgID))
+                , VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class)
+                .getBody().getQueryResponse().getOrganisationList().get(0);
+
+        VertecServerInfo.log.info("Request seems OK, about to re-point contact " + contact.getFirstName() + " " + contact.getSurnname() + "(v_id: " + contact.getObjId() + ")" +
+                " to Organisation " + organisation.getName() + "(v_id: " + organisation.getObjId() + ")");
+
+        if(contact.getOrganisation()!= null){
+            Long clientref = contact.getOrganisation().getObjref();
+            if(isIdOfType(clientref,"Firma")){
+                Organisation org = callVertec(queryBuilder.getOrganisationDetails(singletonList(clientref))
+                        , VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class)
+                        .getBody().getQueryResponse().getOrganisationList().get(0);
+
+
+                VertecServerInfo.log.info("Clientref pointed to Organisation " + org.getName() +
+                        "(v_id: " + org.getObjId() + ") this would be overwritten" +
+                        " to point to Organisation: " + organisation.getName() +"(v_id: " + organisation.getObjId() + ")!!");
+            }
         }
+
+        VertecServerInfo.log.info("Would PUT now, However, PUT is disabled!! (uncomment in code)");
+//        Document res = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
+//
+//        if (getTextField(res).equals("Updated 1 Objects")) {
+//            return new ResponseEntity<>(orgID ,HttpStatus.OK);
+//
+//        } else {
+//            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
+//        }
+        VertecServerInfo.log.info("-------------------------------------------------------------------------------->");
+
+        return new ResponseEntity<>(orgID ,HttpStatus.OK);
     }
 }

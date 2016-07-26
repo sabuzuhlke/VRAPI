@@ -61,14 +61,17 @@ public class OrganisationController extends Controller {
         }
         String putQuery = queryBuilder.setOrganisationActive(false, id);
         //send put request to vertec
-        Document res = responseFor(new RequestEntity<>(putQuery, HttpMethod.POST,vertecURI));
+        VertecServerInfo.log.info("------ Would set Organisation: " + id + " to inactive ------>");
+//        Document res = responseFor(new RequestEntity<>(putQuery, HttpMethod.POST,vertecURI));
+//
+//        if (getTextField(res).equals("Updated 1 Objects")) {
+//            return new ResponseEntity<>(id,HttpStatus.OK);
+//        } else {
+//            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
+//        }
+//        //if we receive "updated 1 object" then we were successful, else throw some error
 
-        if (getTextField(res).equals("Updated 1 Objects")) {
-            return new ResponseEntity<>(id,HttpStatus.OK);
-        } else {
-            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
-        }
-        //if we receive "updated 1 object" then we were successful, else throw some error
+        return new ResponseEntity<>(id,HttpStatus.OK);
 
     }
     @ApiOperation(value = "Set Organisation to active", nickname = "activities")
@@ -88,15 +91,16 @@ public class OrganisationController extends Controller {
         }
         String putQuery = queryBuilder.setOrganisationActive(true, id);
         //send put request to vertec
-        Document res = responseFor(new RequestEntity<>(putQuery, HttpMethod.POST,vertecURI));
-
-        if (getTextField(res).equals("Updated 1 Objects")) {
-            return new ResponseEntity<>(id,HttpStatus.OK);
-        } else {
-            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
-        }
-        //if we receive "updated 1 object" then we were successful, else throw some error
-
+        VertecServerInfo.log.info("------ Would set Organisation: " + id + " to active ------>");
+//        Document res = responseFor(new RequestEntity<>(putQuery, HttpMethod.POST,vertecURI));
+//
+//        if (getTextField(res).equals("Updated 1 Objects")) {
+//            return new ResponseEntity<>(id,HttpStatus.OK);
+//        } else {
+//            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
+//        }
+//        //if we receive "updated 1 object" then we were successful, else throw some error
+        return new ResponseEntity<Long>(id,HttpStatus.OK);
     }
 
   //======================================================================================================================//
@@ -494,7 +498,7 @@ public class OrganisationController extends Controller {
 
         System.out.println(orgToPost.toJsonString());
 
-        //TODO: Finish this
+        //TODO: Finish this - wow!
 
         return new ResponseEntity<>(new Organisation(), HttpStatus.OK);
     }

@@ -2,6 +2,7 @@ package com.example;
 
 import VRAPI.Application;
 import VRAPI.Entities.Contact;
+import VRAPI.JSONClasses.JSONContainerOrganisation.JSONContact;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
@@ -27,14 +28,24 @@ public class ContactControllerTest extends ControllerTests {
     @Test
     public void canSetOrganisationLinks( ){
 
+
+
         String uri = baseURI + "/contact/" + TESTVertecContact + "/setOrganisationLink/" + TESTVertecOrganisation1;
 
         Long orgId = putToVertec(uri, Long.class).getBody();
+
+        String uri1 = baseURI + "/contact/" + TESTVertecContact;
+        //JSONContact contact = getFromVertec(uri1,JSONContact.class).getBody();
+        //assertEquals("Did not set organisationLink", TESTVertecOrganisation1, contact.getOrganisation()); TODO uncomment this once produced logs have been accepted
 
         assertEquals("Could not modify orglink",TESTVertecOrganisation1, orgId);
 
         uri = baseURI + "/contact/" + TESTVertecContact + "/setOrganisationLink/" + TESTVertecOrganisation2;
         orgId = putToVertec(uri,Long.class).getBody();
+
+
+        //contact = getFromVertec(uri1,JSONContact.class).getBody();
+        //assertEquals("Did not set organisationLink back to what it was", TESTVertecOrganisation2, contact.getOrganisation()); TODO uncomment this once produced logs have been accepted
 
         assertEquals("Could not modify orglink",TESTVertecOrganisation2, orgId);
     }
