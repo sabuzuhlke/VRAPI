@@ -2,6 +2,7 @@ package VRAPI.ResourceControllers;
 
 import VRAPI.Entities.Employee;
 import VRAPI.Entities.EmployeeList;
+import VRAPI.Util.QueryBuilder;
 import VRAPI.VertecServerInfo;
 import VRAPI.XMLClasses.ContainerEmployees.Envelope;
 import VRAPI.XMLClasses.ContainerEmployees.ProjectWorker;
@@ -30,6 +31,10 @@ public class EmployeeController extends Controller {
         super();
     }
 
+    public EmployeeController(QueryBuilder queryBuilder){
+        super(queryBuilder);
+    }
+
 //======================================================================================================================
 // GET /employees/pipedrive
 //======================================================================================================================
@@ -42,10 +47,14 @@ public class EmployeeController extends Controller {
                     paramType = "header")
     })
     @RequestMapping(value = "/employees/pipedrive", method = RequestMethod.GET)
-    public ResponseEntity<EmployeeList> getSalesTeamDetails() throws ParserConfigurationException {
+    public ResponseEntity<EmployeeList> getSalesTeamDetailsEndpoint() throws ParserConfigurationException {
         queryBuilder = AuthenticateThenReturnQueryBuilder();
         VertecServerInfo.log.info("Recieved Request to Pipedrive Team from " + request.getHeader("Authorization").split(":")[0]);
 
+        return getSalesTeamDetails();
+    }
+
+    public ResponseEntity<EmployeeList> getSalesTeamDetails() {
         String xmlQuery = queryBuilder.getLeadersTeam();
         final Document teamIdsResponse = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
         List<Long> teamIds = getObjrefsForOrganisationDocument(teamIdsResponse);

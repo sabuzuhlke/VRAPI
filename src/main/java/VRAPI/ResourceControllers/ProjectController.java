@@ -1,6 +1,7 @@
 package VRAPI.ResourceControllers;
 
 import VRAPI.Exceptions.HttpNotFoundException;
+import VRAPI.Util.QueryBuilder;
 import VRAPI.VertecServerInfo;
 import VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope;
 import VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation;
@@ -32,6 +33,9 @@ public class ProjectController extends Controller {
         super();
     }
 
+    public ProjectController(QueryBuilder queryBuilder){
+        super(queryBuilder);
+    }
   //======================================================================================================================//
  // PUT /project                                                                                                         //
 //======================================================================================================================//
@@ -44,16 +48,29 @@ public class ProjectController extends Controller {
                     paramType = "header")
     })
     @RequestMapping(value = "/project/{id}/setOrganisationLink/{orgID}", method = RequestMethod.PUT)
-    public ResponseEntity<Long> setOrgLink(@PathVariable Long id, @PathVariable Long orgID) throws ParserConfigurationException {
+    public ResponseEntity<Long> setOrgLinkEndpoint(@PathVariable Long id, @PathVariable Long orgID) throws ParserConfigurationException {
 
-        VertecServerInfo.log.info("--------------- Setting Organisation Link of Project ---------------------------->");
         queryBuilder = AuthenticateThenReturnQueryBuilder();
+        return setOrgLink(id, orgID);
+    }
+
+//=======================================METHODS========================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+
+    ResponseEntity<Long> setOrgLink(Long id, Long orgID) {
+        VertecServerInfo.log.info("\n\n--------------- Setting Organisation Link of Project ---------------------------->");
         if ( ! isIdOfType(id, "Projekt")) {
-            VertecServerInfo.log.info("--------------- Project with id: " + id + " does not exist ------------------>");
+            VertecServerInfo.log.info("\n\n--------------- Project with id: " + id + " does not exist ------------------>");
             throw new HttpNotFoundException("Project with id: " + id + " does not exist");
         }
         if ( ! isIdOfType(orgID, "Firma")) {
-            VertecServerInfo.log.info("---------- Organisation with id: " + orgID + " does not exist ----------------->");
+            VertecServerInfo.log.info("\n\n---------- Organisation with id: " + orgID + " does not exist ----------------->");
             throw new HttpNotFoundException("Organisation with id: " + orgID + " does not exist");
         }
 
@@ -63,7 +80,7 @@ public class ProjectController extends Controller {
                                             .getBody().getQueryResponse().getProjects().get(0); //TODO see whether refactor is possible
 
         Organisation organisation = callVertec(queryBuilder.getOrganisationDetails(singletonList(orgID))
-                                                , VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class)
+                                                , Envelope.class)
                                                     .getBody().getQueryResponse().getOrganisationList().get(0);
 
         VertecServerInfo.log.info("Request seems OK, about to re-point project " + project.getCode() + " " + project.getTitle() + "(v_id: " + project.getId() + ")" +
@@ -73,7 +90,7 @@ public class ProjectController extends Controller {
             Long clientref = project.getClient().getObjref();
             if(isIdOfType(clientref,"Firma")){
                 Organisation org = callVertec(queryBuilder.getOrganisationDetails(singletonList(clientref))
-                                            , VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class)
+                                            , Envelope.class)
                                                 .getBody().getQueryResponse().getOrganisationList().get(0);
 
 
@@ -87,7 +104,7 @@ public class ProjectController extends Controller {
             Long custommerRef = project.getCustomer().getObjref();
             if (isIdOfType(custommerRef, "Firma")){
                 Organisation org = callVertec(queryBuilder.getOrganisationDetails(singletonList(custommerRef))
-                                            , VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class)
+                                            , Envelope.class)
                                                 .getBody().getQueryResponse().getOrganisationList().get(0);
 
                 VertecServerInfo.log.info("custommerRef points to Organisation " + org.getName() +
@@ -109,9 +126,9 @@ public class ProjectController extends Controller {
 //            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
 //        }
 
-        VertecServerInfo.log.info("-------------------------------------------------------------------------------->");
+        VertecServerInfo.log.info("-------------------------------------------------------------------------------->\n\n");
 
-        return new ResponseEntity<>(orgID,HttpStatus.OK);
+        return new ResponseEntity<>(orgID, HttpStatus.OK);
     }
 
 }

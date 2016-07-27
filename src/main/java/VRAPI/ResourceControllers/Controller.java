@@ -40,7 +40,6 @@ public class Controller {
 
     private static final String DEFAULT_VERTEC_SERVER_HOST = VertecServerInfo.VERTEC_SERVER_HOST;
     private static final String DEFAULT_VERTEC_SERVER_PORT = VertecServerInfo.VERTEC_SERVER_PORT;
-
     private RestTemplate rest;
 
     private DocumentBuilder documentBuilder = null;
@@ -71,6 +70,28 @@ public class Controller {
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         }
+    }
+
+    Controller(QueryBuilder queryBuilder){
+        vertecURI = URI.create("http://" + DEFAULT_VERTEC_SERVER_HOST + ":" + DEFAULT_VERTEC_SERVER_PORT + "/xml");
+
+        this.rest = new RestTemplate();
+        List<HttpMessageConverter<?>> converters = new ArrayList<>();
+        Jaxb2RootElementHttpMessageConverter jaxbMC = new Jaxb2RootElementHttpMessageConverter();
+        List<MediaType> mediaTypes = new ArrayList<>();
+        mediaTypes.add(MediaType.TEXT_XML);
+        jaxbMC.setSupportedMediaTypes(mediaTypes);
+        converters.add(jaxbMC);
+        converters.add(new FormHttpMessageConverter());
+        converters.add(new StringHttpMessageConverter());
+        rest.setMessageConverters(converters);
+
+        try {
+            this.documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+        }
+        this.queryBuilder = queryBuilder;
     }
 
     Document responseFor(RequestEntity<String> req) throws HttpInternalServerError {

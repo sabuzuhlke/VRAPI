@@ -1,6 +1,7 @@
 package VRAPI.ResourceControllers;
 
 import VRAPI.Exceptions.HttpNotFoundException;
+import VRAPI.Util.QueryBuilder;
 import VRAPI.VertecServerInfo;
 import VRAPI.XMLClasses.ContainerActivity.Activity;
 import VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation;
@@ -27,6 +28,10 @@ public class ActivityController extends Controller {
         super();
     }
 
+    public ActivityController(QueryBuilder queryBuilder){
+        super(queryBuilder);
+    }
+
   //======================================================================================================================//
  // PUT /activity                                                                                                        //
 //======================================================================================================================//
@@ -39,47 +44,60 @@ public class ActivityController extends Controller {
                   paramType = "header")
   })
   @RequestMapping(value = "/activity/{id}/setOrganisationLink/{orgID}", method = RequestMethod.PUT)
-  public ResponseEntity<Long> setOrgLink(@PathVariable Long id, @PathVariable Long orgID) throws ParserConfigurationException {
-      VertecServerInfo.log.info("--------------- Setting Organisation Link of Activity ---------------------------->");
+  public ResponseEntity<Long> setOrgLinkEndpoint(@PathVariable Long id, @PathVariable Long orgID) throws ParserConfigurationException {
       queryBuilder = AuthenticateThenReturnQueryBuilder();
-      if ( ! isIdOfType(id, "Aktivitaet")) {
-          VertecServerInfo.log.info("--------------- Activity with id: " + id + " does not exist ------------------>");
-          throw new HttpNotFoundException("Activity with id: " + id + " does not exist");
-      }
-      if ( ! isIdOfType(orgID, "Firma")) {
-          VertecServerInfo.log.info("---------- Organisation with id: " + orgID + " does not exist ----------------->");
-          throw new HttpNotFoundException("Organisation with id: " + orgID + " does not exist");
-      }
-      //Get Activity first
-      Activity activity  = callVertec(queryBuilder.getActivities(singletonList(id))
-              , VRAPI.XMLClasses.ContainerActivity.Envelope.class)
-              .getBody().getQueryResponse().getActivities().get(0); //TODO see whether refactor is possible
 
-      //Then get organisation
-      Organisation organisation = callVertec(queryBuilder.getOrganisationDetails(singletonList(orgID))
-              , VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class)
-              .getBody().getQueryResponse().getOrganisationList().get(0);
+      return setOrgLink(id, orgID);
+  }
+    //=======================================METHODS========================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
 
-      VertecServerInfo.log.info("Request seems OK, about to re-point Activity " + activity.getTitle() + "(v_id: " + activity.getObjid() + ")" +
-              " to Organisation " + organisation.getName() + "(v_id: " + organisation.getObjId() + ")");
+    public ResponseEntity<Long> setOrgLink( Long id,Long orgID) {
+        VertecServerInfo.log.info("\n\n--------------- Setting Organisation Link of Activity ---------------------------->");
+        if ( ! isIdOfType(id, "Aktivitaet")) {
+            VertecServerInfo.log.info("\n\n--------------- Activity with id: " + id + " does not exist ------------------>");
+            throw new HttpNotFoundException("Activity with id: " + id + " does not exist");
+        }
+        if ( ! isIdOfType(orgID, "Firma")) {
+            VertecServerInfo.log.info("\n\n---------- Organisation with id: " + orgID + " does not exist ----------------->");
+            throw new HttpNotFoundException("Organisation with id: " + orgID + " does not exist");
+        }
+        //Get Activity first
+        Activity activity  = callVertec(queryBuilder.getActivities(singletonList(id))
+                , VRAPI.XMLClasses.ContainerActivity.Envelope.class)
+                .getBody().getQueryResponse().getActivities().get(0); //TODO see whether refactor is possible
 
-      if(activity.getAddressEntry() != null){
-          Long orgref = activity.getAddressEntry().getObjref();
-          if(isIdOfType(orgref,"Firma")){
-              Organisation org = callVertec(queryBuilder.getOrganisationDetails(singletonList(orgref))
-                      , VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class)
-                      .getBody().getQueryResponse().getOrganisationList().get(0);
+        //Then get organisation
+        Organisation organisation = callVertec(queryBuilder.getOrganisationDetails(singletonList(orgID))
+                , VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class)
+                .getBody().getQueryResponse().getOrganisationList().get(0);
+
+        VertecServerInfo.log.info("Request seems OK, about to re-point Activity " + activity.getTitle() + "(v_id: " + activity.getObjid() + ")" +
+                " to Organisation " + organisation.getName() + "(v_id: " + organisation.getObjId() + ")");
+
+        if(activity.getAddressEntry() != null){
+            Long orgref = activity.getAddressEntry().getObjref();
+            if(isIdOfType(orgref,"Firma")){
+                Organisation org = callVertec(queryBuilder.getOrganisationDetails(singletonList(orgref))
+                        , VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class)
+                        .getBody().getQueryResponse().getOrganisationList().get(0);
 
 
-              VertecServerInfo.log.info("Activity pointed to Organisation " + org.getName() +
-                      "(v_id: " + org.getObjId() + ") this would be overwritten" +
-                      " to point to Organisation: " + organisation.getName() +"(v_id: " + organisation.getObjId() + ")!!");
-          }
-      }
+                VertecServerInfo.log.info("Activity pointed to Organisation " + org.getName() +
+                        "(v_id: " + org.getObjId() + ") this would be overwritten" +
+                        " to point to Organisation: " + organisation.getName() +"(v_id: " + organisation.getObjId() + ")!!");
+            }
+        }
 
-      String putQuery = queryBuilder.setActivityOrgLink(id,orgID);
-      //TODO call function to PUT to Vertec here
-      VertecServerInfo.log.info("Would PUT now, However, PUT is disabled!! (uncomment in code)");
+        String putQuery = queryBuilder.setActivityOrgLink(id,orgID);
+        //TODO call function to PUT to Vertec here
+        VertecServerInfo.log.info("Would PUT now, However, PUT is disabled!! (uncomment in code)");
 
 //        Document res = responseFor(new RequestEntity<>(putQuery, HttpMethod.POST, vertecURI));
 //
@@ -89,8 +107,8 @@ public class ActivityController extends Controller {
 //        } else {
 //            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
 //        }
-      VertecServerInfo.log.info("-------------------------------------------------------------------------------->");
+        VertecServerInfo.log.info("-------------------------------------------------------------------------------->\n\n");
 
-      return new ResponseEntity<>(orgID, HttpStatus.OK);
-  }
+        return new ResponseEntity<>(orgID, HttpStatus.OK);
+    }
 }

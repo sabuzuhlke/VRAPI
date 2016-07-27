@@ -41,8 +41,8 @@ public class OrganisationControllerTests extends ControllerTests {
     @Test @Ignore("Unnecessary ATM")
     public void callingMergeOnTwoIdsWillShowAGoodLog() {
 
-        Long id1 = 711840L;
-        Long id2 = 10867689L;
+        Long id1 = 711840L; //Vodafone
+        Long id2 = 10867689L; //Vodafone Group Services Limited
 
         String uri = baseURI + "/organisation/" + id1 + "/mergeInto/" + id2;
         ResponseEntity<String> res = getFromVertec(uri, String.class);

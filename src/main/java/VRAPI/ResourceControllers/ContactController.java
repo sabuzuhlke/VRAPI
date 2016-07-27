@@ -3,6 +3,7 @@ package VRAPI.ResourceControllers;
 
 import VRAPI.Exceptions.HttpInternalServerError;
 import VRAPI.Exceptions.HttpNotFoundException;
+import VRAPI.Util.QueryBuilder;
 import VRAPI.VertecServerInfo;
 import VRAPI.XMLClasses.ContainerDetailedContact.Contact;
 import VRAPI.XMLClasses.ContainerDetailedContact.Envelope;
@@ -33,6 +34,9 @@ public class ContactController extends Controller {
     public ContactController() {
         super();
     }
+    public ContactController(QueryBuilder queryBuilder) {
+        super(queryBuilder);
+    }
   //======================================================================================================================//
  // PUT /contact                                                                                                         //
 //======================================================================================================================//
@@ -48,10 +52,22 @@ public class ContactController extends Controller {
                     paramType = "header")
     })
     @RequestMapping(value = "/contact/{id}/setOrganisationLink/{orgID}", method = RequestMethod.PUT)
-    public ResponseEntity<Long> updateOrganisationLink(@PathVariable Long id, @PathVariable Long orgID) throws ParserConfigurationException {
-        VertecServerInfo.log.info("--------------- Setting Organisation Link of Contact ---------------------------->");
-
+    public ResponseEntity<Long> setOrganisationLinkEndpoint(@PathVariable Long id, @PathVariable Long orgID) throws ParserConfigurationException {
         queryBuilder = AuthenticateThenReturnQueryBuilder();
+
+        return setOrgLink(id, orgID);
+    }
+    //=======================================METHODS========================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+//======================================================================================================================
+    public ResponseEntity<Long> setOrgLink(Long id, Long orgID) {
+        VertecServerInfo.log.info("\n\n--------------- Setting Organisation Link of Contact ---------------------------->");
+
         if ( ! isIdOfType(id, "Kontakt")) {
             throw new HttpNotFoundException("Contact with id: " + id + " does not exist");
         }
@@ -96,8 +112,8 @@ public class ContactController extends Controller {
 //        } else {
 //            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
 //        }
-        VertecServerInfo.log.info("-------------------------------------------------------------------------------->");
+        VertecServerInfo.log.info("-------------------------------------------------------------------------------->\n\n");
 
-        return new ResponseEntity<>(orgID ,HttpStatus.OK);
+        return new ResponseEntity<>(orgID , HttpStatus.OK);
     }
 }
