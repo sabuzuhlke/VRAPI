@@ -5,21 +5,35 @@ import VRAPI.Util.QueryBuilder;
 import VRAPI.VertecServerInfo;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.RequestEntity;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
+import org.xml.sax.SAXException;
 
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.stream.Collectors.toList;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
-public class Authenticator extends Controller {
+public class Authenticator {
+    private URI vertecURI;
 
     public Authenticator() throws ParserConfigurationException {
-        super();
+        vertecURI = URI.create("http://" + VertecServerInfo.VERTEC_SERVER_HOST + ":" + VertecServerInfo.VERTEC_SERVER_PORT + "/xml");
     }
 
     /**
@@ -82,5 +96,31 @@ public class Authenticator extends Controller {
         return queryResponses.getLength() == 1 && queryResponses.item(0).getNodeType() == ELEMENT_NODE
                 ? Optional.of((Element) queryResponses.item(0))
                 : Optional.empty();
+    }
+
+    Document responseFor(RequestEntity<String> req) throws HttpInternalServerError {
+        RestTemplate rest = new RestTemplate();
+        try {
+            DocumentBuilder documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
+            try {
+                final ResponseEntity<String> res = rest.exchange(req, String.class);
+                return documentBuilder.parse(new ByteArrayInputStream(res.getBody().getBytes(UTF_8)));
+            } catch (SAXException | IOException e) {
+                throw new HttpInternalServerError(e);
+            }
+        } catch (ParserConfigurationException e) {
+            e.printStackTrace();
+            throw new HttpInternalServerError("OOOOOOOOOH NOOOOH");
+
+        }
+    }
+    static Stream<String> asStream(NodeList nodeList) {
+        return IntStream.range(0, nodeList.getLength())
+                .mapToObj(nodeList::item)
+                .map(Node::getTextContent);
+    }
+
+    static public List<Long> asIdList(NodeList nodeList) {
+        return asStream(nodeList).map(Long::parseLong).collect(toList());
     }
 }

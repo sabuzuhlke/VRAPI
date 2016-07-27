@@ -50,7 +50,7 @@ public class ActivityController extends Controller {
           VertecServerInfo.log.info("---------- Organisation with id: " + orgID + " does not exist ----------------->");
           throw new HttpNotFoundException("Organisation with id: " + orgID + " does not exist");
       }
-      //Get Activity first -- This and following (org) are needed to provide legible logging of what would happen
+      //Get Activity first
       Activity activity  = callVertec(queryBuilder.getActivities(singletonList(id))
               , VRAPI.XMLClasses.ContainerActivity.Envelope.class)
               .getBody().getQueryResponse().getActivities().get(0); //TODO see whether refactor is possible
