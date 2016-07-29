@@ -4,6 +4,7 @@ import VRAPI.Entities.Activity;
 import VRAPI.Entities.Contact;
 import VRAPI.Entities.Organisation;
 import VRAPI.Entities.OrganisationList;
+import VRAPI.Exceptions.HttpInternalServerError;
 import VRAPI.Exceptions.HttpNotFoundException;
 import VRAPI.JSONClasses.JSONContainerProject.JSONPhase;
 import VRAPI.JSONClasses.JSONContainerProject.JSONProject;
@@ -24,8 +25,13 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 import javax.xml.parsers.ParserConfigurationException;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.util.*;
 
 import static java.util.stream.Collectors.toList;
@@ -93,7 +99,7 @@ public class OrganisationController extends Controller {
     })
     @RequestMapping(value = "/organisation/{mergingId}/mergeInto/{survivingId}", method = RequestMethod.GET) //TODO: write test for this function
     public ResponseEntity<String> mergeOrganisationsEndpoint(@PathVariable Long mergingId, @PathVariable Long survivingId)
-            throws ParserConfigurationException {
+            throws ParserConfigurationException, IOException {
 
         queryBuilder = AuthenticateThenReturnQueryBuilder();
 
@@ -127,6 +133,7 @@ public class OrganisationController extends Controller {
 
 
     private List<Contact> getDetailedContacts(List<Long> contactIdsForOrg) {
+        if(contactIdsForOrg.isEmpty()) return new ArrayList<>();
         return getContacts(contactIdsForOrg).stream()
                 .map(this::asContact)
                 .collect(toList());
@@ -142,7 +149,7 @@ public class OrganisationController extends Controller {
     private List<VRAPI.XMLClasses.ContainerDetailedContact.Contact> getContacts(List<Long> contactIdsForOrg) {
         //TODO: add support for recieving multiple contact details for contact
         return callVertec(
-                queryBuilder.getContactDetails(contactIdsForOrg),
+                queryBuilder.getDetailedContact(contactIdsForOrg),
                 VRAPI.XMLClasses.ContainerDetailedContact.Envelope.class).getBody().getQueryResponse().getContactList();
     }
 
@@ -167,6 +174,7 @@ public class OrganisationController extends Controller {
 
 
     private List<JSONProject> getDetailedProjects(List<Long> projectIdsForOrg) {
+        if(projectIdsForOrg.isEmpty()) return new ArrayList<>();
         return getProjects(projectIdsForOrg).stream()
                 .map(this::asJSONProject)
                 .collect(toList());
@@ -233,6 +241,7 @@ public class OrganisationController extends Controller {
 
 
     private List<Activity> getActivityDetails(List<Long> activityIdsForOrg) {
+        if(activityIdsForOrg.isEmpty()) return new ArrayList<>();
         activityTypeMap = StaticMaps.INSTANCE.getActivityTypeMap();
         return getActivities(activityIdsForOrg).stream()
                 .map(this::getJsonActivity).collect(toList());
@@ -483,21 +492,26 @@ public class OrganisationController extends Controller {
         }
         String putQuery = queryBuilder.setOrganisationActive(active, id);
         //send put request to vertec
-        VertecServerInfo.log.info("\n\n------ Would set Organisation: " + id + "-s active field to " + active + "------>\n\n");
-//        Document res = responseFor(new RequestEntity<>(putQuery, HttpMethod.POST,vertecURI));
-//
-//        if (getTextField(res).equals("Updated 1 Objects")) {
-//            return new ResponseEntity<>(id,HttpStatus.OK);
-//        } else {
-//            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
-//        }
-//        //if we receive "updated 1 object" then we were successful, else throw some error
 
-        return new ResponseEntity<>(id,HttpStatus.OK);
+        Document res = responseFor(new RequestEntity<>(putQuery, HttpMethod.POST,vertecURI));
+
+        if (getTextField(res).equals("Updated 1 Objects")) {
+            VertecServerInfo.log.info("------ Set Organisation: " + id + "-s active field to " + active + "------>\n\n");
+            return new ResponseEntity<>(id,HttpStatus.OK);
+        } else {
+            VertecServerInfo.log.info("------ Failed to: " + id + "-s active field to " + active + " , Unknown response from vertec------>\n\n");
+            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
+        }
+        //if we receive "updated 1 object" then we were successful, else throw some error
+
     }
 
-    public ResponseEntity<String> mergeOrganisations(Long mergingId, Long survivingId) {
+    public ResponseEntity<String> mergeOrganisations(Long mergingId, Long survivingId) throws IOException {
         VertecServerInfo.log.info("=============================== START MERGE FOR ID: " + mergingId + " INTO ID: " + survivingId + "===============================");
+
+        File mergedIds = new File("mergedOrgs");
+        PrintWriter out = new PrintWriter(new FileWriter(mergedIds,true));
+
         //Get Names of organisations from vertec for logging
         String mergingQuery = queryBuilder.getProjectsForOrganisation(mergingId);
         String survivingQuery = queryBuilder.getProjectsForOrganisation(survivingId);
@@ -523,7 +537,7 @@ public class OrganisationController extends Controller {
         VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING PROJECTS =========================");
 
         projectRes.getBody().getProjects().forEach(project -> {
-            VertecServerInfo.log.info("Updating Project name: " + project.getTitle() + ", Code: " + project.getCode() + " to be linked to Organisation ID: " + mergingId);
+            VertecServerInfo.log.info("Updating Project name: " + project.getTitle() + ", Code: " + project.getCode() + " to be linked to Organisation ID: " + survivingId);
 
             //PUT Project
             projectController.setOrgLink(project.getV_id(),survivingId); //ONLY PRODUCES A LOG ATM
@@ -532,7 +546,7 @@ public class OrganisationController extends Controller {
         VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING ACTIVITIES =========================");
 
         activityRes.getBody().getActivitiesForOrganisation().forEach(activity -> {
-            VertecServerInfo.log.info("Updating Activity name: " + activity.getSubject() + ", Type: " + activity.getvType() + " , id " + activity.getVertecId() + " on: " + activity.getDoneDate() + activity.getDueDate() + " to be linked to Organisation ID: " + mergingId);
+            VertecServerInfo.log.info("Updating Activity name: " + activity.getSubject() + ", Type: " + activity.getvType() + " , id " + activity.getVertecId() + " on: " + activity.getDoneDate() + activity.getDueDate() + " to be linked to Organisation ID: " + survivingId);
             //PUT Activity
             activityController.setOrgLink(activity.getVertecId(), survivingId); //ONLY PRODUCES A LOG ATM
         });
@@ -540,11 +554,15 @@ public class OrganisationController extends Controller {
         VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING CONTACTS =========================");
 
         contactRes.getBody().getContacts().forEach(contact -> {
-            VertecServerInfo.log.info("Updating Contact name: " + contact.getFirstName() + " " + contact.getSurname() + " Email: " + (contact.getEmails().size() > 0 ? contact.getEmails().get(0).getValue() : "null") + " to be linked to Organisation ID: " + mergingId);
+            VertecServerInfo.log.info("Updating Contact name: " + contact.getFirstName() + " " + contact.getSurname() + " Email: " + (contact.getEmails().size() > 0 ? contact.getEmails().get(0).getValue() : "null") + " to be linked to Organisation ID: " + survivingId);
             //PUT contact
             contactController.setOrgLink(contact.getVertecId(), survivingId); //ONLY PRODUCES A LOG ATM
 
         });
+
+        out.write(mergingId + "," + survivingId + "\n");
+
+        out.close();
 
         //PUT org to inactive
         setActiveField(mergingId,false); //ONLY PRODUCES A LOG ATM
@@ -562,7 +580,8 @@ public class OrganisationController extends Controller {
      * @return
      */
     public String getNameForOrganisationDocument(Document response) {
-        return response.getElementsByTagName("name").item(0).getTextContent();
+        Node node =  response.getElementsByTagName("name").item(0);
+        return node == null ? "" : node.getTextContent();
     }
 
     private List<Organisation> createOrganisationList(List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> organisations) {

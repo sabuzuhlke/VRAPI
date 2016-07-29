@@ -1,5 +1,6 @@
 package com.example;
 
+import VRAPI.Keys.TestVertecKeys;
 import VRAPI.MyAccessCredentials;
 import org.junit.Before;
 import org.springframework.http.HttpMethod;
@@ -11,6 +12,8 @@ import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 
 import java.net.URI;
+
+import static VRAPI.Keys.TestVertecKeys.*;
 
 class ControllerTests {
 
@@ -32,8 +35,8 @@ class ControllerTests {
     @Before
     public void setUp() {
         MyAccessCredentials mac = new MyAccessCredentials();
-        this.username = mac.getUserName();
-        this.password = mac.getPass();
+        this.username = TestVertecKeys.usr;//mac.getUserName();
+        this.password = TestVertecKeys.pwd;//mac.getPass();
         this.rt = new RestTemplate();
     }
 

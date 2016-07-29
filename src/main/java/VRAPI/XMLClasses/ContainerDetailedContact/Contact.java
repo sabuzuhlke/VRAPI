@@ -20,6 +20,7 @@ public class Contact {
     private PersonResponsible personResponsible;
     private Boolean active;
     private String position;
+    private KommList kommMittel;
 
 
     private String creationTime;
@@ -134,6 +135,15 @@ public class Contact {
 
     public void setPosition(String position) {
         this.position = position;
+    }
+
+    @XmlElement(name = "kommMittel")
+    public KommList getKommMittel() {
+        return kommMittel;
+    }
+
+    public void setKommMittel(KommList kommMittel) {
+        this.kommMittel = kommMittel;
     }
 
     @Override

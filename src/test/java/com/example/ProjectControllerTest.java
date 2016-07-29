@@ -38,13 +38,13 @@ public class ProjectControllerTest extends ControllerTests {
         Long res = putToVertec(uri,Long.class).getBody();
 
         project =  getFromVertec(uri1, JSONProject.class).getBody();
-        //assertEquals("OrganisationLink did not get set",TESTVertecOrganisation1, project.project.getClientRef()) //assert function works
+        assertEquals("OrganisationLink did not get set",TESTVertecOrganisation1, project.getClientRef()); //assert function works
 
         uri = baseURI + "/project/" + projId + "/setOrganisationLink/" + orgId; //re-point to original organisation, to conserver state of project
         res = putToVertec(uri,Long.class).getBody();
 
         project =  getFromVertec(uri1, JSONProject.class).getBody();
-        //assertEquals("OrganisationLink did not get set back to original value",orgId, project.project.getClientRef()) //assert that organisation has been set back to its original state
+        assertEquals("OrganisationLink did not get set back to original value",orgId, project.getClientRef()); //assert that organisation has been set back to its original state
 
     }
 

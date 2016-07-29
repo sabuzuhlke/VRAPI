@@ -1,6 +1,7 @@
 package VRAPI.ResourceControllers;
 
 
+import VRAPI.Entities.ContactDetails;
 import VRAPI.Exceptions.HttpInternalServerError;
 import VRAPI.Exceptions.HttpNotFoundException;
 import VRAPI.Util.QueryBuilder;
@@ -8,7 +9,6 @@ import VRAPI.VertecServerInfo;
 import VRAPI.XMLClasses.ContainerDetailedContact.Contact;
 import VRAPI.XMLClasses.ContainerDetailedContact.Envelope;
 import VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation;
-import VRAPI.XMLClasses.ContainerDetailedProjects.Project;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -21,8 +21,6 @@ import org.springframework.web.bind.annotation.*;
 import org.w3c.dom.Document;
 
 import javax.xml.parsers.ParserConfigurationException;
-import java.util.ArrayList;
-import java.util.List;
 
 import static java.util.Collections.singletonList;
 
@@ -66,7 +64,7 @@ public class ContactController extends Controller {
 //======================================================================================================================
 //======================================================================================================================
     public ResponseEntity<Long> setOrgLink(Long id, Long orgID) {
-        VertecServerInfo.log.info("\n\n--------------- Setting Organisation Link of Contact ---------------------------->");
+        VertecServerInfo.log.info("--------------- Setting Organisation Link of Contact ---------------------------->");
 
         if ( ! isIdOfType(id, "Kontakt")) {
             throw new HttpNotFoundException("Contact with id: " + id + " does not exist");
@@ -78,7 +76,7 @@ public class ContactController extends Controller {
         String xmlQuery = queryBuilder.setContactOrganisationLink(id, orgID);
 
         //Get contact first
-        Contact contact = callVertec(queryBuilder.getContactDetails(singletonList(id))
+        Contact contact = callVertec(queryBuilder.getDetailedContact(singletonList(id))
                 , Envelope.class)
                 .getBody().getQueryResponse().getContactList().get(0); //TODO see whether refactor is possible
 
@@ -102,18 +100,28 @@ public class ContactController extends Controller {
                         " to point to Organisation: " + organisation.getName() +"(v_id: " + organisation.getObjId() + ")!!");
             }
         }
+        Document res = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
 
-        VertecServerInfo.log.info("Would PUT now, However, PUT is disabled!! (uncomment in code)");
-//        Document res = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
-//
-//        if (getTextField(res).equals("Updated 1 Objects")) {
-//            return new ResponseEntity<>(orgID ,HttpStatus.OK);
-//
-//        } else {
-//            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
-//        }
-        VertecServerInfo.log.info("-------------------------------------------------------------------------------->\n\n");
+        if (getTextField(res).equals("Updated 1 Objects")) {
 
-        return new ResponseEntity<>(orgID , HttpStatus.OK);
+            VertecServerInfo.log.info("Contact now works at to Organisation: " + orgID);
+            VertecServerInfo.log.info("-------------------------------------------------------------------------------->\n\n");
+            return new ResponseEntity<>(orgID ,HttpStatus.OK);
+
+        } else {
+            VertecServerInfo.log.info("Failed to make contact change Organisation, Unknown response from Vertec" );
+            VertecServerInfo.log.info("-------------------------------------------------------------------------------->\n\n");
+            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
+        }
+
+    }
+
+    public ContactDetails getContactDetailsForContact(Long contactId) {
+        ContactDetails contactDetails = new ContactDetails();
+
+        String query = queryBuilder.getContactDetailsForContact(contactId);
+
+
+        return null;
     }
 }

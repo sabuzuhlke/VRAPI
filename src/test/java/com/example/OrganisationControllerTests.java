@@ -4,6 +4,7 @@ import VRAPI.Application;
 import VRAPI.Entities.Activity;
 import VRAPI.Entities.Organisation;
 import VRAPI.Entities.OrganisationList;
+import VRAPI.JSONClasses.JSONContainerOrganisation.JSONOrganisation;
 import VRAPI.JSONClasses.JSONContainerProject.JSONPhase;
 import VRAPI.MergeClasses.ActivitiesForOrganisation;
 import VRAPI.MergeClasses.ProjectsForOrganisation;
@@ -23,8 +24,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,18 +36,167 @@ import static org.junit.Assert.assertTrue;
 @SpringApplicationConfiguration(Application.class)
 @WebIntegrationTest
 public class OrganisationControllerTests extends ControllerTests {
-    
 
-    @Test @Ignore("Unnecessary ATM")
-    public void callingMergeOnTwoIdsWillShowAGoodLog() {
+    /**
+     * Below test showed that there is only one organisation that has a parent organisation, and one that has a child
+     * Hence It is believed that the best solution is to solve the parentOrganisations by hand.
+     *
+     * However as it turns out both of these have been merged with their respective child/parent resulting in interesting organisational relationships
+     */
+    @Test
+    public void doWeNeedToRepointParentOrganisationsAfterMerge(){
+        String line;
+        Long mergingID;
+        Long survivingID;
+        List<Long> mergedIds = new ArrayList<>();
+        int counter = 0;
+        try{
 
-        Long id1 = 711840L; //Vodafone
-        Long id2 = 10867689L; //Vodafone Group Services Limited
+            File file = new File("OrganisationsThatHaveBeenMergedOnVertec.txt");
 
-        String uri = baseURI + "/organisation/" + id1 + "/mergeInto/" + id2;
-        ResponseEntity<String> res = getFromVertec(uri, String.class);
+            FileReader reader = new FileReader(file.getAbsolutePath());
+            BufferedReader breader = new BufferedReader(reader);
+            while((line = breader.readLine()) != null){
+                String[] parts = line.split(",");
+                mergingID = Long.parseLong(parts[0]);
+                survivingID = Long.parseLong(parts[1]);
+                mergedIds.add(mergingID);
 
-        System.out.println(res.getBody());
+            }
+            for(Long id : mergedIds){
+                String uri = baseURI + "/org/" + id;
+                JSONOrganisation org = getFromVertec(uri,JSONOrganisation.class).getBody();
+                if(!org.getChildOrganisationList().isEmpty() || org.getParentOrganisationId() != null){
+                    System.out.println("parent: " + org.getParentOrganisationId());
+                    System.out.println("child: " + org.getChildOrganisationList());
+                    System.out.println("Org: " + org.getName() + "(v_id: " + org.getObjid() + ")");
+
+                    counter++;
+                }
+            }
+            System.out.println("Total nr of merged away orgs with relatives: " + counter);
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+    }
+
+    @Test @Ignore("Already ran, organisations merged")
+    public void mergeOrganisations(){
+        List<List<Long>> idsList = new ArrayList<>();
+        List<Long> mergingIds = new ArrayList<>(); //<mergingId, survivingId>
+        List<Long> survivingIds = new ArrayList<>(); //<mergingId, survivingId>
+
+        //Waveguide -->2
+        mergingIds.add(19440239L);
+        survivingIds.add(20067398L);
+
+        //Goldman Sachs -->3
+        mergingIds.add(1807900L);
+        survivingIds.add(710854L);
+
+        //Elekta -->5
+        mergingIds.add(16374120L);
+        survivingIds.add(9050265L);
+        //Bank of England -->12
+        mergingIds.add(1878532L);
+        survivingIds.add(710744L);
+        //Nordea -->14
+        mergingIds.add(692179L);
+        survivingIds.add(13109201L);
+        //HSBC Bank PLC -- 28
+        mergingIds.add(15315614L);
+        survivingIds.add(710229L);
+
+        //Lein applied diagnostics -->16
+        mergingIds.add(20066543L);
+        survivingIds.add(20015906L);
+
+        //Mitsubishi -->17
+        mergingIds.add(709719L);
+        survivingIds.add(710917L);
+        //Travelex -->18
+        mergingIds.add(1808837L);
+        survivingIds.add(3613025L);
+        //zedsen -->19
+        mergingIds.add(25361568L);
+        survivingIds.add(24436501L);
+        //RaymondJames ->20
+        mergingIds.add(20019540L);
+        survivingIds.add(20311840L);
+        //Elektron -->22
+        mergingIds.add(19440192L);
+        survivingIds.add(12776071L);
+        //Glaxo Smith Kline -->23
+        mergingIds.add(25881446L);
+        survivingIds.add(17430668L);
+        //UCL -->24
+        mergingIds.add(3604761L);
+        survivingIds.add(711204L);
+        //Safeguard -->25
+        mergingIds.add(710501L);
+        survivingIds.add(2721808L);
+        //Francis Crick Institute-->26
+        mergingIds.add(17488058L);
+        survivingIds.add(24075580L);
+        //Elekta 2 -->27
+        mergingIds.add(20746251L);
+        survivingIds.add(9050265L);
+        //Scentrics -->29
+        mergingIds.add(3648896L);
+        survivingIds.add(4819987L);
+        //Imperial --> 30
+        mergingIds.add(1808803L);
+        survivingIds.add(3585109L);
+        //M&G -->33
+        mergingIds.add(1369007L);
+        survivingIds.add(17765068L);
+        //World programming Company --> 34
+        mergingIds.add(6570392L);
+        survivingIds.add(6231419L);
+        //British Airways --> 35
+        mergingIds.add(710006L);
+        survivingIds.add(710401L);
+        //Deloitte--> 36
+        mergingIds.add(3604552L);
+        survivingIds.add(3586027L);
+        //Morgan Stanley--> 37
+        mergingIds.add(711029L);
+        survivingIds.add(709877L);
+
+        assertEquals(mergingIds.size(),survivingIds.size());
+
+        for(int i = 0; i < mergingIds.size(); i++){
+            String uri = baseURI + "/organisation/" + mergingIds.get(i) + "/mergeInto/" + survivingIds.get(i);
+            System.out.print(uri);
+            String res = getFromVertec(uri,String.class).getBody();
+            System.out.println("============= " + res + " ===================");
+        }
+
+    }
+
+    @Test @Ignore("Already ran, all mentioned ids deleted")
+    public void deleteOrganisationsFromVertecBasedOnMerger(){
+        List<Long> idsToDel = new ArrayList<>();
+        idsToDel.add(9469332L);
+        idsToDel.add(26062339L);
+        idsToDel.add(20810990L);
+        idsToDel.add(710236L);
+        idsToDel.add(20729447L);
+        idsToDel.add(12185089L);
+        idsToDel.add(710253L);
+        idsToDel.add(22639820L);
+
+        for(Long id : idsToDel){
+            String uri = baseURI + "/organisation/" + id;
+
+            Long recId = deleteFromVertec(uri, Long.class).getBody();
+
+            assertEquals("Could not deactivate Organisation", id, recId);
+        }
+
 
     }
 
@@ -64,7 +213,7 @@ public class OrganisationControllerTests extends ControllerTests {
 
         Organisation org = getFromVertec(uri,Organisation.class).getBody();
 
-        //assertTrue("Organisation did not get set to active",org.getActive()); TODO uncomment this once produced logs have been accepted
+        assertTrue("Organisation did not get set to active",org.getActive());
 
         id = 0L;
 
@@ -74,7 +223,7 @@ public class OrganisationControllerTests extends ControllerTests {
 
         org = getFromVertec(uri,Organisation.class).getBody();
 
-       // assertFalse("Organisation did not get set to inactive",org.getActive());TODO uncomment this once produced logs have been accepted
+       assertFalse("Organisation did not get set to inactive",org.getActive());
 
     }
 
@@ -105,6 +254,7 @@ public class OrganisationControllerTests extends ControllerTests {
         } catch (HttpStatusCodeException e){
             assertEquals(e.getStatusCode(), HttpStatus.NOT_FOUND);
         }
+
 
     }
 

@@ -752,7 +752,7 @@ public class ImportController {
 
     public List<VRAPI.XMLClasses.ContainerDetailedContact.Contact> getDetailedContacts(List<Long> ids) {
     try {
-        return callVertec(queryBuilder.getContactDetails(ids), VRAPI.XMLClasses.ContainerDetailedContact.Envelope.class)
+        return callVertec(queryBuilder.getDetailedContact(ids), VRAPI.XMLClasses.ContainerDetailedContact.Envelope.class)
                 .getBody()
                 .getQueryResponse()
                 .getContactList();

@@ -179,7 +179,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    public String getContactDetails(List<Long> contactIds) {
+    public String getDetailedContact(List<Long> contactIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";
@@ -201,6 +201,7 @@ public class QueryBuilder {
                 "        <member>creationDateTime</member>\n" +
                 "        <member>aktiv</member>\n" +
                 "        <member>stellung</member>\n" +
+                "        <member>kommmittel</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +
@@ -610,7 +611,7 @@ public class QueryBuilder {
     public String setActivityOrgLink(Long activityID, Long orgID){
         String body =  "<Body>\n" +
                 "  <Update>\n" +
-                "     <Avtivitaet> \n" +
+                "     <Aktivitaet> \n" +
                 "       <objref>" + activityID + "</objref>\n" +
                 "       <adresseintrag>\n" +
                 "           <objref>" + orgID + "</objref>\n" +
@@ -621,5 +622,9 @@ public class QueryBuilder {
                 "</Envelope>";
 
         return header + body;
+    }
+
+    public String getContactDetailsForContact(Long contactId) {
+        return "";
     }
 }

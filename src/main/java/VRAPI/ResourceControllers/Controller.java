@@ -110,7 +110,7 @@ public class Controller {
      */
     public List<Long> getObjrefsForOrganisationDocument(Document response) {
         NodeList activityObjrefs =  response.getElementsByTagName("objref");
-        return asIdList(activityObjrefs);
+        return activityObjrefs == null ? new ArrayList<>() : asIdList(activityObjrefs);
     }
 
     static public List<Long> asIdList(NodeList nodeList) {

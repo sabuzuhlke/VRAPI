@@ -34,13 +34,13 @@ public class ActivityControllerTest extends ControllerTests {
         Long res = putToVertec(uri,Long.class).getBody();
 
         activity = getFromVertec(uri1,JSONActivitiesResponse.class).getBody().getActivities().get(0);
-        //assertEquals("Did not set organisationLink", TESTVertecOrganisation1, activity.getCustomer_link()); //assert function works
+        assertEquals("Did not set organisationLink", TESTVertecOrganisation1, activity.getCustomer_link()); //assert function works
 
         uri = baseURI + "/activity/" + activityID + "/setOrganisationLink/" + orgId; //re-point to original organisation, to conserver state of project
         res = putToVertec(uri,Long.class).getBody();
 
         activity = getFromVertec(uri1,JSONActivitiesResponse.class).getBody().getActivities().get(0);
-        //assertEquals("Did not set organisationLink back to original", orgId, activity.getCustomer_link()); //assert organisationLink set back to original -- so as to kkep sate of activity unmodified
+        assertEquals("Did not set organisationLink back to original", orgId, activity.getCustomer_link()); //assert organisationLink set back to original -- so as to kkep sate of activity unmodified
 
     }
     @Test

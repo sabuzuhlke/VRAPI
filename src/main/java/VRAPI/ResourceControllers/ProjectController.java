@@ -1,5 +1,6 @@
 package VRAPI.ResourceControllers;
 
+import VRAPI.Exceptions.HttpInternalServerError;
 import VRAPI.Exceptions.HttpNotFoundException;
 import VRAPI.Util.QueryBuilder;
 import VRAPI.VertecServerInfo;
@@ -64,13 +65,13 @@ public class ProjectController extends Controller {
 //======================================================================================================================
 
     ResponseEntity<Long> setOrgLink(Long id, Long orgID) {
-        VertecServerInfo.log.info("\n\n--------------- Setting Organisation Link of Project ---------------------------->");
+        VertecServerInfo.log.info("--------------- Setting Organisation Link of Project ---------------------------->");
         if ( ! isIdOfType(id, "Projekt")) {
-            VertecServerInfo.log.info("\n\n--------------- Project with id: " + id + " does not exist ------------------>");
+            VertecServerInfo.log.info("--------------- Project with id: " + id + " does not exist ------------------>");
             throw new HttpNotFoundException("Project with id: " + id + " does not exist");
         }
         if ( ! isIdOfType(orgID, "Firma")) {
-            VertecServerInfo.log.info("\n\n---------- Organisation with id: " + orgID + " does not exist ----------------->");
+            VertecServerInfo.log.info("---------- Organisation with id: " + orgID + " does not exist ----------------->");
             throw new HttpNotFoundException("Organisation with id: " + orgID + " does not exist");
         }
 
@@ -114,21 +115,20 @@ public class ProjectController extends Controller {
 
 
         String putQuery = queryBuilder.setProjectOrgLink(id,orgID);
-        //TODO call function to PUT to Vertec here
-        VertecServerInfo.log.info("Would PUT now, However, PUT is disabled!! (uncomment in code)");
 
-//        Document res = responseFor(new RequestEntity<>(putQuery, HttpMethod.POST, vertecURI));
-//
-//        if (getTextField(res).equals("Updated 1 Objects")) {
-//            return new ResponseEntity<>(orgID , HttpStatus.OK);
-//
-//        } else {
-//            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
-//        }
+        Document res = responseFor(new RequestEntity<>(putQuery, HttpMethod.POST, vertecURI));
 
-        VertecServerInfo.log.info("-------------------------------------------------------------------------------->\n\n");
+        if (getTextField(res).equals("Updated 1 Objects")) {
 
-        return new ResponseEntity<>(orgID, HttpStatus.OK);
+            VertecServerInfo.log.info("Project now linked to Organisation: " + orgID);
+            VertecServerInfo.log.info("-------------------------------------------------------------------------------->\n\n");
+            return new ResponseEntity<>(orgID , HttpStatus.OK);
+
+        } else {
+            VertecServerInfo.log.info("Could not re-link project, Unknown response from Vertec");
+            VertecServerInfo.log.info("-------------------------------------------------------------------------------->\n\n");
+            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
+        }
     }
 
 }
