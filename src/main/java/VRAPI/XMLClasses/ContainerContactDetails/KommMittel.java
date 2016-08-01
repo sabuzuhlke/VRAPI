@@ -1,5 +1,7 @@
 package VRAPI.XMLClasses.ContainerContactDetails;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.xml.bind.annotation.XmlAnyElement;
 import javax.xml.bind.annotation.XmlElement;
 
@@ -7,24 +9,15 @@ import javax.xml.bind.annotation.XmlElement;
  * Created by gebo on 28/07/2016.
  */
 public class KommMittel {
-    @XmlElement(name = "objid")
     private Long objid;
-
-    @XmlElement(name = "eintrag")
-    private Objref eintrag;
-
-    @XmlElement(name = "priority")
     private Boolean priority;
-
-    @XmlElement(name = "typ")
     private Objref typ;
-
-    @XmlElement(name = "zieladresse")
     private String value;
 
     public KommMittel() {
     }
 
+    @XmlElement(name = "objid")
     public Long getObjid() {
         return objid;
     }
@@ -33,14 +26,7 @@ public class KommMittel {
         this.objid = objid;
     }
 
-    public Objref getEintrag() {
-        return eintrag;
-    }
-
-    public void setEintrag(Objref eintrag) {
-        this.eintrag = eintrag;
-    }
-
+    @XmlElement(name = "priority")
     public Boolean getPriority() {
         return priority;
     }
@@ -49,6 +35,7 @@ public class KommMittel {
         this.priority = priority;
     }
 
+    @XmlElement(name = "typ")
     public Objref getTyp() {
         return typ;
     }
@@ -57,11 +44,26 @@ public class KommMittel {
         this.typ = typ;
     }
 
+    @XmlElement(name = "zieladresse")
     public String getValue() {
         return value;
     }
 
     public void setValue(String value) {
         this.value = value;
+    }
+
+    @Override
+    public String toString(){
+        String retStr = null;
+        ObjectMapper m = new ObjectMapper();
+        try{
+
+            retStr = m.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+        }
+        catch(Exception e){
+            System.out.println("Could not convert XML Envelope to JSON: " + e.toString());
+        }
+        return retStr;
     }
 }

@@ -9,12 +9,10 @@ import java.util.List;
 public class ContactDetails {
     private List<ContactDetail> emails;
     private List<ContactDetail> phones;
-    private List<ContactDetail> mobiles;
 
     public ContactDetails(){
         this.emails = new ArrayList<>();
         this.phones = new ArrayList<>();
-        this.mobiles = new ArrayList<>();
     }
 
     public List<ContactDetail> getEmails() {
@@ -33,11 +31,4 @@ public class ContactDetails {
         this.phones = phones;
     }
 
-    public List<ContactDetail> getMobiles() {
-        return mobiles;
-    }
-
-    public void setMobiles(List<ContactDetail> mobiles) {
-        this.mobiles = mobiles;
-    }
 }

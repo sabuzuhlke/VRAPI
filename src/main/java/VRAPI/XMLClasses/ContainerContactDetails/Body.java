@@ -1,7 +1,7 @@
 package VRAPI.XMLClasses.ContainerContactDetails;
 
 
-import VRAPI.XMLClasses.ContainerActivity.QueryResponse;
+import VRAPI.XMLClasses.ContainerContactDetails.QueryResponse;
 
 import javax.xml.bind.annotation.XmlElement;
 
@@ -9,12 +9,12 @@ import javax.xml.bind.annotation.XmlElement;
  * Created by gebo on 28/07/2016.
  */
 public class Body {
-    @XmlElement(name = "QueryResponse")
     private QueryResponse queryResponse;
 
     public Body() {
     }
 
+    @XmlElement(name = "QueryResponse")
     public QueryResponse getQueryResponse() {
         return queryResponse;
     }

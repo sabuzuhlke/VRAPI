@@ -83,7 +83,7 @@ public class OrganisationControllerTests extends ControllerTests {
 
     }
 
-    @Test @Ignore("Already ran, organisations merged")
+    @Test //@Ignore("Already ran, organisations merged")
     public void mergeOrganisations(){
         List<List<Long>> idsList = new ArrayList<>();
         List<Long> mergingIds = new ArrayList<>(); //<mergingId, survivingId>

@@ -624,7 +624,24 @@ public class QueryBuilder {
         return header + body;
     }
 
-    public String getContactDetailsForContact(Long contactId) {
-        return "";
+    public String getContactMediumDetails(List<Long> kommMittelIds) {
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
+        for (Long id : kommMittelIds) {
+            bodyStart += "<objref>" + id + "</objref>\n";
+        }
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "           <member>priority</member>\n" +
+                "           <member>zieladresse</member>\n" +
+                "           <member>typ</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + bodyStart + bodyEnd;
     }
 }

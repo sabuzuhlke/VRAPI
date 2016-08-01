@@ -8,13 +8,13 @@ import java.util.List;
  * Created by gebo on 28/07/2016.
  */
 public class QueryResponse {
-    @XmlElement(name = "KommMittel")
     private List<KommMittel> contactDetails;
 
     public QueryResponse() {
         this.contactDetails = new ArrayList<>();
     }
 
+    @XmlElement(name = "KommMittel")
     public List<KommMittel> getContactDetails() {
         return contactDetails;
     }
