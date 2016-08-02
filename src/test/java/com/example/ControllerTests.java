@@ -12,6 +12,7 @@ import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 
 import java.net.URI;
+import java.util.List;
 
 import static VRAPI.Keys.TestVertecKeys.*;
 
@@ -68,5 +69,17 @@ class ControllerTests {
         return rt.exchange(
                 new RequestEntity<>(headers, HttpMethod.DELETE, URI.create(uri)),
                 responseType);
+    }
+
+    public String idsAsString(List<Long> ids) {
+        String idsAsString = "";
+        for(int i = 0; i < ids.size(); i++) {
+            if (i < ids.size() -1) {
+                idsAsString += ids.get(i) + ",";
+            } else {
+                idsAsString += ids.get(i);
+            }
+        }
+        return idsAsString;
     }
 }

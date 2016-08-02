@@ -1,14 +1,17 @@
 package VRAPI.ResourceControllers;
 
 
+import VRAPI.Entities.Contact;
 import VRAPI.Entities.ContactDetails;
+import VRAPI.Entities.ContactList;
 import VRAPI.Exceptions.HttpInternalServerError;
 import VRAPI.Exceptions.HttpNotFoundException;
 import VRAPI.Util.QueryBuilder;
+import VRAPI.Util.StaticMaps;
 import VRAPI.VertecServerInfo;
-import VRAPI.XMLClasses.ContainerDetailedContact.Contact;
 import VRAPI.XMLClasses.ContainerDetailedContact.Envelope;
 import VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation;
+import com.sun.corba.se.pept.transport.ContactInfoList;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -22,7 +25,12 @@ import org.w3c.dom.Document;
 
 import javax.xml.parsers.ParserConfigurationException;
 
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
 import static java.util.Collections.singletonList;
+import static java.util.stream.Collectors.toList;
 
 
 @RestController
@@ -35,7 +43,46 @@ public class ContactController extends Controller {
     public ContactController(QueryBuilder queryBuilder) {
         super(queryBuilder);
     }
+
   //======================================================================================================================//
+ // GET /contact                                                                                                         //
+//======================================================================================================================//
+  @ApiOperation(value = "Get a list of contacts", nickname = "Contact List")
+  @ApiImplicitParams( {
+          @ApiImplicitParam(name = "Authorization",
+                  value = "username:password",
+                  required = true,
+                  dataType = "string",
+                  paramType = "header")
+  })
+  @RequestMapping(value = "/contact/{ids}", method = RequestMethod.GET)
+  public ResponseEntity<ContactList> getContactListEndpoint(@PathVariable List<Long> ids) throws ParserConfigurationException {
+      queryBuilder = AuthenticateThenReturnQueryBuilder();
+
+      return getContactList(ids);
+  }
+
+    private ResponseEntity<ContactList> getContactList(List<Long> ids) {
+
+        VRAPI.XMLClasses.ContainerDetailedContact.Envelope contactEnvelope
+                = callVertec(queryBuilder.getDetailedContact(ids),
+                VRAPI.XMLClasses.ContainerDetailedContact.Envelope.class);
+
+        if (contactEnvelope.getBody().getQueryResponse() == null
+                || contactEnvelope.getBody().getQueryResponse().getContactList().size() != ids.size()) {
+            throw new HttpNotFoundException("Some or all of the ids requested are not contacts");
+        }
+
+        this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
+        ContactList res = new ContactList();
+        res.setContacts(contactEnvelope.getBody().getQueryResponse().getContactList().stream().map(super::asContact).collect(toList()));
+
+        return new ResponseEntity<>(res, HttpStatus.OK);
+
+    }
+
+
+    //======================================================================================================================//
  // PUT /contact                                                                                                         //
 //======================================================================================================================//
     /**
@@ -55,14 +102,9 @@ public class ContactController extends Controller {
 
         return setOrgLink(id, orgID);
     }
+
     //=======================================METHODS========================================================================
-//======================================================================================================================
-//======================================================================================================================
-//======================================================================================================================
-//======================================================================================================================
-//======================================================================================================================
-//======================================================================================================================
-//======================================================================================================================
+
     public ResponseEntity<Long> setOrgLink(Long id, Long orgID) {
         VertecServerInfo.log.info("--------------- Setting Organisation Link of Contact ---------------------------->");
 
@@ -76,7 +118,7 @@ public class ContactController extends Controller {
         String xmlQuery = queryBuilder.setContactOrganisationLink(id, orgID);
 
         //Get contact first
-        Contact contact = callVertec(queryBuilder.getDetailedContact(singletonList(id))
+        VRAPI.XMLClasses.ContainerDetailedContact.Contact contact = callVertec(queryBuilder.getDetailedContact(singletonList(id))
                 , Envelope.class)
                 .getBody().getQueryResponse().getContactList().get(0); //TODO see whether refactor is possible
 

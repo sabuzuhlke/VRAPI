@@ -378,16 +378,7 @@ public class OrganisationControllerTests extends ControllerTests {
         orgids.add(orgid1);
         orgids.add(orgid2);
 
-        String idsAsString = "";
-        for(int i = 0; i < orgids.size(); i++) {
-            if (i < orgids.size() -1) {
-                idsAsString += orgids.get(i) + ",";
-            } else {
-                idsAsString += orgids.get(i);
-            }
-        }
-
-        String uri =  baseURI + "/organisations/" + idsAsString;
+        String uri =  baseURI + "/organisations/" + idsAsString(orgids);
 
         OrganisationList organisationList = getFromVertec(uri, OrganisationList.class).getBody();
 

@@ -132,26 +132,7 @@ public class OrganisationController extends Controller {
 
 
 
-    private List<Contact> getDetailedContacts(List<Long> contactIdsForOrg) {
-        if(contactIdsForOrg.isEmpty()) return new ArrayList<>();
-        return getContacts(contactIdsForOrg).stream()
-                .map(this::asContact)
-                .collect(toList());
-    }
 
-    private Contact asContact(VRAPI.XMLClasses.ContainerDetailedContact.Contact contact) {
-        Contact c = new Contact(contact);
-        setOwnedOnVertecByForContact(c, contact);
-        //TODO: set followers for contact here?
-        return c;
-    }
-
-    private List<VRAPI.XMLClasses.ContainerDetailedContact.Contact> getContacts(List<Long> contactIdsForOrg) {
-        //TODO: add support for recieving multiple contact details for contact
-        return callVertec(
-                queryBuilder.getDetailedContact(contactIdsForOrg),
-                VRAPI.XMLClasses.ContainerDetailedContact.Envelope.class).getBody().getQueryResponse().getContactList();
-    }
 
 
     //---------------------------------------------------------------------------------------------------------------------- /{id}/projects
@@ -286,8 +267,6 @@ public class OrganisationController extends Controller {
 
     }
 
-
-
     private List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> getOrganisations(List<Long> ids) {
         try{
             return callVertec(queryBuilder.getOrganisationDetails(ids), VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class).getBody().getQueryResponse().getOrganisationList().stream()
@@ -339,7 +318,6 @@ public class OrganisationController extends Controller {
     public ResponseEntity<OrganisationList> getOrganisationListEndpoint(@PathVariable List<Long> ids)
             throws ParserConfigurationException {
         queryBuilder = AuthenticateThenReturnQueryBuilder();
-
 
         return getOrganisationList(ids);
     }
@@ -599,27 +577,4 @@ public class OrganisationController extends Controller {
         Long responsibleId = vo.getPersonResponsible().getObjref();
         o.setOwnedOnVertecBy(getOwnedOnVertecByStringForOwnerId(responsibleId));
     }
-
-    private void setOwnedOnVertecByForContact(Contact c, VRAPI.XMLClasses.ContainerDetailedContact.Contact vc) {
-        Long responsibleId = vc.getPersonResponsible().getObjref();
-        c.setOwnedOnVertecBy(getOwnedOnVertecByStringForOwnerId(responsibleId));
-    }
-
-    private String getOwnedOnVertecByStringForOwnerId(Long ownerId) {
-        Long supervisorId = supervisorIdMap.get(ownerId);
-        Long SALES_TEAM_IDENTIFIER = -5L; //members of the top sales team, including wolfgang have their 'supervisorId' set to -5 within the map;
-        if(ownerId == null) return "No Owner";
-
-        if(supervisorId == null || supervisorId == 0L) return "Not ZUK"; // might be wrong
-
-        if (supervisorId.longValue() == SALES_TEAM_IDENTIFIER) {
-            return "Sales Team";
-        } else {
-            return "ZUK Sub Team";
-        }
-    }
-
-
-
-
 }

@@ -1,5 +1,6 @@
 package VRAPI.ResourceControllers;
 
+import VRAPI.Entities.Contact;
 import VRAPI.Exceptions.HttpBadRequest;
 import VRAPI.Exceptions.HttpForbiddenException;
 import VRAPI.Exceptions.HttpInternalServerError;
@@ -30,6 +31,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -47,6 +49,8 @@ public class Controller {
     final URI vertecURI;
 
     QueryBuilder queryBuilder;
+
+    Map<Long, Long> supervisorIdMap;
 
     @Autowired
     public HttpServletRequest request;
@@ -176,4 +180,44 @@ public class Controller {
         }
     }
 
+    List<Contact> getDetailedContacts(List<Long> contactIdsForOrg) {
+        if(contactIdsForOrg.isEmpty()) return new ArrayList<>();
+        return getContacts(contactIdsForOrg).stream()
+                .map(this::asContact)
+                .collect(toList());
+    }
+
+    Contact asContact(VRAPI.XMLClasses.ContainerDetailedContact.Contact contact) {
+        Contact c = new Contact(contact);
+        setOwnedOnVertecByForContact(c, contact);
+        //TODO: set followers for contact here?
+        //TODO: get complete list of contact details here
+        return c;
+    }
+
+    public List<VRAPI.XMLClasses.ContainerDetailedContact.Contact> getContacts(List<Long> contactIdsForOrg) {
+        //TODO: add support for recieving multiple contact details for contact
+        return callVertec(
+                queryBuilder.getDetailedContact(contactIdsForOrg),
+                VRAPI.XMLClasses.ContainerDetailedContact.Envelope.class).getBody().getQueryResponse().getContactList();
+    }
+
+    private void setOwnedOnVertecByForContact(Contact c, VRAPI.XMLClasses.ContainerDetailedContact.Contact vc) {
+        Long responsibleId = vc.getPersonResponsible().getObjref();
+        c.setOwnedOnVertecBy(getOwnedOnVertecByStringForOwnerId(responsibleId));
+    }
+
+    String getOwnedOnVertecByStringForOwnerId(Long ownerId) {
+        Long supervisorId = supervisorIdMap.get(ownerId);
+        Long SALES_TEAM_IDENTIFIER = -5L; //members of the top sales team, including wolfgang have their 'supervisorId' set to -5 within the map;
+        if(ownerId == null) return "No Owner";
+
+        if(supervisorId == null || supervisorId == 0L) return "Not ZUK"; // might be wrong
+
+        if (supervisorId.longValue() == SALES_TEAM_IDENTIFIER) {
+            return "Sales Team";
+        } else {
+            return "ZUK Sub Team";
+        }
+    }
 }

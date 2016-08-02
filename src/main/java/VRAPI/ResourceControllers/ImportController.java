@@ -243,7 +243,7 @@ public class ImportController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
     })
-    @RequestMapping(value = "/contact/{id}", method = RequestMethod.GET, produces = "application/json")
+    @RequestMapping(value = "/oldcontact/{id}", method = RequestMethod.GET, produces = "application/json")
     public JSONContact getContactbyId(@PathVariable Long id) {
         List<Long> ids = new ArrayList<>();
         ids.add(id);
