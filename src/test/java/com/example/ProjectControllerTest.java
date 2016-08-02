@@ -23,11 +23,11 @@ public class ProjectControllerTest extends ControllerTests {
 
 
     @Test
-    public void canUpdateOrgLinkOfProject(){
+    public void canUpdateOrgLinkOfProject() {
         Long projId = 1263652L; //Vodafone IT support -- acutally exists so careful
 
         String uri1 = baseURI + "/projects/" + projId;
-        JSONProject project =  getFromVertec(uri1, JSONProject.class).getBody();
+        JSONProject project = getFromVertec(uri1, JSONProject.class).getBody();
 
         assertEquals(projId, project.getV_id());
 
@@ -35,39 +35,40 @@ public class ProjectControllerTest extends ControllerTests {
         System.out.println("Clientref of project: " + orgId);
 
         String uri = baseURI + "/project/" + projId + "/setOrganisationLink/" + TESTVertecOrganisation1; // re-point to test organisation
-        Long res = putToVertec(uri,Long.class).getBody();
+        Long res = putToVertec(uri, Long.class).getBody();
 
-        project =  getFromVertec(uri1, JSONProject.class).getBody();
-        assertEquals("OrganisationLink did not get set",TESTVertecOrganisation1, project.getClientRef()); //assert function works
+        project = getFromVertec(uri1, JSONProject.class).getBody();
+        assertEquals("OrganisationLink did not get set", TESTVertecOrganisation1, project.getClientRef()); //assert function works
 
         uri = baseURI + "/project/" + projId + "/setOrganisationLink/" + orgId; //re-point to original organisation, to conserver state of project
-        res = putToVertec(uri,Long.class).getBody();
+        res = putToVertec(uri, Long.class).getBody();
 
-        project =  getFromVertec(uri1, JSONProject.class).getBody();
-        assertEquals("OrganisationLink did not get set back to original value",orgId, project.getClientRef()); //assert that organisation has been set back to its original state
+        project = getFromVertec(uri1, JSONProject.class).getBody();
+        assertEquals("OrganisationLink did not get set back to original value", orgId, project.getClientRef()); //assert that organisation has been set back to its original state
 
     }
 
     @Test
-    public void doesNotSetOrganisationLinkOfNonProject(){
-        try{
+    public void doesNotSetOrganisationLinkOfNonProject() {
+        try {
             String uri = baseURI + "/project/" + TESTRandomID + "/setOrganisationLink/" + TESTVertecOrganisation1;
-            Long orgId = putToVertec(uri,Long.class).getBody();
+            Long orgId = putToVertec(uri, Long.class).getBody();
             TestCase.assertTrue("No not found exception thrown", false);
-        } catch (HttpClientErrorException exception){
+        } catch (HttpClientErrorException exception) {
             TestCase.assertEquals(exception.getStatusCode(), HttpStatus.NOT_FOUND);
         }
     }
 
     @Test
-    public void doesNotSetOrganisationLinkToNonOrganisation(){
+    public void doesNotSetOrganisationLinkToNonOrganisation() {
         Long projId = 1263652L;
-        try{
+        try {
             String uri = baseURI + "/project/" + projId + "/setOrganisationLink/" + TESTRandomID;
-            Long orgId = putToVertec(uri,Long.class).getBody();
+            Long orgId = putToVertec(uri, Long.class).getBody();
             TestCase.assertTrue("No not found exception thrown", false);
-        } catch (HttpClientErrorException exception){
+        } catch (HttpClientErrorException exception) {
             TestCase.assertEquals(exception.getStatusCode(), HttpStatus.NOT_FOUND);
         }
     }
+
 }

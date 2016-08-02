@@ -1,21 +1,20 @@
 package VRAPI.MergeClasses;
 
 import VRAPI.Entities.Activity;
-import VRAPI.JSONClasses.JSONContainerActivities.JSONActivity;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
-public class ActivitiesForOrganisation {
+public class ActivitiesForAddressEntry {
 
     private Long organisationId;
     private String name;
-    private List<Activity> activitiesForOrganisation;
+    private List<Activity> activities;
 
-    public ActivitiesForOrganisation() {
+    public ActivitiesForAddressEntry() {
     }
 
-    public ActivitiesForOrganisation(Long organisationId, String name) {
+    public ActivitiesForAddressEntry(Long organisationId, String name) {
         this.organisationId = organisationId;
         this.name = name;
     }
@@ -36,12 +35,12 @@ public class ActivitiesForOrganisation {
         this.organisationId = organisationId;
     }
 
-    public List<Activity> getActivitiesForOrganisation() {
-        return activitiesForOrganisation;
+    public List<Activity> getActivities() {
+        return activities;
     }
 
-    public void setActivitiesForOrganisation(List<Activity> activitiesForOrganisation) {
-        this.activitiesForOrganisation = activitiesForOrganisation;
+    public void setActivities(List<Activity> activities) {
+        this.activities = activities;
     }
 
     public String toJSONString(){

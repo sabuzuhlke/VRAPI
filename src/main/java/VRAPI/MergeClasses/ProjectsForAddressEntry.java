@@ -5,16 +5,16 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
-public class ProjectsForOrganisation {
+public class ProjectsForAddressEntry {
 
     private Long organisationId;
     private String organisationName;
     private List<JSONProject> projects;
 
-    public ProjectsForOrganisation() {
+    public ProjectsForAddressEntry() {
     }
 
-    public ProjectsForOrganisation(Long organisationId, String organisationName) {
+    public ProjectsForAddressEntry(Long organisationId, String organisationName) {
         this.organisationId = organisationId;
         this.organisationName = organisationName;
     }
