@@ -40,7 +40,6 @@ import static java.util.stream.Collectors.toList;
 @Scope("prototype") //This enforces that an organisation controller is created per request
 public class OrganisationController extends Controller {
 
-    private Map<Long, Long> supervisorIdMap;
     private Map<Long, String> activityTypeMap;
 
     public OrganisationController() {

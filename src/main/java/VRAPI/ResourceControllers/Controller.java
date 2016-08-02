@@ -196,7 +196,6 @@ public class Controller {
     }
 
     public List<VRAPI.XMLClasses.ContainerDetailedContact.Contact> getContacts(List<Long> contactIdsForOrg) {
-        //TODO: add support for recieving multiple contact details for contact
         return callVertec(
                 queryBuilder.getDetailedContact(contactIdsForOrg),
                 VRAPI.XMLClasses.ContainerDetailedContact.Envelope.class).getBody().getQueryResponse().getContactList();
