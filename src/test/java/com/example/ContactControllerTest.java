@@ -20,6 +20,9 @@ import org.springframework.web.client.HttpClientErrorException;
 import java.util.Arrays;
 
 import static junit.framework.Assert.assertNotNull;
+import java.util.ArrayList;
+import java.util.List;
+
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 
@@ -35,8 +38,8 @@ public class ContactControllerTest extends ControllerTests {
      */
     @Before
     public void setup(){
-//        QueryBuilder queryBuilder = new QueryBuilder(TestVertecKeys.usr, TestVertecKeys.pwd);
-//        this.contactController = new ContactController(queryBuilder);
+        QueryBuilder queryBuilder = new QueryBuilder(TestVertecKeys.usr, TestVertecKeys.pwd);
+        this.contactController = new ContactController(queryBuilder);
     }
 
   //======================================================================================================================//
@@ -150,19 +153,25 @@ public class ContactControllerTest extends ControllerTests {
     }
 
     @Test
-    public void canAllContactDetailsForContact(){
-        Long contact = 13111329L; //a contact on vertec - should find a better one to test (one that has more than 3 kommmittels ideally
+    public void canContactDetails(){
+        Long contact = 13111339L; //a contact on vertec - should find a better one to test (one that has more than 3 kommmittels ideally
+        List<Long> kommMittel = new ArrayList<>();
+        kommMittel.add(13111348L);
+        kommMittel.add(13111351L);
+        kommMittel.add(13111352L);
 
-        ContactDetails km = contactController.getContactDetailsForContact(contact);
+        ContactDetails km = contactController.getContactDetails(kommMittel);
 
         assertEquals(1, km.getEmails().size());
-        assertEquals(1, km.getPhones().size());
-        assertEquals(1, km.getMobiles().size());
+        assertEquals(2, km.getPhones().size());
 
         assertTrue(km.getEmails().get(0).getValue().equals("stuart.mills@laterooms.com"));
         assertTrue(km.getPhones().get(0).getValue().equals("+44 161 650 1356"));
-        assertTrue(km.getMobiles().get(0).getValue().equals("+44 7432 717173"));
-
+        assertTrue(km.getPhones().get(0).getLabel().equals("Phone"));
+        assertTrue(km.getPhones().get(1).getValue().equals("+44 7432 717173"));
+        assertTrue(km.getPhones().get(1).getLabel().equals("Mobile"));
     }
+
+
 
 }

@@ -2,6 +2,7 @@ package VRAPI.ResourceControllers;
 
 
 import VRAPI.Entities.Contact;
+import VRAPI.Entities.ContactDetail;
 import VRAPI.Entities.ContactDetails;
 import VRAPI.Entities.ContactList;
 import VRAPI.Exceptions.HttpInternalServerError;
@@ -11,7 +12,6 @@ import VRAPI.Util.StaticMaps;
 import VRAPI.VertecServerInfo;
 import VRAPI.XMLClasses.ContainerDetailedContact.Envelope;
 import VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation;
-import com.sun.corba.se.pept.transport.ContactInfoList;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -97,13 +97,15 @@ public class ContactController extends Controller {
                     paramType = "header")
     })
     @RequestMapping(value = "/contact/{id}/setOrganisationLink/{orgID}", method = RequestMethod.PUT)
-    public ResponseEntity<Long> setOrganisationLinkEndpoint(@PathVariable Long id, @PathVariable Long orgID) throws ParserConfigurationException {
+    public ResponseEntity<Long> setOrganisationLinkEndpoint(@PathVariable Long id, @PathVariable Long orgID)
+            throws ParserConfigurationException {
         queryBuilder = AuthenticateThenReturnQueryBuilder();
 
         return setOrgLink(id, orgID);
     }
 
-    //=======================================METHODS========================================================================
+//=======================================METHODS========================================================================
+
 
     public ResponseEntity<Long> setOrgLink(Long id, Long orgID) {
         VertecServerInfo.log.info("--------------- Setting Organisation Link of Contact ---------------------------->");
@@ -126,7 +128,8 @@ public class ContactController extends Controller {
                 , VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class)
                 .getBody().getQueryResponse().getOrganisationList().get(0);
 
-        VertecServerInfo.log.info("Request seems OK, about to re-point contact " + contact.getFirstName() + " " + contact.getSurnname() + "(v_id: " + contact.getObjId() + ")" +
+        VertecServerInfo.log.info("Request seems OK, about to re-point contact " + contact.getFirstName() + " "
+                + contact.getSurnname() + "(v_id: " + contact.getObjId() + ")" +
                 " to Organisation " + organisation.getName() + "(v_id: " + organisation.getObjId() + ")");
 
         if(contact.getOrganisation()!= null){
@@ -158,12 +161,37 @@ public class ContactController extends Controller {
 
     }
 
-    public ContactDetails getContactDetailsForContact(Long contactId) {
-        ContactDetails contactDetails = new ContactDetails();
 
-        String query = queryBuilder.getContactDetailsForContact(contactId);
+    public ContactDetails getContactDetails(List<Long> kommMittel) {
 
+        String query = queryBuilder.getContactMediumDetails(kommMittel);
+        List<VRAPI.XMLClasses.ContainerContactDetails.KommMittel> kommMittelList =
+                callVertec(query, VRAPI.XMLClasses.ContainerContactDetails.Envelope.class)
+                        .getBody()
+                        .getQueryResponse()
+                        .getContactDetails();
 
-        return null;
+        ContactDetails details = new ContactDetails();
+        kommMittelList.forEach(detail -> {
+
+            ContactDetail cd = new ContactDetail();
+            cd.setPrimary(detail.getPriority());
+            cd.setValue(detail.getValue());
+
+            if (detail.getTyp().getObjref() == 6L) {
+                cd.setLabel("Phone");
+                details.getPhones().add(cd);
+            }
+            if (detail.getTyp().getObjref() == 7L) {
+                cd.setLabel("Mobile");
+                details.getPhones().add(cd);
+            }
+            if (detail.getTyp().getObjref() == 9L) {
+                cd.setLabel("Email");
+                details.getEmails().add(cd);
+            }
+        });
+
+        return details;
     }
 }
