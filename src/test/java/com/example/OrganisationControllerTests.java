@@ -6,8 +6,8 @@ import VRAPI.Entities.Organisation;
 import VRAPI.Entities.OrganisationList;
 import VRAPI.JSONClasses.JSONContainerOrganisation.JSONOrganisation;
 import VRAPI.JSONClasses.JSONContainerProject.JSONPhase;
-import VRAPI.MergeClasses.ActivitiesForOrganisation;
-import VRAPI.MergeClasses.ProjectsForOrganisation;
+import VRAPI.MergeClasses.ActivitiesForAddressEntry;
+import VRAPI.MergeClasses.ProjectsForAddressEntry;
 import VRAPI.ResourceControllers.OrganisationController;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -15,7 +15,6 @@ import org.junit.runner.RunWith;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.w3c.dom.Document;
@@ -229,7 +228,7 @@ public class OrganisationControllerTests extends ControllerTests {
 
     @Test
     public void cannotSetRandomIdToActive(){
-        Long id = 937645234724623746L;
+        Long id = TESTRandomID;
         String uri = baseURI + "/organisation/" + id + "/activate";
 
         try{
@@ -244,7 +243,7 @@ public class OrganisationControllerTests extends ControllerTests {
 
     @Test
     public void cannotSetRandomIdToInactive(){
-        Long id = 937645234724623746L;
+        Long id = TESTRandomID;
         String uri = baseURI + "/organisation/" + id;
 
         try{
@@ -260,7 +259,7 @@ public class OrganisationControllerTests extends ControllerTests {
 
 
     /*
-    TESTS FOR GET ProjectsForOrganisation
+    TESTS FOR GET ProjectsForAddressEntry
      */
 
     /**
@@ -274,7 +273,7 @@ public class OrganisationControllerTests extends ControllerTests {
         Long orgID = 709814L; //existing vertec Organisation
         String uri =  baseURI + "/organisation/" + orgID + "/projects";
 
-        ProjectsForOrganisation pfo = getFromVertec(uri,ProjectsForOrganisation.class).getBody();
+        ProjectsForAddressEntry pfo = getFromVertec(uri,ProjectsForAddressEntry.class).getBody();
         assertEquals("Got wrong organisation",orgID, pfo.getOrganisationId());
         assertTrue("Deutsche Telekom".equals(pfo.getOrganisationName()));
 
@@ -337,12 +336,12 @@ public class OrganisationControllerTests extends ControllerTests {
         Long orgID = 9206250L; //existing Vertec organisation
         String uri =  baseURI + "/organisation/" + orgID + "/activities";
 
-        ActivitiesForOrganisation afo = getFromVertec(uri, ActivitiesForOrganisation.class).getBody();
+        ActivitiesForAddressEntry afo = getFromVertec(uri, ActivitiesForAddressEntry.class).getBody();
 
         assertEquals(orgID, afo.getOrganisationId());
         assertTrue("Quanta Fluid Solutions Ltd".equals(afo.getName()));
 
-        List<VRAPI.Entities.Activity> activities = afo.getActivitiesForOrganisation();
+        List<VRAPI.Entities.Activity> activities = afo.getActivities();
 
         assertTrue("Not al activities got", activities.size() >= 10);
 
@@ -714,7 +713,7 @@ public class OrganisationControllerTests extends ControllerTests {
 //    @Test @Ignore
 //    public void getActivitiesForOrganisationReturnsCorrectly() {
 //        String uri = baseURI + "/organisation/" + 17334035 + "/activities";
-//        ResponseEntity<ActivitiesForOrganisation> res = getFromVertec(uri, ActivitiesForOrganisation.class);
+//        ResponseEntity<ActivitiesForAddressEntry> res = getFromVertec(uri, ActivitiesForAddressEntry.class);
 //
 //        System.out.println(res.getBody().toJSONString());
 //
@@ -723,7 +722,7 @@ public class OrganisationControllerTests extends ControllerTests {
 //    @Test @Ignore
 //    public void getProjectsForOrganisationReturnsCorrectly() {
 //        String uri = baseURI + "/organisation/" + 17927493 + "/projects";
-//        ResponseEntity<ProjectsForOrganisation> res = getFromVertec(uri, ProjectsForOrganisation.class);
+//        ResponseEntity<ProjectsForAddressEntry> res = getFromVertec(uri, ProjectsForAddressEntry.class);
 //
 //        System.out.println(res.getBody().toJSONString());
 //    }

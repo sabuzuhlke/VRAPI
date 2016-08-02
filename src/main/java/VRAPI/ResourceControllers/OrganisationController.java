@@ -8,9 +8,9 @@ import VRAPI.Exceptions.HttpInternalServerError;
 import VRAPI.Exceptions.HttpNotFoundException;
 import VRAPI.JSONClasses.JSONContainerProject.JSONPhase;
 import VRAPI.JSONClasses.JSONContainerProject.JSONProject;
-import VRAPI.MergeClasses.ActivitiesForOrganisation;
+import VRAPI.MergeClasses.ActivitiesForAddressEntry;
 import VRAPI.MergeClasses.ContactsForOrganisation;
-import VRAPI.MergeClasses.ProjectsForOrganisation;
+import VRAPI.MergeClasses.ProjectsForAddressEntry;
 import VRAPI.Util.QueryBuilder;
 import VRAPI.Util.StaticMaps;
 import VRAPI.VertecServerInfo;
@@ -97,7 +97,7 @@ public class OrganisationController extends Controller {
                     dataType = "string",
                     paramType = "header")
     })
-    @RequestMapping(value = "/organisation/{mergingId}/mergeInto/{survivingId}", method = RequestMethod.GET) //TODO: write test for this function
+    @RequestMapping(value = "/organisation/{mergingId}/mergeInto/{survivingId}", method = RequestMethod.GET)
     public ResponseEntity<String> mergeOrganisationsEndpoint(@PathVariable Long mergingId, @PathVariable Long survivingId)
             throws ParserConfigurationException, IOException {
 
@@ -145,7 +145,7 @@ public class OrganisationController extends Controller {
                     paramType = "header")
     })
     @RequestMapping(value = "/organisation/{id}/projects", method = RequestMethod.GET)
-    public ResponseEntity<ProjectsForOrganisation> getProjectsForOrganisationEndpoint(@PathVariable Long id)
+    public ResponseEntity<ProjectsForAddressEntry> getProjectsForOrganisationEndpoint(@PathVariable Long id)
             throws ParserConfigurationException {
         queryBuilder = AuthenticateThenReturnQueryBuilder();
 
@@ -212,7 +212,7 @@ public class OrganisationController extends Controller {
                     paramType = "header")
     })
     @RequestMapping(value = "/organisation/{id}/activities", method = RequestMethod.GET) //TODO: write test for this function
-    public ResponseEntity<ActivitiesForOrganisation> getActivitiesForOrganisationEndpoint (@PathVariable Long id)
+    public ResponseEntity<ActivitiesForAddressEntry> getActivitiesForOrganisationEndpoint (@PathVariable Long id)
             throws ParserConfigurationException {
         queryBuilder = AuthenticateThenReturnQueryBuilder();
 
@@ -421,7 +421,7 @@ public class OrganisationController extends Controller {
         res.setOrganisations(organisations);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
-    public ResponseEntity<ActivitiesForOrganisation> getActivitiesForOrganisation(Long id) {
+    public ResponseEntity<ActivitiesForAddressEntry> getActivitiesForOrganisation(Long id) {
         String xmlQuery = queryBuilder.getActivitiesForOrganisation(id);
 
         final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
@@ -431,20 +431,20 @@ public class OrganisationController extends Controller {
 
         List<Activity> activities = getActivityDetails(activityIdsForOrg);
         //Query vertec for details of each activity build response object
-        ActivitiesForOrganisation res = new ActivitiesForOrganisation(id, organisationName);
+        ActivitiesForAddressEntry res = new ActivitiesForAddressEntry(id, organisationName);
         //set Activity list
-        res.setActivitiesForOrganisation(activities);
+        res.setActivities(activities);
 
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
-    public ResponseEntity<ProjectsForOrganisation> getProjectsForOrganisation(@PathVariable Long id) {
+    public ResponseEntity<ProjectsForAddressEntry> getProjectsForOrganisation(@PathVariable Long id) {
         String xmlQuery = queryBuilder.getProjectsForOrganisation(id);
         final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
         List<Long> projectIdsForOrg = getObjrefsForOrganisationDocument(response);
         String organisationName = getNameForOrganisationDocument(response);
 
         List<JSONProject> projects = getDetailedProjects(projectIdsForOrg);
-        ProjectsForOrganisation res = new ProjectsForOrganisation(id, organisationName);
+        ProjectsForAddressEntry res = new ProjectsForAddressEntry(id, organisationName);
         res.setProjects(projects);
 
         return new ResponseEntity<>(res, HttpStatus.OK);
@@ -507,8 +507,8 @@ public class OrganisationController extends Controller {
 
         VertecServerInfo.log.info("Merging organisation: '" + orgToMerge + "' into '" + orgToSurvive + "'");
         //for the mergingOrg, get all projects, get all activities, get all contacts
-        ResponseEntity<ActivitiesForOrganisation> activityRes = getActivitiesForOrganisation(mergingId);
-        ResponseEntity<ProjectsForOrganisation> projectRes = getProjectsForOrganisation(mergingId);
+        ResponseEntity<ActivitiesForAddressEntry> activityRes = getActivitiesForOrganisation(mergingId);
+        ResponseEntity<ProjectsForAddressEntry> projectRes = getProjectsForOrganisation(mergingId);
         ResponseEntity<ContactsForOrganisation> contactRes = getContactsForOrganisation(mergingId);
         //log that we plan on updating each of these to point to surviving org
 
@@ -523,7 +523,7 @@ public class OrganisationController extends Controller {
 
         VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING ACTIVITIES =========================");
 
-        activityRes.getBody().getActivitiesForOrganisation().forEach(activity -> {
+        activityRes.getBody().getActivities().forEach(activity -> {
             VertecServerInfo.log.info("Updating Activity name: " + activity.getSubject() + ", Type: " + activity.getvType() + " , id " + activity.getVertecId() + " on: " + activity.getDoneDate() + activity.getDueDate() + " to be linked to Organisation ID: " + survivingId);
             //PUT Activity
             activityController.setOrgLink(activity.getVertecId(), survivingId); //ONLY PRODUCES A LOG ATM

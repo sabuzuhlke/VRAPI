@@ -558,6 +558,19 @@ public class QueryBuilder {
 
         return header + body;
     }
+    public String setContactActive(Boolean active,Long id) {
+        String body = "<Body>\n" +
+                "  <Update>\n" +
+                "     <Kontakt> \n" +
+                "                <objref>" + id + "</objref>\n" +
+                "                <aktiv>" + (active ? 1 : 0) + "</aktiv>\n" +
+                "      </Kontakt>\n" +
+                "    </Update>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+
+        return header + body;
+    }
 
     public String getTypeOfId(Long id) {
         String bodyStart = "<Body>\n" +

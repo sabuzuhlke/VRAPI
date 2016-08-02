@@ -4,10 +4,12 @@ import VRAPI.Application;
 import VRAPI.Entities.Contact;
 import VRAPI.Entities.ContactDetails;
 import VRAPI.Entities.ContactList;
+import VRAPI.Entities.Organisation;
 import VRAPI.JSONClasses.JSONContainerOrganisation.JSONContact;
 import VRAPI.Keys.TestVertecKeys;
 import VRAPI.ResourceControllers.ContactController;
 import VRAPI.Util.QueryBuilder;
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,6 +18,7 @@ import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.HttpStatusCodeException;
 
 import java.util.Arrays;
 
@@ -25,6 +28,7 @@ import java.util.List;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(Application.class)
@@ -116,7 +120,7 @@ public class ContactControllerTest extends ControllerTests {
 
         Long orgId = putToVertec(uri, Long.class).getBody();
 
-        String uri1 = baseURI + "/contact/" + TESTVertecContact;
+        String uri1 = baseURI + "/oldcontact/" +  TESTVertecContact;
         JSONContact contact = getFromVertec(uri1,JSONContact.class).getBody();
         assertEquals("Did not set organisationLink", TESTVertecOrganisation1, contact.getOrganisation());
 
@@ -170,6 +174,64 @@ public class ContactControllerTest extends ControllerTests {
         assertTrue(km.getPhones().get(0).getLabel().equals("Phone"));
         assertTrue(km.getPhones().get(1).getValue().equals("+44 7432 717173"));
         assertTrue(km.getPhones().get(1).getLabel().equals("Mobile"));
+    }
+
+    @Test
+    public void canSetContactToActiveAndInactive() {
+
+        String uri = baseURI + "/contact/" + TESTVertecContact + "/activate";
+
+        Long id = putToVertec(uri, Long.class).getBody();
+
+        Assert.assertEquals("Could not activate Contact before setting it to inactive again!", TESTVertecContact, id);
+
+        uri = baseURI + "/contact/" + TESTVertecContact;
+
+        Contact contact = getFromVertec(uri,ContactList.class).getBody().getContacts().get(0);
+
+        Assert.assertTrue("Contact did not get set to active",contact.getActive());
+
+        id = 0L;
+
+        id =  deleteFromVertec(uri, Long.class).getBody();
+
+        Assert.assertEquals("Could not deactivate Contact", TESTVertecContact, id);
+
+        contact = getFromVertec(uri,ContactList.class).getBody().getContacts().get(0);
+
+        assertFalse("Contact did not get set to inactive",contact.getActive());
+
+    }
+
+    @Test
+    public void cannotSetRandomIdToActive(){
+        Long id = TESTRandomID;
+        String uri = baseURI + "/contact/" + id + "/activate";
+
+        try{
+
+            id = putToVertec(uri, Long.class).getBody();
+            Assert.assertTrue("Found Contact with random id",false);
+        } catch (HttpStatusCodeException e){
+            Assert.assertEquals( HttpStatus.NOT_FOUND, e.getStatusCode());
+        }
+
+    }
+
+    @Test
+    public void cannotSetRandomIdToInactive(){
+        Long id = TESTRandomID;
+        String uri = baseURI + "/contact/" + id;
+
+        try{
+
+            id = deleteFromVertec(uri, Long.class).getBody();
+            Assert.assertTrue("Found Contact with random id",false);
+        } catch (HttpStatusCodeException e){
+            Assert.assertEquals( HttpStatus.NOT_FOUND, e.getStatusCode());
+        }
+
+
     }
 
 

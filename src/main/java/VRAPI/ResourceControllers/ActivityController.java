@@ -2,6 +2,7 @@ package VRAPI.ResourceControllers;
 
 import VRAPI.Exceptions.HttpInternalServerError;
 import VRAPI.Exceptions.HttpNotFoundException;
+import VRAPI.MergeClasses.ActivitiesForAddressEntry;
 import VRAPI.Util.QueryBuilder;
 import VRAPI.VertecServerInfo;
 import VRAPI.XMLClasses.ContainerActivity.Activity;
@@ -115,5 +116,9 @@ public class ActivityController extends Controller {
             throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
 
         }
+    }
+
+    public ActivitiesForAddressEntry getActivitiesForContact(Long activityId) {
+        return null;
     }
 }
