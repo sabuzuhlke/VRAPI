@@ -67,4 +67,9 @@ public class ActivityControllerTest extends ControllerTests {
         }
 
     }
+
+    @Test
+    public void canGetAllActivitiesForContact(){
+
+    }
 }

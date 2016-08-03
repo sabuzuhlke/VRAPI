@@ -486,7 +486,7 @@ public class QueryBuilder {
      return header + body;
     }
 
-    public String getActivitiesForOrganisation(Long id) {
+    public String getActivitiesForAddressEntry(Long id) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";

@@ -215,7 +215,7 @@ public class OrganisationController extends Controller {
             throws ParserConfigurationException {
         queryBuilder = AuthenticateThenReturnQueryBuilder();
 
-        return getActivitiesForOrganisation(id);
+        return getActivitiesForAddressEntry(id);
     }
 
 
@@ -365,13 +365,7 @@ public class OrganisationController extends Controller {
         return new ResponseEntity<>(new Organisation(), HttpStatus.OK);
     }
     //=======================================METHODS========================================================================
-//======================================================================================================================
-//======================================================================================================================
-//======================================================================================================================
-//======================================================================================================================
-//======================================================================================================================
-//======================================================================================================================
-//======================================================================================================================
+
     public ResponseEntity<Organisation> getOrganisation(Long id) {
         this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
 
@@ -390,6 +384,7 @@ public class OrganisationController extends Controller {
 
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
+
     public ResponseEntity<OrganisationList> getOrganisationList(List<Long> ids) {
         this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
 
@@ -408,6 +403,7 @@ public class OrganisationController extends Controller {
 
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
+
     public ResponseEntity<OrganisationList> getAllOrganisations() {
         this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
         Set<Long> allEmployeeIds = supervisorIdMap.keySet();
@@ -420,8 +416,9 @@ public class OrganisationController extends Controller {
         res.setOrganisations(organisations);
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
-    public ResponseEntity<ActivitiesForAddressEntry> getActivitiesForOrganisation(Long id) {
-        String xmlQuery = queryBuilder.getActivitiesForOrganisation(id);
+
+    public ResponseEntity<ActivitiesForAddressEntry> getActivitiesForAddressEntry(Long id) {
+        String xmlQuery = queryBuilder.getActivitiesForAddressEntry(id);
 
         final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
         //Query vertec with organisation id for list of activities associated with it.
@@ -436,7 +433,8 @@ public class OrganisationController extends Controller {
 
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
-    public ResponseEntity<ProjectsForAddressEntry> getProjectsForOrganisation(@PathVariable Long id) {
+
+    public ResponseEntity<ProjectsForAddressEntry> getProjectsForOrganisation(Long id) {
         String xmlQuery = queryBuilder.getProjectsForOrganisation(id);
         final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
         List<Long> projectIdsForOrg = getObjrefsForOrganisationDocument(response);
@@ -449,7 +447,8 @@ public class OrganisationController extends Controller {
         return new ResponseEntity<>(res, HttpStatus.OK);
         //TODO: include type and currency if we need them
     }
-    public ResponseEntity<ContactsForOrganisation> getContactsForOrganisation(@PathVariable Long id) {
+
+    public ResponseEntity<ContactsForOrganisation> getContactsForOrganisation(Long id) {
         this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
 
         String xmlQuery = queryBuilder.getContactsForOrganisation(id);
@@ -463,6 +462,7 @@ public class OrganisationController extends Controller {
 
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
+
     public ResponseEntity<Long> setActiveField(Long id, Boolean active){
         if ( ! isIdOfType(id, "Firma")) {
             throw new HttpNotFoundException("Organisation with id: " + id + " does not exist");
@@ -506,7 +506,7 @@ public class OrganisationController extends Controller {
 
         VertecServerInfo.log.info("Merging organisation: '" + orgToMerge + "' into '" + orgToSurvive + "'");
         //for the mergingOrg, get all projects, get all activities, get all contacts
-        ResponseEntity<ActivitiesForAddressEntry> activityRes = getActivitiesForOrganisation(mergingId);
+        ResponseEntity<ActivitiesForAddressEntry> activityRes = getActivitiesForAddressEntry(mergingId);
         ResponseEntity<ProjectsForAddressEntry> projectRes = getProjectsForOrganisation(mergingId);
         ResponseEntity<ContactsForOrganisation> contactRes = getContactsForOrganisation(mergingId);
         //log that we plan on updating each of these to point to surviving org
