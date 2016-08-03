@@ -118,7 +118,13 @@ public class ActivityController extends Controller {
         }
     }
 
-    public ActivitiesForAddressEntry getActivitiesForContact(Long activityId) {
+    public ActivitiesForAddressEntry getActivitiesForContact(Long contactId) {
+
+
+
+
         return null;
     }
+
+
 }

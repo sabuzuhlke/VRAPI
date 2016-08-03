@@ -202,6 +202,8 @@ public class QueryBuilder {
                 "        <member>aktiv</member>\n" +
                 "        <member>stellung</member>\n" +
                 "        <member>kommmittel</member>\n" +
+                "        <member>fromLinks</member>\n" +
+                "        <member>GenericContainers</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +

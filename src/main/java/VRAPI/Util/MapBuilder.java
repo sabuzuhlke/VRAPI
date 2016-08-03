@@ -351,7 +351,7 @@ public class MapBuilder {
         for (Long id : teamIds) {
 
             //#2 query for  project leaders aktiv and fromlink
-            leader = getGenericLinkContainers(id);
+            leader = getGenericLinkContainers(id); //simply gets detailed teamleaders
 
 
             if (leader.getBody().getQueryResponse().getProjectWorker().getActive()) {

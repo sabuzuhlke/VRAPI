@@ -11,7 +11,12 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import org.w3c.dom.Document;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.net.URI;
+import java.util.HashMap;
 import java.util.List;
 
 import static VRAPI.Keys.TestVertecKeys.*;
@@ -81,5 +86,27 @@ class ControllerTests {
             }
         }
         return idsAsString;
+    }
+
+    static public HashMap<Long, Long> loadIdMap(String filename) throws IOException {
+        String line;
+
+        HashMap<Long, Long> idMap = new HashMap<>();
+
+        File file = new File(filename);
+
+        FileReader reader = new FileReader(file.getAbsolutePath());
+        BufferedReader breader = new BufferedReader(reader);
+
+        while((line = breader.readLine()) != null){
+            String[] ids = line.split(",");
+            String key = ids[0];
+            String value = ids[1];
+
+            idMap.put(Long.parseLong(key),Long.parseLong(value));
+
+        }
+        reader.close();
+        return idMap;
     }
 }

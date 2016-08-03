@@ -28,16 +28,22 @@ public class Contact {
 
     private List<String> followers;
 
-    public Contact(){
+    private List<Long> fromLinks;
+    private List<Long> genericContainers;
+
+    public Contact() {
         this.emails = new ArrayList<>();
         this.phones = new ArrayList<>();
         this.followers = new ArrayList<>();
+        this.fromLinks = new ArrayList<>();
+        this.genericContainers = new ArrayList<>();
     }
 
     /**
      * Used to construct a contact from an xml contact recieved from vertec
      * must set ownedOnVertecBy outside constructor
      * must set followers outside constructor
+     *
      * @param c
      */
     public Contact(VRAPI.XMLClasses.ContainerDetailedContact.Contact c) {
@@ -69,17 +75,25 @@ public class Contact {
         phone.add(p);
         phone.add(m);
         phones = phone;
+
+        this.fromLinks = new ArrayList<>();
+        if (c.getFromLinks() != null) {
+            this.fromLinks = c.getFromLinks().getObjlist().getObjref();
+        }
+        this.genericContainers = new ArrayList<>();
+        if (c.getGenericContainers() != null) {
+            this.genericContainers = c.getGenericContainers().getObjlist().getObjref();
+        }
     }
 
 
-    public String getFullName(){
+    public String getFullName() {
         String Name = "";
-        if(firstName != null && !firstName.isEmpty()) Name = firstName;
-        if((firstName != null && !firstName.isEmpty()) && (surname != null && ! surname.isEmpty())) Name += " ";
-        if(surname != null && ! surname.isEmpty()) Name += surname;
+        if (firstName != null && !firstName.isEmpty()) Name = firstName;
+        if ((firstName != null && !firstName.isEmpty()) && (surname != null && !surname.isEmpty())) Name += " ";
+        if (surname != null && !surname.isEmpty()) Name += surname;
         return Name;
     }
-
 
 
     public Long getVertecId() {
@@ -184,5 +198,21 @@ public class Contact {
 
     public void setFollowers(List<String> followers) {
         this.followers = followers;
+    }
+
+    public List<Long> getFromLinks() {
+        return fromLinks;
+    }
+
+    public void setFromLinks(List<Long> fromLinks) {
+        this.fromLinks = fromLinks;
+    }
+
+    public List<Long> getGenericContainers() {
+        return genericContainers;
+    }
+
+    public void setGenericContainers(List<Long> genericContainers) {
+        this.genericContainers = genericContainers;
     }
 }

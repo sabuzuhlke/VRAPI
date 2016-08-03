@@ -1,17 +1,14 @@
 package VRAPI.ResourceControllers;
 
+import VRAPI.Entities.Activity;
 import VRAPI.Entities.Contact;
-import VRAPI.Exceptions.HttpBadRequest;
-import VRAPI.Exceptions.HttpForbiddenException;
-import VRAPI.Exceptions.HttpInternalServerError;
-import VRAPI.Exceptions.HttpUnauthorisedException;
+import VRAPI.Exceptions.*;
+import VRAPI.MergeClasses.ActivitiesForAddressEntry;
 import VRAPI.Util.QueryBuilder;
+import VRAPI.Util.StaticMaps;
 import VRAPI.VertecServerInfo;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.RequestEntity;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
@@ -51,6 +48,7 @@ public class Controller {
     QueryBuilder queryBuilder;
 
     Map<Long, Long> supervisorIdMap;
+    private Map<Long, String> activityTypeMap;
 
     @Autowired
     public HttpServletRequest request;
@@ -217,6 +215,61 @@ public class Controller {
             return "Sales Team";
         } else {
             return "ZUK Sub Team";
+        }
+    }
+
+    public ResponseEntity<ActivitiesForAddressEntry> getActivitiesForAddressEntry(Long id) {
+        String xmlQuery = queryBuilder.getActivitiesForAddressEntry(id);
+
+        final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
+        //Query vertec with organisation id for list of activities associated with it.
+        List<Long> activityIdsForOrg = getObjrefsForOrganisationDocument(response);
+        String organisationName = getNameForOrganisationDocument(response);
+
+        List<Activity> activities = getActivityDetails(activityIdsForOrg);
+        //Query vertec for details of each activity build response object
+        ActivitiesForAddressEntry res = new ActivitiesForAddressEntry(id, organisationName);
+        //set Activity list
+        res.setActivities(activities);
+
+        return new ResponseEntity<>(res, HttpStatus.OK);
+    }
+
+    /**
+     * Returns the first 'name' field returned by vertec as String
+     * @param response
+     * @return
+     */
+    public String getNameForOrganisationDocument(Document response) {
+        Node node =  response.getElementsByTagName("name").item(0);
+        return node == null ? "" : node.getTextContent();
+    }
+
+
+    private List<Activity> getActivityDetails(List<Long> activityIdsForOrg) {
+        if(activityIdsForOrg.isEmpty()) return new ArrayList<>();
+        activityTypeMap = StaticMaps.INSTANCE.getActivityTypeMap();
+        return getActivities(activityIdsForOrg).stream()
+                .map(this::getJsonActivity).collect(toList());
+
+    }
+
+    private Activity getJsonActivity(VRAPI.XMLClasses.ContainerActivity.Activity activity) {
+        Activity a = new Activity(activity);
+        a.setvType(activityTypeMap.get(activity.getType() != null ? activity.getType().getObjref() : null));
+        //Set Organisation link
+        a.setVertecOrganisationLink(activity.getAddressEntry() != null ? activity.getAddressEntry().getObjref() : null);
+        return a;
+    }
+
+    private List<VRAPI.XMLClasses.ContainerActivity.Activity> getActivities(List<Long> ids) {
+        try{
+            return callVertec(queryBuilder.getActivities(ids), VRAPI.XMLClasses.ContainerActivity.Envelope.class)
+                    .getBody()
+                    .getQueryResponse()
+                    .getActivities();
+        } catch (NullPointerException npe){
+            throw new HttpNotFoundException("At leas one of the supplied Ids does not belong to an activity: " + ids);
         }
     }
 }

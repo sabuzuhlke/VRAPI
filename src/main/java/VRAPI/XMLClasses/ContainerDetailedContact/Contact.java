@@ -21,6 +21,8 @@ public class Contact {
     private Boolean active;
     private String position;
     private KommList kommMittel;
+    private LinkContainer fromLinks;
+    private LinkContainer genericContainers;
 
 
     private String creationTime;
@@ -144,6 +146,24 @@ public class Contact {
 
     public void setKommMittel(KommList kommMittel) {
         this.kommMittel = kommMittel;
+    }
+
+    @XmlElement(name = "fromLinks")
+    public LinkContainer getFromLinks() {
+        return fromLinks;
+    }
+
+    public void setFromLinks(LinkContainer fromLinks) {
+        this.fromLinks = fromLinks;
+    }
+
+    @XmlElement(name ="genericContainers")
+    public LinkContainer getGenericContainers() {
+        return genericContainers;
+    }
+
+    public void setGenericContainers(LinkContainer genericContainers) {
+        this.genericContainers = genericContainers;
     }
 
     @Override

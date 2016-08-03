@@ -1,5 +1,7 @@
 package VRAPI.XMLClasses.ContainerDetailedContact;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
@@ -22,5 +24,19 @@ public class Envelope {
     public void setBody(Body body) {
         this.body = body;
     }
+
+    public String toPrettyJSON() {
+        String retStr = null;
+        ObjectMapper m = new ObjectMapper();
+        try{
+
+            retStr = m.writerWithDefaultPrettyPrinter().writeValueAsString(this);
+        }
+        catch(Exception e){
+            System.out.println("Could not build JSON activity: " + e.toString());
+        }
+        return retStr;
+    }
+
 }
 

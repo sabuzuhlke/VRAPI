@@ -70,7 +70,21 @@ public class ContactController extends Controller {
       return new ResponseEntity<>(getContactList(ids), HttpStatus.OK);
   }
 
+    @ApiOperation(value = "Get activities for contact", nickname = "activities")
+    @ApiImplicitParams( {
+            @ApiImplicitParam(name = "Authorization",
+                    value = "username:password",
+                    required = true,
+                    dataType = "string",
+                    paramType = "header")
+    })
+    @RequestMapping(value = "/contact/{id}/activities", method = RequestMethod.GET) //TODO: write test for this function
+    public ResponseEntity<ActivitiesForAddressEntry> getActivitiesForActivityEndpoint (@PathVariable Long id)
+            throws ParserConfigurationException {
+        queryBuilder = AuthenticateThenReturnQueryBuilder();
 
+        return getActivitiesForAddressEntry(id);
+    }
 
 
     //======================================================================================================================//
@@ -185,7 +199,7 @@ public class ContactController extends Controller {
 //        }
 //
 //        //set Followers
-//        //ANYTHING ELSE?
+//        //PROJECTS
 //
 //        //Log in log and to file
 //        File mergedIds = new File("mergedOrgs");
@@ -311,14 +325,13 @@ public class ContactController extends Controller {
         return details;
     }
 
-    private ContactList getContactList(List<Long> ids) {
+    public ContactList getContactList(List<Long> ids) {
 
         VRAPI.XMLClasses.ContainerDetailedContact.Envelope contactEnvelope
                 = callVertec(queryBuilder.getDetailedContact(ids),
                 VRAPI.XMLClasses.ContainerDetailedContact.Envelope.class);
 
-        if (contactEnvelope.getBody().getQueryResponse() == null
-                || contactEnvelope.getBody().getQueryResponse().getContactList().size() != ids.size()) {
+        if (contactEnvelope.getBody().getQueryResponse() == null) {
             throw new HttpNotFoundException("Some or all of the ids requested are not contacts");
         }
 
@@ -328,6 +341,15 @@ public class ContactController extends Controller {
 
         return res;
 
+    }
+
+    /**
+     * Gerneric Link Containers are a Superset of Followers
+     */
+    public void repointGenericLinkContainers(Long oldId, Long newId){
+     //get GenericContainers of contact
+        //get the Container
+        //change fromContainer field of that container to point to the new contact
     }
 
 

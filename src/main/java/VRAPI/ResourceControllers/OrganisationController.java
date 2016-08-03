@@ -40,8 +40,6 @@ import static java.util.stream.Collectors.toList;
 @Scope("prototype") //This enforces that an organisation controller is created per request
 public class OrganisationController extends Controller {
 
-    private Map<Long, String> activityTypeMap;
-
     public OrganisationController() {
         super();
     }
@@ -219,34 +217,6 @@ public class OrganisationController extends Controller {
     }
 
 
-
-    private List<Activity> getActivityDetails(List<Long> activityIdsForOrg) {
-        if(activityIdsForOrg.isEmpty()) return new ArrayList<>();
-        activityTypeMap = StaticMaps.INSTANCE.getActivityTypeMap();
-        return getActivities(activityIdsForOrg).stream()
-                .map(this::getJsonActivity).collect(toList());
-
-    }
-
-    private Activity getJsonActivity(VRAPI.XMLClasses.ContainerActivity.Activity activity) {
-        Activity a = new Activity(activity);
-        a.setvType(activityTypeMap.get(activity.getType() != null ? activity.getType().getObjref() : null));
-        //Set Organisation link
-        a.setVertecOrganisationLink(activity.getAddressEntry() != null ? activity.getAddressEntry().getObjref() : null);
-        return a;
-    }
-
-    private List<VRAPI.XMLClasses.ContainerActivity.Activity> getActivities(List<Long> ids) {
-        try{
-            return callVertec(queryBuilder.getActivities(ids), VRAPI.XMLClasses.ContainerActivity.Envelope.class)
-                    .getBody()
-                    .getQueryResponse()
-                    .getActivities();
-        } catch (NullPointerException npe){
-            throw new HttpNotFoundException("At leas one of the supplied Ids does not belong to an activity: " + ids);
-        }
-    }
-
     //====================================================================================================================== /all
     @ApiOperation(value = "Get all organisations owned by ZUK employees", nickname = "all")
     @ApiImplicitParams( {
@@ -417,23 +387,6 @@ public class OrganisationController extends Controller {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-    public ResponseEntity<ActivitiesForAddressEntry> getActivitiesForAddressEntry(Long id) {
-        String xmlQuery = queryBuilder.getActivitiesForAddressEntry(id);
-
-        final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
-        //Query vertec with organisation id for list of activities associated with it.
-        List<Long> activityIdsForOrg = getObjrefsForOrganisationDocument(response);
-        String organisationName = getNameForOrganisationDocument(response);
-
-        List<Activity> activities = getActivityDetails(activityIdsForOrg);
-        //Query vertec for details of each activity build response object
-        ActivitiesForAddressEntry res = new ActivitiesForAddressEntry(id, organisationName);
-        //set Activity list
-        res.setActivities(activities);
-
-        return new ResponseEntity<>(res, HttpStatus.OK);
-    }
-
     public ResponseEntity<ProjectsForAddressEntry> getProjectsForOrganisation(Long id) {
         String xmlQuery = queryBuilder.getProjectsForOrganisation(id);
         final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
@@ -550,16 +503,6 @@ public class OrganisationController extends Controller {
 //======================================================================================================================
 // Helper Methods
 //======================================================================================================================
-
-    /**
-     * Returns the first 'name' field returned by vertec as String
-     * @param response
-     * @return
-     */
-    public String getNameForOrganisationDocument(Document response) {
-        Node node =  response.getElementsByTagName("name").item(0);
-        return node == null ? "" : node.getTextContent();
-    }
 
     private List<Organisation> createOrganisationList(List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> organisations) {
         return organisations.stream()
