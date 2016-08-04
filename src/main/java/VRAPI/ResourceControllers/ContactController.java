@@ -16,6 +16,7 @@ import VRAPI.Util.StaticMaps;
 import VRAPI.VertecServerInfo;
 import VRAPI.XMLClasses.ContainerDetailedContact.Envelope;
 import VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation;
+import VRAPI.XMLClasses.FromContainer.GenericLinkContainer;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
@@ -342,15 +343,31 @@ public class ContactController extends Controller {
         return res;
 
     }
+    //TODO finish
+//
+//    /**
+//     * Gerneric Link Containers are a Superset of Followers
+//     * ---> This is the first half of the necessary actions for dealing with Generic Link Containers
+//     * /fromContainer/
+//     */
+//    public void repointFollowedGenericLinkContainers(Contact merging, Long survivor){
+//     //get GenericContainers of contact
+//        List<GenericLinkContainer> mergingContainers = getGenericLinkContainers(merging.getFromLinks());
+//
+//        //get the Container
+//        //change fromContainer field of that container to point to the new contact
+//    }
+//
+//    /**
+//     * Gerneric Link Containers are a Superset of Followers
+//     * ---> This is the second half of the necessary actions for dealing with Generic Link Containers
+//     * /links/
+//     */
+//    public void repointFollowingGenericLinkContainers(Contact merging, Long survivor){
+//        //TODO research how these Containers are Linked to the Contact
+//    }
 
-    /**
-     * Gerneric Link Containers are a Superset of Followers
-     */
-    public void repointGenericLinkContainers(Long oldId, Long newId){
-     //get GenericContainers of contact
-        //get the Container
-        //change fromContainer field of that container to point to the new contact
-    }
+
 
 
 }

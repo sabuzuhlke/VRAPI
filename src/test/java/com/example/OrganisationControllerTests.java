@@ -1,6 +1,5 @@
 package com.example;
 
-import VRAPI.Application;
 import VRAPI.Entities.Activity;
 import VRAPI.Entities.Organisation;
 import VRAPI.Entities.OrganisationList;
@@ -11,11 +10,7 @@ import VRAPI.MergeClasses.ProjectsForAddressEntry;
 import VRAPI.ResourceControllers.OrganisationController;
 import org.junit.Ignore;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -23,17 +18,15 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.*;
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(Application.class)
-@WebIntegrationTest
 public class OrganisationControllerTests extends ControllerTests {
 
     /**
@@ -42,7 +35,7 @@ public class OrganisationControllerTests extends ControllerTests {
      *
      * However as it turns out both of these have been merged with their respective child/parent resulting in interesting organisational relationships
      */
-    @Test
+    @Test @Ignore("Not necessary anymore")
     public void doWeNeedToRepointParentOrganisationsAfterMerge(){
         String line;
         Long mergingID;
@@ -82,7 +75,7 @@ public class OrganisationControllerTests extends ControllerTests {
 
     }
 
-    @Test //@Ignore("Already ran, organisations merged")
+    @Test @Ignore("Already ran, organisations merged")
     public void mergeOrganisations(){
         List<List<Long>> idsList = new ArrayList<>();
         List<Long> mergingIds = new ArrayList<>(); //<mergingId, survivingId>

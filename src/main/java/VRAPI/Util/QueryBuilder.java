@@ -659,4 +659,23 @@ public class QueryBuilder {
 
         return header + bodyStart + bodyEnd;
     }
+
+    public String getGenericLinkContainers(List<Long> ids){
+        String bodyStart = "<Body>\n" +
+                "    <Query>\n" +
+                "      <Selection>\n";
+        for (Long id : ids) {
+            bodyStart += "<objref>" + id + "</objref>\n";
+        }
+
+        String bodyEnd = "</Selection>\n" +
+                "      <Resultdef>\n" +
+                "           <member>links</member>\n" +
+                "           <member>fromContainer</member>\n" +
+                "      </Resultdef>\n" +
+                "    </Query>\n" +
+                "  </Body>\n" +
+                "</Envelope>";
+        return header + bodyStart + bodyEnd;
+    }
 }

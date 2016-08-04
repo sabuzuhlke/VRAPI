@@ -7,6 +7,7 @@ import VRAPI.MergeClasses.ActivitiesForAddressEntry;
 import VRAPI.Util.QueryBuilder;
 import VRAPI.Util.StaticMaps;
 import VRAPI.VertecServerInfo;
+import VRAPI.XMLClasses.FromContainer.GenericLinkContainer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
 import org.springframework.http.converter.FormHttpMessageConverter;
@@ -74,7 +75,7 @@ public class Controller {
         }
     }
 
-    Controller(QueryBuilder queryBuilder){
+    public Controller(QueryBuilder queryBuilder) {
         vertecURI = URI.create("http://" + DEFAULT_VERTEC_SERVER_HOST + ":" + DEFAULT_VERTEC_SERVER_PORT + "/xml");
 
         this.rest = new RestTemplate();
@@ -107,11 +108,12 @@ public class Controller {
 
     /**
      * Extracts all objrefs from an xml Response
+     *
      * @param response
      * @return
      */
     public List<Long> getObjrefsForOrganisationDocument(Document response) {
-        NodeList activityObjrefs =  response.getElementsByTagName("objref");
+        NodeList activityObjrefs = response.getElementsByTagName("objref");
         return activityObjrefs == null ? new ArrayList<>() : asIdList(activityObjrefs);
     }
 
@@ -136,6 +138,7 @@ public class Controller {
      * Call this function at the start of every request handler
      * This will make a request for 'ZUK TEAM' from vertec and either setUp the query builder with provided username and pwd
      * or will throw appropriate error
+     *
      * @throws ParserConfigurationException
      */
     public QueryBuilder AuthenticateThenReturnQueryBuilder() throws ParserConfigurationException {
@@ -155,6 +158,7 @@ public class Controller {
 
     /**
      * Can only be called by a fucntion that is an endpoint due to querybuilder having to be built
+     *
      * @param id
      * @return
      */
@@ -166,12 +170,13 @@ public class Controller {
 
     /**
      * Call to extract text field of xml response, used for seeing if an item has been updated
+     *
      * @param response
      * @return
      */
-    public String getTextField(Document response){
+    public String getTextField(Document response) {
         Node res = response.getElementsByTagName("text").item(0);
-        if(res != null){
+        if (res != null) {
             return res.getTextContent();
         } else {
             return "";
@@ -179,7 +184,7 @@ public class Controller {
     }
 
     List<Contact> getDetailedContacts(List<Long> contactIdsForOrg) {
-        if(contactIdsForOrg.isEmpty()) return new ArrayList<>();
+        if (contactIdsForOrg.isEmpty()) return new ArrayList<>();
         return getContacts(contactIdsForOrg).stream()
                 .map(this::asContact)
                 .collect(toList());
@@ -207,9 +212,9 @@ public class Controller {
     String getOwnedOnVertecByStringForOwnerId(Long ownerId) {
         Long supervisorId = supervisorIdMap.get(ownerId);
         Long SALES_TEAM_IDENTIFIER = -5L; //members of the top sales team, including wolfgang have their 'supervisorId' set to -5 within the map;
-        if(ownerId == null) return "No Owner";
+        if (ownerId == null) return "No Owner";
 
-        if(supervisorId == null || supervisorId == 0L) return "Not ZUK"; // might be wrong
+        if (supervisorId == null || supervisorId == 0L) return "Not ZUK"; // might be wrong
 
         if (supervisorId.longValue() == SALES_TEAM_IDENTIFIER) {
             return "Sales Team";
@@ -237,17 +242,18 @@ public class Controller {
 
     /**
      * Returns the first 'name' field returned by vertec as String
+     *
      * @param response
      * @return
      */
     public String getNameForOrganisationDocument(Document response) {
-        Node node =  response.getElementsByTagName("name").item(0);
+        Node node = response.getElementsByTagName("name").item(0);
         return node == null ? "" : node.getTextContent();
     }
 
 
     private List<Activity> getActivityDetails(List<Long> activityIdsForOrg) {
-        if(activityIdsForOrg.isEmpty()) return new ArrayList<>();
+        if (activityIdsForOrg.isEmpty()) return new ArrayList<>();
         activityTypeMap = StaticMaps.INSTANCE.getActivityTypeMap();
         return getActivities(activityIdsForOrg).stream()
                 .map(this::getJsonActivity).collect(toList());
@@ -263,13 +269,24 @@ public class Controller {
     }
 
     private List<VRAPI.XMLClasses.ContainerActivity.Activity> getActivities(List<Long> ids) {
-        try{
+        try {
             return callVertec(queryBuilder.getActivities(ids), VRAPI.XMLClasses.ContainerActivity.Envelope.class)
                     .getBody()
                     .getQueryResponse()
                     .getActivities();
-        } catch (NullPointerException npe){
-            throw new HttpNotFoundException("At leas one of the supplied Ids does not belong to an activity: " + ids);
+        } catch (NullPointerException npe) {
+            throw new HttpNotFoundException("At least one of the supplied Ids does not belong to an activity: " + ids);
+        }
+    }
+
+    public List<GenericLinkContainer> getGenericLinkContainers(List<Long> ids) {
+        try {
+            return callVertec(queryBuilder.getGenericLinkContainers(ids),VRAPI.XMLClasses.FromContainer.Envelope.class)
+                    .getBody()
+                    .getQueryResponse()
+                    .getGenericLinkContainers();
+        } catch (NullPointerException npe) {
+            throw new HttpNotFoundException("At least one of the supplied Ids does not belong to a Generic Link Container: " + ids);
         }
     }
 }

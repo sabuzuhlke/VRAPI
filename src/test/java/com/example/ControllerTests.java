@@ -1,27 +1,43 @@
 package com.example;
 
+import VRAPI.Application;
+import VRAPI.Exceptions.HttpNotFoundException;
 import VRAPI.Keys.TestVertecKeys;
 import VRAPI.MyAccessCredentials;
+import VRAPI.ResourceControllers.Controller;
+import VRAPI.Util.QueryBuilder;
+import VRAPI.XMLClasses.FromContainer.GenericLinkContainer;
 import org.junit.Before;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.SpringApplicationConfiguration;
+import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
-import org.w3c.dom.Document;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-import static VRAPI.Keys.TestVertecKeys.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
-class ControllerTests {
+@RunWith(SpringJUnit4ClassRunner.class)
+@SpringApplicationConfiguration(Application.class)
+@WebIntegrationTest
+public class ControllerTests {
 
     String username;
     String password;
@@ -78,8 +94,8 @@ class ControllerTests {
 
     public String idsAsString(List<Long> ids) {
         String idsAsString = "";
-        for(int i = 0; i < ids.size(); i++) {
-            if (i < ids.size() -1) {
+        for (int i = 0; i < ids.size(); i++) {
+            if (i < ids.size() - 1) {
                 idsAsString += ids.get(i) + ",";
             } else {
                 idsAsString += ids.get(i);
@@ -98,15 +114,47 @@ class ControllerTests {
         FileReader reader = new FileReader(file.getAbsolutePath());
         BufferedReader breader = new BufferedReader(reader);
 
-        while((line = breader.readLine()) != null){
+        while ((line = breader.readLine()) != null) {
             String[] ids = line.split(",");
             String key = ids[0];
             String value = ids[1];
 
-            idMap.put(Long.parseLong(key),Long.parseLong(value));
+            idMap.put(Long.parseLong(key), Long.parseLong(value));
 
         }
         reader.close();
         return idMap;
     }
+
+    @Test
+    public void canGetGenericLinkContainersForValidId() {
+
+        QueryBuilder qb = new QueryBuilder(TestVertecKeys.usr, TestVertecKeys.pwd);
+        Controller c = new Controller(qb);
+
+        List<GenericLinkContainer> glcs = c.getGenericLinkContainers(Arrays.asList(8110400L, 20066431L, 958149L));
+
+        assertEquals(8110397L, glcs.get(1).getFromContainer().getObjref().longValue());
+        assertEquals(5295L, glcs.get(1).getLinks().getObjlist().getObjref().get(0).longValue());
+
+        assertEquals(3, glcs.size());
+    }
+
+    @Test
+    public void canNotGetGenericLinkContainersForInvalidIds() {
+
+        QueryBuilder qb = new QueryBuilder(TestVertecKeys.usr, TestVertecKeys.pwd);
+        Controller c = new Controller(qb);
+
+        try {
+            List<GenericLinkContainer> glcs = c.getGenericLinkContainers(Arrays.asList(811040L, 2001L, 958149L));
+            assertTrue(false);
+        } catch (HttpNotFoundException e) {
+            System.out.println(e.getMessage());
+            assertEquals(e.getMessage(), "At least one of the supplied Ids does not belong to a Generic Link Container: [811040, 2001, 958149]");
+        }
+
+
+    }
+
 }

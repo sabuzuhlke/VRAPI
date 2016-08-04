@@ -1,24 +1,16 @@
 package com.example;
 
-import VRAPI.Application;
 import VRAPI.Entities.Employee;
 import VRAPI.Entities.EmployeeList;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 import static org.junit.Assert.*;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(Application.class)
-@WebIntegrationTest
 public class EmployeeControllerTests extends ControllerTests {
 
     @Test

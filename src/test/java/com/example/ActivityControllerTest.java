@@ -1,22 +1,14 @@
 package com.example;
 
-import VRAPI.Application;
 import VRAPI.JSONClasses.JSONContainerActivities.JSONActivitiesResponse;
 import VRAPI.JSONClasses.JSONContainerActivities.JSONActivity;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.springframework.boot.test.SpringApplicationConfiguration;
-import org.springframework.boot.test.WebIntegrationTest;
 import org.springframework.http.HttpStatus;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.HttpClientErrorException;
 
 import static junit.framework.TestCase.assertEquals;
 import static junit.framework.TestCase.assertTrue;
 
-@RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(Application.class)
-@WebIntegrationTest
 public class ActivityControllerTest extends ControllerTests {
 
     @Test

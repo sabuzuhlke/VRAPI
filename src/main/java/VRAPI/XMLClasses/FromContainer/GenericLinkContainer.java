@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlElement;
 public class GenericLinkContainer {
     private Long Objid;
     private FromContainer fromContainer;
-    private Objref objref;
+    private Links links;
 
     public GenericLinkContainer() {
     }
@@ -33,12 +33,12 @@ public class GenericLinkContainer {
         this.fromContainer = fromContainer;
     }
 
-    @XmlElement(name = "rolle")
-    public Objref getObjref() {
-        return objref;
+    @XmlElement(name = "links")
+    public Links getLinks() {
+        return links;
     }
 
-    public void setObjref(Objref objref) {
-        this.objref = objref;
+    public void setLinks(Links links) {
+        this.links = links;
     }
 }
