@@ -1,5 +1,7 @@
 package VRAPI.Util;
 
+import VRAPI.XMLClasses.FromContainer.GenericLinkContainer;
+
 import java.util.Collection;
 import java.util.List;
 
@@ -28,7 +30,7 @@ public class QueryBuilder {
                 "  <Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n" +
-                "        <objref>" + id +"</objref>\n" +
+                "        <objref>" + id + "</objref>\n" +
                 "      </Selection>\n" +
                 "      <Resultdef>\n" +
                 "        <member>briefEmail</member>\n" + //will return objref for each member of team
@@ -58,7 +60,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-//---------------------------------------------------------------------------------------------------------------------- POST
+    //---------------------------------------------------------------------------------------------------------------------- POST
     String postOrganisation(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation organisation) {
 
         String body = "<Body>\n" +
@@ -95,6 +97,7 @@ public class QueryBuilder {
 
 
 //---------------------------------------------------------------------------------------------------------------------- OLD
+
     /**
      * Wolfgang's Team
      */
@@ -443,7 +446,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    public String getUserEmail(Long id){
+    public String getUserEmail(Long id) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";
@@ -485,7 +488,7 @@ public class QueryBuilder {
                 "  </Body>\n" +
                 "</Envelope>";
 
-     return header + body;
+        return header + body;
     }
 
     public String getActivitiesForAddressEntry(Long id) {
@@ -547,7 +550,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    public String setOrganisationActive(Boolean active,Long id) {
+    public String setOrganisationActive(Boolean active, Long id) {
         String body = "<Body>\n" +
                 "  <Update>\n" +
                 "     <Firma> \n" +
@@ -560,7 +563,8 @@ public class QueryBuilder {
 
         return header + body;
     }
-    public String setContactActive(Boolean active,Long id) {
+
+    public String setContactActive(Boolean active, Long id) {
         String body = "<Body>\n" +
                 "  <Update>\n" +
                 "     <Kontakt> \n" +
@@ -607,8 +611,8 @@ public class QueryBuilder {
         return header + body;
     }
 
-    public String setProjectOrgLink(Long projId, Long orgId){
-        String body =  "<Body>\n" +
+    public String setProjectOrgLink(Long projId, Long orgId) {
+        String body = "<Body>\n" +
                 "  <Update>\n" +
                 "     <Projekt> \n" +
                 "       <objref>" + projId + "</objref>\n" +
@@ -623,8 +627,8 @@ public class QueryBuilder {
         return header + body;
     }
 
-    public String setActivityOrgLink(Long activityID, Long orgID){
-        String body =  "<Body>\n" +
+    public String setActivityOrgLink(Long activityID, Long orgID) {
+        String body = "<Body>\n" +
                 "  <Update>\n" +
                 "     <Aktivitaet> \n" +
                 "       <objref>" + activityID + "</objref>\n" +
@@ -660,7 +664,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
-    public String getGenericLinkContainers(List<Long> ids){
+    public String getGenericLinkContainers(List<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
                 "      <Selection>\n";
@@ -677,5 +681,66 @@ public class QueryBuilder {
                 "  </Body>\n" +
                 "</Envelope>";
         return header + bodyStart + bodyEnd;
+    }
+
+    public String setFromContainerOfGLC(List<Long> glcids, Long newId) {
+        String bodyBegin = "<Body>\n" +
+                "  <Update>\n";
+        String bodyEnd = "";
+        for (Long id : glcids) {
+            bodyEnd += "     <GenericLinkContainer> \n" +
+                    "       <objref>" + id + "</objref>\n" +
+                    "       <fromContainer>\n" +
+                    "           <objref>" + newId + "</objref>\n" +
+                    "       </fromContainer>\n" +
+                    "      </GenericLinkContainer>\n";
+
+        }
+        bodyEnd += "    </Update>\n" +
+                "  </Body>" +
+                "</Envelope>";
+
+        return header + bodyBegin + bodyEnd;
+    }
+
+    public String setLinksListToReplaceMergeIdWithSurvivorId(List<GenericLinkContainer> glcs, Long survivorId, Long mergingId) {
+
+        String bodyBegin = "<Body>\n" +
+                "  <Update>\n";
+        String bodyEnd = "";
+
+        for (GenericLinkContainer glc : glcs) {
+
+            bodyEnd += "     <GenericLinkContainer> \n" +
+                    "       <objref>" + glc.getObjid() + "</objref>\n" +
+                    "        <links> <objlist>\n";
+
+            Boolean didFindMergeId = false;
+            for (Long link : glc.getLinks().getObjlist().getObjref()) {
+
+                if (link == mergingId.longValue()) {
+
+                    bodyEnd += "<objref>" + survivorId + "</objref>\n";
+                    didFindMergeId = true;
+                } else {
+                    bodyEnd += "<objref>" + link + "</objref>\n";
+                }
+
+            }
+
+            if (! didFindMergeId) {
+                System.out.print("Could not find mergeId in list for mergeId: " + mergingId + ", survivorId: " + survivorId + ", glcId: " + glc.getObjid());
+            }
+            bodyEnd += "</objlist>  </links>" +
+                    "      </GenericLinkContainer>\n";
+
+        }
+
+        bodyEnd += "    </Update>\n" +
+                "  </Body>" +
+                "</Envelope>";
+
+        return header + bodyBegin + bodyEnd;
+
     }
 }

@@ -281,7 +281,7 @@ public class Controller {
 
     public List<GenericLinkContainer> getGenericLinkContainers(List<Long> ids) {
         try {
-            return callVertec(queryBuilder.getGenericLinkContainers(ids),VRAPI.XMLClasses.FromContainer.Envelope.class)
+            return callVertec(queryBuilder.getGenericLinkContainers(ids), VRAPI.XMLClasses.FromContainer.Envelope.class)
                     .getBody()
                     .getQueryResponse()
                     .getGenericLinkContainers();
@@ -289,4 +289,39 @@ public class Controller {
             throw new HttpNotFoundException("At least one of the supplied Ids does not belong to a Generic Link Container: " + ids);
         }
     }
+
+    public ResponseEntity<Long> setFromContainerOfGLC(Long survivorId, List<Long> glcids) {
+        Document res = responseFor(new RequestEntity<>(queryBuilder.setFromContainerOfGLC(glcids
+                , survivorId), HttpMethod.POST, vertecURI));
+
+        return returnResponseEntityOrThrowError(res, survivorId, glcids);
+    }
+
+    public ResponseEntity<Long> replaceLinks(Long survivorId, Long mergingId, List<GenericLinkContainer> glcs) {
+        Document res = responseFor(new RequestEntity<>(
+                queryBuilder.setLinksListToReplaceMergeIdWithSurvivorId(glcs, survivorId, mergingId),
+                HttpMethod.POST,
+                vertecURI)
+        );
+
+        return returnResponseEntityOrThrowError(res, survivorId, glcs);
+
+    }
+
+    public ResponseEntity<Long> returnResponseEntityOrThrowError(Document res, Long survivorId, List<?> glcs) {
+        if (getTextField(res).contains("Updated " + glcs.size())) {
+
+            VertecServerInfo.log.info("Generic Link containers" + glcs + " now linked to object: " + survivorId);
+            VertecServerInfo.log.info("-------------------------------------------------------------------------------->\n\n");
+            return new ResponseEntity<>(survivorId, HttpStatus.OK);
+
+        } else {
+            VertecServerInfo.log.info("Could not re-link glc-s " + glcs + ", Unknown response from Vertec");
+            VertecServerInfo.log.info("-------------------------------------------------------------------------------->\n\n");
+            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
+        }
+
+    }
+
+
 }
