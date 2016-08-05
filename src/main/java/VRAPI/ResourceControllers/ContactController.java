@@ -155,20 +155,39 @@ public class ContactController extends Controller {
     }
 
 
-//=======================================METHODS========================================================================
-
+  //==================================================================================================================
+ // MERGE
 //======================================================================================================================
+    @ApiOperation(value = "Merge two vertec organisations", nickname = "merge")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization",
+                    value = "username:password",
+                    required = true,
+                    dataType = "string",
+                    paramType = "header")
+    })
+    @RequestMapping(value = "/organisation/{mergingId}/mergeInto/{survivingId}", method = RequestMethod.GET)
+    public ResponseEntity<String> mergeContactEndpoint(@PathVariable Long mergingId, @PathVariable Long survivingId)
+            throws ParserConfigurationException, IOException {
+        queryBuilder = AuthenticateThenReturnQueryBuilder();
+
+        return mergeContacts(mergingId, survivingId);
+
+    }
+
 
     //TODO FINISH Below FUNCTION!!!!!!!!
     private ResponseEntity<String> mergeContacts(Long mergingId, Long survivingId) throws IOException {
 
-        if ( ! isIdOfType(mergingId, "Kontakt")) {
+        //check that both ids provided are contacts in vertec
+        if (!isIdOfType(mergingId, "Kontakt")) {
             throw new HttpNotFoundException("Contact with id: " + mergingId + " does not exist");
         }
-        if ( ! isIdOfType(survivingId, "Kontakt")) {
+        if (!isIdOfType(survivingId, "Kontakt")) {
             throw new HttpNotFoundException("Contact with id: " + survivingId + " does not exist");
         }
 
+        //get details of both the contacts
         VRAPI.Entities.Contact mergingCont = getContactList(singletonList(mergingId)).getContacts().get(0);
         VRAPI.Entities.Contact survivingContact = getContactList(singletonList(survivingId)).getContacts().get(0);
 
@@ -178,6 +197,8 @@ public class ContactController extends Controller {
 
         //Set Activity Links
         VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING ACTIVITIES =========================");
+
+        //Foreach activity attached to our merging contact, update the activity to be linked to the surviving contact
         ActivityController activityController = new ActivityController(queryBuilder);
         ActivitiesForAddressEntry afa = activityController.getActivitiesForContact(mergingId);
 //        for(Activity     a : afa.getActivities()){
@@ -196,27 +217,39 @@ public class ContactController extends Controller {
         //set Followers
         VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING LINKS =========================");
 
-        //PROJECTS
 
-        //Log in log and to file
-        File mergedIds = new File("mergedOrgs");
-        PrintWriter out = new PrintWriter(new FileWriter(mergedIds,true));
-        out.write(mergingId + "," + survivingId + "\n");
-        out.close();
 
-        //Set merged Contact ot inactive
-        try{
+        //A GenericLinkContainer represents a generic relationship between objects, in our contaxt they are used to represent followers
+        //Objects on vertec can be realated to any other other object, and can also relate to any other object
+        //Each object can be associated wih a unique 'GenericLinkContainer' which can be related mulptiple other objects -
+        //We update this unique 'GenericLinkContainer' to point to the surviving contact
+        //Each GenericLinkContainer can be related to any number of objects, we find the containers that our merging contact relates to -
+        //We update the link of objects that relates to each of these containers to include the surviving contact
+
+        ResponseEntity<Long> resFollowersOfContact = repointFollowedGenericLinkContainers(mergingCont, survivingContact);
+        ResponseEntity<Long> resContactFollows = repointFromLinksOfGenericLinkContainers(mergingCont, survivingContact);
+
+          //Log in log and to file
+//        File mergedIds = new File("mergedOrgs");
+//        PrintWriter out = new PrintWriter(new FileWriter(mergedIds, true));
+//        out.write(mergingId + "," + survivingId + "\n");
+//        out.close();
+
+        //Set merged Contact to inactive
+        try {
             VertecServerInfo.log.info("------------------------------------------------------>");
             VertecServerInfo.log.info("Setting contact " + mergingCont.getFullName() + "(v_id: " + mergingId + ") to inactive");
-            setActiveField(mergingId,false);
+            setActiveField(mergingId, false);
             VertecServerInfo.log.info("--------------------SUCCESS--------------------------->");
-        } catch (Exception e){
+        } catch (Exception e) {
             VertecServerInfo.log.info("FAILURE:: " + e.toString());
         }
 
         VertecServerInfo.log.info("===================================================================================");
         return null;
     }
+
+//=======================================HELPER METHODS========================================================================
 
     private ResponseEntity<Long> setActiveField(Long contId, boolean active) {
         if (!isIdOfType(contId, "Kontakt")) {
