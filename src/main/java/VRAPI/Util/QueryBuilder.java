@@ -643,6 +643,23 @@ public class QueryBuilder {
         return header + body;
     }
 
+    public String setActivityContactLink(Long activityId, Long contactId) {
+        String body = "<Body>\n" +
+                "  <Update>\n" +
+                "     <Aktivitaet> \n" +
+                "       <objref>" + activityId + "</objref>\n" +
+                "       <adresseintrag>\n" +
+                "           <objref>" + contactId + "</objref>\n" +
+                "       </adresseintrag>\n" +
+                "      </Aktivitaet>\n" +
+                "    </Update>\n" +
+                "  </Body>" +
+                "</Envelope>";
+
+        return header + body;
+
+    }
+
     public String getContactMediumDetails(List<Long> kommMittelIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -743,4 +760,6 @@ public class QueryBuilder {
         return header + bodyBegin + bodyEnd;
 
     }
+
+
 }

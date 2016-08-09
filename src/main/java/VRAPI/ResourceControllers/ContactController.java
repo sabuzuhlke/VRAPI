@@ -159,13 +159,13 @@ public class ContactController extends Controller {
 
 //======================================================================================================================
 
-    //TODO FINISH Below FUNCTION!!!!!!!!
-    private ResponseEntity<String> mergeContacts(Long mergingId, Long survivingId) throws IOException {
+    //TODO merge Organisation pointed out in tomerge.txt
+    public ResponseEntity<String> mergeContacts(Long mergingId, Long survivingId) throws IOException {
 
-        if ( ! isIdOfType(mergingId, "Kontakt")) {
+        if (!isIdOfType(mergingId, "Kontakt")) {
             throw new HttpNotFoundException("Contact with id: " + mergingId + " does not exist");
         }
-        if ( ! isIdOfType(survivingId, "Kontakt")) {
+        if (!isIdOfType(survivingId, "Kontakt")) {
             throw new HttpNotFoundException("Contact with id: " + survivingId + " does not exist");
         }
 
@@ -179,46 +179,80 @@ public class ContactController extends Controller {
         //Set Activity Links
         VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING ACTIVITIES =========================");
         ActivityController activityController = new ActivityController(queryBuilder);
-        ActivitiesForAddressEntry afa = activityController.getActivitiesForContact(mergingId);
-//        for(Activity     a : afa.getActivities()){
-//            VertecServerInfo.log.info("------------------------------------------------------>");
-//            VertecServerInfo.log.info("Setting Activity(v_id: " + a.getVertecId() +") to point to contact " + survivingId
-//                    + " (used to point to: " + mergingCont.getVertecId() + ")");
-//            try{
-//
-//                activityController.setContactLink(a.getVertecId(), survivingId);
-//                VertecServerInfo.log.info("--------------------SUCCESS--------------------------->");
-//            } catch (Exception e){
-//                VertecServerInfo.log.info("FAILURE:: " + e.toString());
-//            }
-//        }
+        ActivitiesForAddressEntry afa = activityController.getActivitiesForAddressEntry(mergingId).getBody();
+        for (Activity a : afa.getActivities()) {
+            VertecServerInfo.log.info("------------------------------------------------------>");
+            VertecServerInfo.log.info("Setting Activity(v_id: " + a.getVertecId() + ") to point to contact " + survivingId
+                    + " (used to point to: " + mergingCont.getVertecId() + ")");
+            try {
+
+                activityController.setContactLink(a.getVertecId(), survivingId);
+                VertecServerInfo.log.info("--------------------SUCCESS--------------------------->\n");
+            } catch (Exception e) {
+                VertecServerInfo.log.info("FAILURE:: " + e.toString());
+            }
+        }
 
         //set Followers
         VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING LINKS =========================");
+        //setGenericLink containers
+        List<Long> genericContainersIds = mergingCont.getGenericContainers();
+        VertecServerInfo.log.info("About to repoint from Contact " + mergingCont.getFullName() + "(v_id: " + mergingCont.getVertecId()
+                + ") to " + survivingContact.getFullName() + "(v_id: " + survivingContact.getVertecId() +
+                ") the following genericContainers: " + genericContainersIds);
 
-        //PROJECTS
+        try {
 
-        //Log in log and to file
-        File mergedIds = new File("mergedOrgs");
-        PrintWriter out = new PrintWriter(new FileWriter(mergedIds,true));
-        out.write(mergingId + "," + survivingId + "\n");
-        out.close();
+            setFromContainerOfGLC(survivingId, genericContainersIds);
+            VertecServerInfo.log.info("--------------------SUCCESS--------------------------->\n");
 
-        //Set merged Contact ot inactive
-        try{
-            VertecServerInfo.log.info("------------------------------------------------------>");
-            VertecServerInfo.log.info("Setting contact " + mergingCont.getFullName() + "(v_id: " + mergingId + ") to inactive");
-            setActiveField(mergingId,false);
-            VertecServerInfo.log.info("--------------------SUCCESS--------------------------->");
-        } catch (Exception e){
+        } catch (Exception e) {
             VertecServerInfo.log.info("FAILURE:: " + e.toString());
         }
 
-        VertecServerInfo.log.info("===================================================================================");
+        List<Long> fromLinks = mergingCont.getFromLinks();
+
+        VertecServerInfo.log.info("About to repoint from Contact " + mergingCont.getFullName() + "(v_id: " + mergingCont.getVertecId()
+                + ") to " + survivingContact.getFullName() + "(v_id: " + survivingContact.getVertecId() +
+                ") the following fromLinks: " + fromLinks);
+
+        try {
+            replaceLinks(survivingId, mergingId, getGenericLinkContainers(fromLinks));
+            VertecServerInfo.log.info("--------------------SUCCESS--------------------------->\n");
+
+        } catch (Exception e) {
+            VertecServerInfo.log.info("FAILURE:: " + e.toString());
+        }
+
+
+        try{
+
+        //Log in log and to file
+        File mergedIds = new File("mergedConts");
+        PrintWriter out = new PrintWriter(new FileWriter(mergedIds, true));
+        out.write(mergingId + "," + survivingId + "\n");
+        out.close();
+        } catch (Exception e) {
+            System.out.println(" Caught exception tryin to write to file: " + e.getMessage());
+        }
+
+        //Set merged Contact ot inactive
+        try {
+            VertecServerInfo.log.info("------------------------------------------------------>");
+            VertecServerInfo.log.info("Setting contact " + mergingCont.getFullName() + "(v_id: " + mergingId + ") to inactive");
+
+            setActiveField(mergingId, false);
+
+            VertecServerInfo.log.info("--------------------SUCCESS--------------------------->\n");
+        } catch (Exception e) {
+            VertecServerInfo.log.info("FAILURE:: " + e.toString());
+        }
+
+        VertecServerInfo.log.info("===================================================================================\n\n");
         return null;
     }
 
-    private ResponseEntity<Long> setActiveField(Long contId, boolean active) {
+    public ResponseEntity<Long> setActiveField(Long contId, boolean active) {
         if (!isIdOfType(contId, "Kontakt")) {
             throw new HttpNotFoundException("Contact with id: " + contId + " does not exist");
         }

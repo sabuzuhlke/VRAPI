@@ -18,8 +18,8 @@ public class OrganisationList {
     public void setOrganisations(List<Organisation> organisations) {
         this.organisations = organisations;
     }
-
-    public String toJSONString(){
+ @Override
+    public String toString(){
         String retStr = null;
         ObjectMapper m = new ObjectMapper();
         try{

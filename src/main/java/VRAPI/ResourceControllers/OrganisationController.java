@@ -232,8 +232,10 @@ public class OrganisationController extends Controller {
         System.out.println("Received request");
         queryBuilder = AuthenticateThenReturnQueryBuilder();
         System.out.println("Authenticated request");
-        return getAllOrganisations();
+        ResponseEntity<OrganisationList> res = getAllOrganisations();
+        System.out.println(res.getBody());
 
+        return res;
     }
 
     private List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> getOrganisations(List<Long> ids) {

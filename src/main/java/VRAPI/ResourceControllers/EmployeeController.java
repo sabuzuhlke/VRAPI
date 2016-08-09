@@ -77,7 +77,11 @@ public class EmployeeController extends Controller {
     }
 
     private List<ProjectWorker> getEmployessFromVertec(List<Long> teamIds) {
-        return callVertec(queryBuilder.getTeamDetails(teamIds), Envelope.class).getBody().getQueryResponse().getWorkers();
+        List<ProjectWorker> employees = callVertec(queryBuilder.getTeamDetails(teamIds), Envelope.class).getBody().getQueryResponse().getWorkers();
+        for(ProjectWorker pw : employees){
+            pw.setEmail(pw.getEmail().toLowerCase());
+        }
+        return employees;
     }
 
 }

@@ -11,6 +11,7 @@ import VRAPI.ResourceControllers.OrganisationController;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -80,6 +81,10 @@ public class OrganisationControllerTests extends ControllerTests {
         List<List<Long>> idsList = new ArrayList<>();
         List<Long> mergingIds = new ArrayList<>(); //<mergingId, survivingId>
         List<Long> survivingIds = new ArrayList<>(); //<mergingId, survivingId>
+
+        //ECS
+        mergingIds.add(20066194L);
+        survivingIds.add(17913930L);
 
         //Waveguide -->2
         mergingIds.add(19440239L);
@@ -531,15 +536,15 @@ public class OrganisationControllerTests extends ControllerTests {
      */
 
 
-//    @Test @Ignore
-//    public void canGetAllOrganisationsInCommonRepresentation() {
-//
-//        String uri = baseURI + "/organisations/all";
-//        ResponseEntity<OrganisationList> res = getFromVertec(uri, OrganisationList.class);
-//
-//        System.out.println(res.getBody().toJSONString());
-//
-//    }
+    @Test //@Ignore
+    public void canGetAllOrganisationsInCommonRepresentation() {
+
+        String uri = baseURI + "/organisations/all";
+        ResponseEntity<OrganisationList> res = getFromVertec(uri, OrganisationList.class);
+
+
+
+    }
 //
 //
 //    @Test

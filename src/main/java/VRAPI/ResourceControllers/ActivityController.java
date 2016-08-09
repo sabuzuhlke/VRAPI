@@ -118,13 +118,29 @@ public class ActivityController extends Controller {
         }
     }
 
-    public ActivitiesForAddressEntry getActivitiesForContact(Long contactId) {
 
 
+    public ResponseEntity<Long> setContactLink(Long activityId, Long contactId) {
 
+        if ( ! isIdOfType(contactId, "Kontakt")) {
+            VertecServerInfo.log.info("--------------- Activity with id: " + contactId + " does not exist ------------------>");
+                throw new HttpNotFoundException("Activity with id: " + contactId + " does not exist");
+        }
+        String query = queryBuilder.setActivityContactLink(activityId, contactId);
 
-        return null;
+        Document res = responseFor(new RequestEntity<>(query, HttpMethod.POST, vertecURI));
+
+        if (getTextField(res).equals("Updated 1 Objects")) {
+
+            VertecServerInfo.log.info("Activity now points to Contact: " + contactId);
+            VertecServerInfo.log.info("-------------------------------------------------------------------------------->\n\n");
+            return new ResponseEntity<>(contactId , HttpStatus.OK);
+
+        } else {
+            VertecServerInfo.log.info("Failed to Point activity to Contact, Unknown response from Vertec" );
+            VertecServerInfo.log.info("-------------------------------------------------------------------------------->\n\n");
+            throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
+
+        }
     }
-
-
 }
