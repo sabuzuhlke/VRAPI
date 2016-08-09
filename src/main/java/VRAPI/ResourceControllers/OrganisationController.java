@@ -44,15 +44,15 @@ public class OrganisationController extends Controller {
         super();
     }
 
-    public OrganisationController(QueryBuilder queryBuilder){
+    public OrganisationController(QueryBuilder queryBuilder) {
         super(queryBuilder);
     }
 
-//======================================================================================================================
+    //======================================================================================================================
 // PUT /organisations
 //======================================================================================================================
     @ApiOperation(value = "Set Organisation to inactive", nickname = "activities")
-    @ApiImplicitParams( {
+    @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
                     required = true,
@@ -63,13 +63,13 @@ public class OrganisationController extends Controller {
     public ResponseEntity<Long> setInactiveEndpoint(@PathVariable Long id) throws ParserConfigurationException {
 
         queryBuilder = AuthenticateThenReturnQueryBuilder();
-        return setActiveField(id,false);
+        return setActiveField(id, false);
 
     }
 
 
     @ApiOperation(value = "Set Organisation to active", nickname = "activities")
-    @ApiImplicitParams( {
+    @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
                     required = true,
@@ -83,11 +83,11 @@ public class OrganisationController extends Controller {
         return setActiveField(id, true);
     }
 
-  //======================================================================================================================//
- // MERGE /organisations                                                                                                 //=
-//======================================================================================================================//==
+    //====================================================================================================================
+    // MERGE /organisations
+//======================================================================================================================
     @ApiOperation(value = "Merge two vertec organisations", nickname = "merge")
-    @ApiImplicitParams( {
+    @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
                     required = true,
@@ -104,8 +104,6 @@ public class OrganisationController extends Controller {
     }
 
 
-
-
 //======================================================================================================================
 // GET /organisations
 //======================================================================================================================
@@ -113,7 +111,7 @@ public class OrganisationController extends Controller {
 
     //---------------------------------------------------------------------------------------------------------------------- /{id}/contacts
     @ApiOperation(value = "Get contacts for organisation", nickname = "contacts")
-    @ApiImplicitParams( {
+    @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
                     required = true,
@@ -128,13 +126,9 @@ public class OrganisationController extends Controller {
     }
 
 
-
-
-
-
     //---------------------------------------------------------------------------------------------------------------------- /{id}/projects
     @ApiOperation(value = "Get projects for organisation", nickname = "projects")
-    @ApiImplicitParams( {
+    @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
                     required = true,
@@ -150,13 +144,13 @@ public class OrganisationController extends Controller {
     }
 
 
-
     private List<JSONProject> getDetailedProjects(List<Long> projectIdsForOrg) {
-        if(projectIdsForOrg.isEmpty()) return new ArrayList<>();
+        if (projectIdsForOrg.isEmpty()) return new ArrayList<>();
         return getProjects(projectIdsForOrg).stream()
                 .map(this::asJSONProject)
                 .collect(toList());
     }
+
     //TODO: add support for projectType and currency map
     private JSONProject asJSONProject(Project project) {
         String accountManager = "";
@@ -201,15 +195,16 @@ public class OrganisationController extends Controller {
     //====================================================================================================================== /{id}/activities
     //TODO: change activities to common representation
     @ApiOperation(value = "Get activities for organisation", nickname = "activities")
-    @ApiImplicitParams( {
+    @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
                     required = true,
                     dataType = "string",
                     paramType = "header")
     })
-    @RequestMapping(value = "/organisation/{id}/activities", method = RequestMethod.GET) //TODO: write test for this function
-    public ResponseEntity<ActivitiesForAddressEntry> getActivitiesForOrganisationEndpoint (@PathVariable Long id)
+    @RequestMapping(value = "/organisation/{id}/activities", method = RequestMethod.GET)
+    //TODO: write test for this function
+    public ResponseEntity<ActivitiesForAddressEntry> getActivitiesForOrganisationEndpoint(@PathVariable Long id)
             throws ParserConfigurationException {
         queryBuilder = AuthenticateThenReturnQueryBuilder();
 
@@ -219,7 +214,7 @@ public class OrganisationController extends Controller {
 
     //====================================================================================================================== /all
     @ApiOperation(value = "Get all organisations owned by ZUK employees", nickname = "all")
-    @ApiImplicitParams( {
+    @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
                     required = true,
@@ -239,12 +234,12 @@ public class OrganisationController extends Controller {
     }
 
     private List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> getOrganisations(List<Long> ids) {
-        try{
+        try {
             return callVertec(queryBuilder.getOrganisationDetails(ids), VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class).getBody().getQueryResponse().getOrganisationList().stream()
                     .filter(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation::getActive)
                     .collect(toList());
         } catch (NullPointerException npe) {
-            throw new HttpNotFoundException("Did not find any of the listed organisations:" + ids );
+            throw new HttpNotFoundException("Did not find any of the listed organisations:" + ids);
         }
     }
 
@@ -278,7 +273,7 @@ public class OrganisationController extends Controller {
 
     //---------------------------------------------------------------------------------------------------------------------- /{ids}
     @ApiOperation(value = "Get organisation by list", nickname = "byList")
-    @ApiImplicitParams( {
+    @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
                     required = true,
@@ -292,7 +287,6 @@ public class OrganisationController extends Controller {
 
         return getOrganisationList(ids);
     }
-
 
 
     //---------------------------------------------------------------------------------------------------------------------- /{id}
@@ -313,14 +307,13 @@ public class OrganisationController extends Controller {
     }
 
 
-
 //======================================================================================================================
 // POST /organisations/
 //======================================================================================================================
 
     //---------------------------------------------------------------------------------------------------------------------- POST /{id}
     @ApiOperation(value = "Post organisation to vertec", nickname = "post")
-    @ApiImplicitParams( {
+    @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
                     required = true,
@@ -418,18 +411,18 @@ public class OrganisationController extends Controller {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
-    public ResponseEntity<Long> setActiveField(Long id, Boolean active){
-        if ( ! isIdOfType(id, "Firma")) {
+    public ResponseEntity<Long> setActiveField(Long id, Boolean active) {
+        if (!isIdOfType(id, "Firma")) {
             throw new HttpNotFoundException("Organisation with id: " + id + " does not exist");
         }
         String putQuery = queryBuilder.setOrganisationActive(active, id);
         //send put request to vertec
 
-        Document res = responseFor(new RequestEntity<>(putQuery, HttpMethod.POST,vertecURI));
+        Document res = responseFor(new RequestEntity<>(putQuery, HttpMethod.POST, vertecURI));
 
         if (getTextField(res).equals("Updated 1 Objects")) {
             VertecServerInfo.log.info("------ Set Organisation: " + id + "-s active field to " + active + "------>\n\n");
-            return new ResponseEntity<>(id,HttpStatus.OK);
+            return new ResponseEntity<>(id, HttpStatus.OK);
         } else {
             VertecServerInfo.log.info("------ Failed to: " + id + "-s active field to " + active + " , Unknown response from vertec------>\n\n");
             throw new HttpInternalServerError("Unknown response from vertec: " + getTextField(res));
@@ -442,7 +435,7 @@ public class OrganisationController extends Controller {
         VertecServerInfo.log.info("=============================== START MERGE FOR ID: " + mergingId + " INTO ID: " + survivingId + "===============================");
 
         File mergedIds = new File("mergedOrgs");
-        PrintWriter out = new PrintWriter(new FileWriter(mergedIds,true));
+        PrintWriter out = new PrintWriter(new FileWriter(mergedIds, true));
 
         //Get Names of organisations from vertec for logging
         String mergingQuery = queryBuilder.getProjectsForOrganisation(mergingId);
@@ -472,7 +465,7 @@ public class OrganisationController extends Controller {
             VertecServerInfo.log.info("Updating Project name: " + project.getTitle() + ", Code: " + project.getCode() + " to be linked to Organisation ID: " + survivingId);
 
             //PUT Project
-            projectController.setOrgLink(project.getV_id(),survivingId); //ONLY PRODUCES A LOG ATM
+            projectController.setOrgLink(project.getV_id(), survivingId); //ONLY PRODUCES A LOG ATM
         });
 
         VertecServerInfo.log.info("======================== UPDATING THE FOLLOWING ACTIVITIES =========================");
@@ -497,7 +490,7 @@ public class OrganisationController extends Controller {
         out.close();
 
         //PUT org to inactive
-        setActiveField(mergingId,false); //ONLY PRODUCES A LOG ATM
+        setActiveField(mergingId, false); //ONLY PRODUCES A LOG ATM
 
         return new ResponseEntity<>("Recieved call to merge organisation with id: " + mergingId + " into organisation with id: " + survivingId, HttpStatus.OK);
     }
