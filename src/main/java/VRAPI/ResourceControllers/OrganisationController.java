@@ -1,23 +1,26 @@
 package VRAPI.ResourceControllers;
 
-import VRAPI.Entities.Activity;
 import VRAPI.Entities.Contact;
 import VRAPI.Entities.Organisation;
 import VRAPI.Entities.OrganisationList;
 import VRAPI.Exceptions.HttpInternalServerError;
 import VRAPI.Exceptions.HttpNotFoundException;
+import VRAPI.Exceptions.HttpUnprocessableEntityException;
 import VRAPI.JSONClasses.JSONContainerProject.JSONPhase;
 import VRAPI.JSONClasses.JSONContainerProject.JSONProject;
 import VRAPI.MergeClasses.ActivitiesForAddressEntry;
 import VRAPI.MergeClasses.ContactsForOrganisation;
 import VRAPI.MergeClasses.ProjectsForAddressEntry;
+import VRAPI.Util.NoIdSuppliedException;
 import VRAPI.Util.QueryBuilder;
 import VRAPI.Util.StaticMaps;
 import VRAPI.VertecServerInfo;
 import VRAPI.XMLClasses.ContainerDetailedProjects.Project;
+import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.tomcat.util.log.SystemLogHandler;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -25,7 +28,6 @@ import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
@@ -49,9 +51,54 @@ public class OrganisationController extends Controller {
     }
 
     //======================================================================================================================
+// POST /organisations
+//======================================================================================================================
+    @ApiOperation(value = "Create new organisation", nickname = "create")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization",
+                    value = "username:password",
+                    required = true,
+                    dataType = "string",
+                    paramType = "header")
+    })
+    @RequestMapping(value = "/organisation", method = RequestMethod.POST)
+    public ResponseEntity<Long> createOrganisationEndpoint(@RequestBody Organisation organisation) throws ParserConfigurationException {
+        queryBuilder = AuthenticateThenReturnQueryBuilder();
+        return createOrganisation(organisation);
+    }
+
+
+
+    //======================================================================================================================
 // PUT /organisations
 //======================================================================================================================
-    @ApiOperation(value = "Set Organisation to inactive", nickname = "activities")
+    @ApiOperation(value = "Update Organisation", nickname = "Update")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "Authorization",
+                    value = "username:password",
+                    required = true,
+                    dataType = "string",
+                    paramType = "header")
+    })
+    @RequestMapping(value = "/organisation/{id}", method = RequestMethod.PUT)
+    public ResponseEntity<String> updateEndpoint(@PathVariable Long id, @RequestBody Organisation organisation) throws ParserConfigurationException {
+        //makes response faster
+        if(organisation.getVertecId() == null) throw new HttpUnprocessableEntityException("Please supply an Id with the organisation to update");
+
+        queryBuilder = AuthenticateThenReturnQueryBuilder();
+
+        if(!isIdOfType(id, "Firma")) throw new HttpNotFoundException("No organisation with id: " + id + " exists");
+
+        try {
+            return update(id, organisation);
+        } catch (NoIdSuppliedException e) {
+            throw new HttpUnprocessableEntityException("Please supply an Id with the organisation to update");
+        }
+    }
+
+
+
+    @ApiOperation(value = "Set Organisation to inactive", nickname = "deActivate")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
@@ -68,7 +115,7 @@ public class OrganisationController extends Controller {
     }
 
 
-    @ApiOperation(value = "Set Organisation to active", nickname = "activities")
+    @ApiOperation(value = "Set Organisation to active", nickname = "Activate")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization",
                     value = "username:password",
@@ -493,6 +540,52 @@ public class OrganisationController extends Controller {
         setActiveField(mergingId, false); //ONLY PRODUCES A LOG ATM
 
         return new ResponseEntity<>("Recieved call to merge organisation with id: " + mergingId + " into organisation with id: " + survivingId, HttpStatus.OK);
+    }
+
+    private ResponseEntity<String> update(Long id, Organisation organisation) throws NoIdSuppliedException {
+
+        String query = queryBuilder.updateOrgansiation(organisation);
+
+        String putResponse = callVertec(query,String.class);
+
+        //need to assert Updates persist, as Vertec does not provide correct responses
+        String assertionQuery = queryBuilder.getOrganisationDetails(Collections.singletonList(id));
+        VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation xmlOrg = callVertec(assertionQuery,
+                VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class)
+                .getBody().getQueryResponse().getOrganisationList().get(0);
+        Organisation assertOrganisation = new Organisation(xmlOrg);
+
+        if(assertOrganisation.equals(organisation)) return new ResponseEntity<>("Success", HttpStatus.OK);
+
+       else throw new HttpInternalServerError("Update failed");
+    }
+
+    private ResponseEntity<Long> createOrganisation(Organisation organisation) {
+//get creation query
+        String query = queryBuilder.createOrgansiation(organisation);
+        //post org with name
+        Document doc = responseFor(new RequestEntity<>(query, HttpMethod.POST, vertecURI));
+        //check isvalid
+               String valid = doc.getElementsByTagName("isValid").item(0).getTextContent();
+        Boolean isValid = false;
+        isValid = valid.equals("1");
+
+
+        if(isValid){
+
+            Long vId = Long.parseLong(doc.getElementsByTagName("objid").item(0).getTextContent());
+            try {
+                organisation.setVertecId(vId);
+                String updateSuccess = update(vId, organisation).getBody();
+                if(updateSuccess.contains("Success")) return new ResponseEntity<>(vId, HttpStatus.CREATED); //All fields were created
+                else return new ResponseEntity<>(vId, HttpStatus.ACCEPTED); //For some reason update failed,
+                // object has been created, but only name field is set
+            } catch (NoIdSuppliedException e) {
+                throw new HttpInternalServerError("Something went wrong during creation");
+            }
+        }
+        else throw new HttpInternalServerError("Creation failed");
+
     }
 
 //======================================================================================================================

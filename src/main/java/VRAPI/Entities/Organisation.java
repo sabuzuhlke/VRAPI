@@ -30,10 +30,11 @@ public class Organisation {
     /**
      * Used to create an organisation class from what we recieve from vertec
      * IMPORTANT!!!! must set owned_on_vertec_by outside constructor
+     *
      * @param vo
      */
     public Organisation(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation vo) {
-        vertecId = vo .getObjId();
+        vertecId = vo.getObjId();
         active = vo.getActive();
         ownerId = vo.getPersonResponsible().getObjref();
 
@@ -42,10 +43,11 @@ public class Organisation {
         category = "CATEGORY PLACEHOLDER";//TODO: replace with actual value
         businessDomain = "BUSINESS DOMAIN PLACEHOLDER";
         buildingName = setString(vo.getAdditionalAddressName());
-        String[] addressParts = vo.getStreetAddress().split(" ");
+        String[] addressParts = vo.getStreetAddress().split(",");
         if (addressParts.length == 2) {
             street_no = setString(addressParts[0]);
             street = setString(addressParts[1]);
+            if (street.charAt(0) == ' ') street = street.substring(1, street.length());
         } else {
             street_no = "";
             street = setString(vo.getStreetAddress());
@@ -60,12 +62,56 @@ public class Organisation {
         created = vo.getCreationTime(); //TODO: change to common format
     }
 
-    private String setString(String string){
-        if(string == null) return "";
+    private String setString(String string) {
+        if (string == null) return "";
         else return string;
     }
 
     public Organisation() {
+    }
+
+    public boolean equals(Organisation org) {
+        boolean retval = true;
+        if(org == null) return false;
+        if(vertecId == null || org.getVertecId() == null) return false;
+        else retval = retval && vertecId == org.getVertecId().longValue();
+
+        if(active == null ^ org.getActive() == null) return false;
+        else if(active != null && org.getActive() != null) retval = retval && active == org.getActive();
+
+        if(name == null ^ org.getName() == null) return false;
+        else if(name != null && org.getName() != null) retval = retval && name.equals(org.getName());
+
+        if(website == null ^ org.getWebsite() == null) return false;
+        else if(website != null && org.getWebsite() != null) retval = retval && website.equals(org.getWebsite());
+
+         if(parentOrganisation == null ^ org.getParentOrganisation() == null) return false;
+        else if(parentOrganisation != null && org.getParentOrganisation() != null) retval = retval && parentOrganisation.equals(org.getParentOrganisation());
+
+         if(buildingName == null ^ org.getBuildingName() == null) return false;
+        else if(buildingName != null && org.getBuildingName() != null) retval = retval && buildingName.equals(org.getBuildingName());
+
+         if(street_no == null ^ org.getStreet_no() == null) return false;
+        else if(street_no != null && org.getStreet_no() != null) retval = retval && street_no.equals(org.getStreet_no());
+
+         if(street == null ^ org.getStreet() == null) return false;
+        else if(street != null && org.getStreet() != null) retval = retval && street.equals(org.getStreet());
+
+         if(city == null ^ org.getCity() == null) return false;
+        else if(city != null && org.getCity() != null) retval = retval && city.equals(org.getCity());
+
+         if(country == null ^ org.getCountry() == null) return false;
+        else if(country != null && org.getCountry() != null) retval = retval && country.equals(org.getCountry());
+
+         if(zip == null ^ org.getZip() == null) return false;
+        else if(zip != null && org.getZip() != null) retval = retval && zip.equals(org.getZip());
+
+         if(ownerId == null ^ org.getOwnerId() == null) return false;
+        else if(ownerId != null && org.getOwnerId() != null) retval = retval && ownerId.equals(org.getOwnerId());
+
+        return retval;
+
+
     }
 
     public Long getVertecId() {
@@ -204,14 +250,13 @@ public class Organisation {
         this.created = created;
     }
 
-    public String toJsonString(){
+    public String toJsonString() {
         String retStr = null;
         ObjectMapper m = new ObjectMapper();
-        try{
+        try {
 
             retStr = m.writerWithDefaultPrettyPrinter().writeValueAsString(this);
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             System.out.println("Could not convert XML Envelope to JSON: " + e.toString());
         }
         return retStr;

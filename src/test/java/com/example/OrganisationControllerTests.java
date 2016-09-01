@@ -8,10 +8,14 @@ import VRAPI.JSONClasses.JSONContainerProject.JSONPhase;
 import VRAPI.MergeClasses.ActivitiesForAddressEntry;
 import VRAPI.MergeClasses.ProjectsForAddressEntry;
 import VRAPI.ResourceControllers.OrganisationController;
+import VRAPI.Util.NoIdSuppliedException;
+import VRAPI.Util.QueryBuilder;
+import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 import org.w3c.dom.Document;
 import org.xml.sax.SAXException;
@@ -19,10 +23,7 @@ import org.xml.sax.SAXException;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,36 +31,220 @@ import static org.junit.Assert.*;
 
 public class OrganisationControllerTests extends ControllerTests {
 
+    @Test
+    public void canUpdateOrganisation() {
+
+        Organisation org = new Organisation();
+        org.setVertecId(TESTVertecOrganisation1);
+        org.setActive(true);
+        org.setBuildingName("building name");
+        org.setBusinessDomain("business domain");
+        org.setCategory("category");
+        org.setCity("city");
+        org.setCountry("country");
+        org.setName("GEBO test org");
+        org.setOwnedOnVertecBy("Sales Team");
+        org.setOwnerId(5295L);
+        org.setStreet("street");
+        org.setStreet_no("street_no");
+        org.setWebsite("website");
+        org.setZip("zip");
+        org.setParentOrganisation(TESTVertecOrganisation2);
+
+        String uri = baseURI + "/organisation/" + org.getVertecId();
+        ResponseEntity<String> res = putToVertec(org, uri, String.class);
+
+        assertTrue(res.getBody().contains("Success"));
+
+        Organisation org2 = new Organisation();
+        org2.setVertecId(TESTVertecOrganisation1);
+        org2.setActive(true);
+        org2.setBuildingName("building name2");
+        org2.setBusinessDomain("business domain2");
+        org2.setCategory("category2");
+        org2.setCity("city2");
+        org2.setCountry("country2");
+        org2.setName("GEBO test org2");
+        org2.setOwnedOnVertecBy("Sales Team");
+        org2.setOwnerId(5295L);
+        org2.setStreet("street2");
+        org2.setStreet_no("street_no2");
+        org2.setWebsite("website2");
+        org2.setZip("zip2");
+
+        String uri2 = baseURI + "/organisation/" + org2.getVertecId();
+        ResponseEntity<String> res2 = putToVertec(org2, uri2, String.class);
+
+        assertTrue(res2.getBody().contains("Success"));
+    }
+
+    @Test
+    public void canNotUpdateOrganisationWithoutId() {
+
+        Organisation org = new Organisation();
+        org.setActive(true);
+        org.setBuildingName("building name");
+        org.setBusinessDomain("business domain");
+        org.setCategory("category");
+        org.setCity("city");
+        org.setCountry("country");
+        org.setName("GEBO test org");
+        org.setOwnedOnVertecBy("Sales Team");
+        org.setOwnerId(5295L);
+        org.setStreet("street");
+        org.setStreet_no("street_no");
+        org.setWebsite("website");
+        org.setZip("zip");
+
+        String uri = baseURI + "/organisation/" + 3;
+        try {
+
+            ResponseEntity<String> res = putToVertec(org, uri, String.class);
+            assertTrue("No exception thrown", false);
+        } catch (HttpClientErrorException e){
+            assertEquals("Wrong error message returned", HttpStatus.UNPROCESSABLE_ENTITY, e.getStatusCode());
+        }
+        assertTrue(true);
+    }
+    @Test
+    public void canNotUpdateNonExistingOrganisation() {
+
+        Organisation org = new Organisation();
+        org.setVertecId(TESTRandomID);
+        org.setActive(true);
+        org.setBuildingName("building name");
+        org.setBusinessDomain("business domain");
+        org.setCategory("category");
+        org.setCity("city");
+        org.setCountry("country");
+        org.setName("GEBO test org");
+        org.setOwnedOnVertecBy("Sales Team");
+        org.setOwnerId(5295L);
+        org.setStreet("street");
+        org.setStreet_no("street_no");
+        org.setWebsite("website");
+        org.setZip("zip");
+
+        String uri = baseURI + "/organisation/" + org.getVertecId();
+        try {
+
+            ResponseEntity<String> res = putToVertec(org, uri, String.class);
+            assertTrue("No exception thrown", false);
+        } catch (HttpClientErrorException e){
+            assertEquals("Wrong error message returned", HttpStatus.NOT_FOUND, e.getStatusCode());
+        }
+        assertTrue(true);
+    }
+
+    @Test
+    public void canCreateUpdateQuery() throws NoIdSuppliedException {
+        QueryBuilder qb = new QueryBuilder("hab", "babbalab");
+
+        Organisation org = new Organisation();
+        org.setVertecId(TESTVertecOrganisation1);
+        org.setActive(true);
+        org.setBuildingName("building name");
+        org.setBusinessDomain("business domain");
+        org.setCategory("category");
+        org.setCity("city");
+        org.setCountry("country");
+        org.setName("GEBO test org");
+        org.setOwnedOnVertecBy("Sales Team");
+        org.setOwnerId(5295L);
+        org.setStreet("street");
+        org.setStreet_no("street_no");
+        org.setWebsite("website");
+        org.setZip("zip");
+
+        System.out.println(qb.updateOrgansiation(org));
+    }
+
+    @Test
+    public void canNotCreateUpdateQueryWithoutID() {
+        QueryBuilder qb = new QueryBuilder("hab", "babbalab");
+
+        Organisation org = new Organisation();
+        org.setActive(true);
+        org.setBuildingName("building name");
+        org.setBusinessDomain("business domain");
+        org.setCategory("category");
+        org.setCity("city");
+        org.setCountry("country");
+        org.setName("GEBO test org");
+        org.setOwnedOnVertecBy("Sales Team");
+        org.setOwnerId(5295L);
+        org.setStreet("street");
+        org.setStreet_no("street_no");
+        org.setWebsite("website");
+        org.setZip("zip");
+
+        try {
+
+            System.out.println(qb.updateOrgansiation(org));
+            assertTrue("No exception thrown", false);
+        } catch (NoIdSuppliedException nie) {
+            assertTrue(true);
+        }
+    }
+
+    /**
+     * CAREFUL!! do not run on real vertec instance
+     */
+    @Test
+    public void canCreateOrganisation() {
+        Organisation org = new Organisation();
+        org.setActive(true);
+        org.setBuildingName("building name");
+        org.setBusinessDomain("business domain");
+        org.setCategory("category");
+        org.setCity("city");
+        org.setCountry("country");
+        org.setName("GEBO test org");
+        org.setOwnedOnVertecBy("Sales Team");
+        org.setOwnerId(5295L);
+        org.setStreet("street");
+        org.setStreet_no("street_no");
+        org.setWebsite("website");
+        org.setZip("zip");
+        org.setParentOrganisation(TESTVertecOrganisation2); //TODO figure out what to do here
+
+        String uri = baseURI + "/organisation";
+        ResponseEntity<String> res = postToVertec(org, uri, String.class);
+        assertEquals(HttpStatus.CREATED, res.getStatusCode());
+
+    }
+
     /**
      * Below test showed that there is only one organisation that has a parent organisation, and one that has a child
      * Hence It is believed that the best solution is to solve the parentOrganisations by hand.
-     *
+     * <p>
      * However as it turns out both of these have been merged with their respective child/parent resulting in interesting organisational relationships
      */
-    @Test @Ignore("Not necessary anymore")
-    public void doWeNeedToRepointParentOrganisationsAfterMerge(){
+    @Test
+    @Ignore("Not necessary anymore")
+    public void doWeNeedToRepointParentOrganisationsAfterMerge() {
         String line;
         Long mergingID;
         Long survivingID;
         List<Long> mergedIds = new ArrayList<>();
         int counter = 0;
-        try{
+        try {
 
             File file = new File("OrganisationsThatHaveBeenMergedOnVertec.txt");
 
             FileReader reader = new FileReader(file.getAbsolutePath());
             BufferedReader breader = new BufferedReader(reader);
-            while((line = breader.readLine()) != null){
+            while ((line = breader.readLine()) != null) {
                 String[] parts = line.split(",");
                 mergingID = Long.parseLong(parts[0]);
                 survivingID = Long.parseLong(parts[1]);
                 mergedIds.add(mergingID);
 
             }
-            for(Long id : mergedIds){
+            for (Long id : mergedIds) {
                 String uri = baseURI + "/org/" + id;
-                JSONOrganisation org = getFromVertec(uri,JSONOrganisation.class).getBody();
-                if(!org.getChildOrganisationList().isEmpty() || org.getParentOrganisationId() != null){
+                JSONOrganisation org = getFromVertec(uri, JSONOrganisation.class).getBody();
+                if (!org.getChildOrganisationList().isEmpty() || org.getParentOrganisationId() != null) {
                     System.out.println("parent: " + org.getParentOrganisationId());
                     System.out.println("child: " + org.getChildOrganisationList());
                     System.out.println("Org: " + org.getName() + "(v_id: " + org.getObjid() + ")");
@@ -76,8 +261,9 @@ public class OrganisationControllerTests extends ControllerTests {
 
     }
 
-    @Test @Ignore("Already ran, organisations merged")
-    public void mergeOrganisations(){
+    @Test
+    @Ignore("Already ran, organisations merged")
+    public void mergeOrganisations() {
         List<List<Long>> idsList = new ArrayList<>();
         List<Long> mergingIds = new ArrayList<>(); //<mergingId, survivingId>
         List<Long> survivingIds = new ArrayList<>(); //<mergingId, survivingId>
@@ -163,19 +349,20 @@ public class OrganisationControllerTests extends ControllerTests {
         mergingIds.add(711029L);
         survivingIds.add(709877L);
 
-        assertEquals(mergingIds.size(),survivingIds.size());
+        assertEquals(mergingIds.size(), survivingIds.size());
 
-        for(int i = 0; i < mergingIds.size(); i++){
+        for (int i = 0; i < mergingIds.size(); i++) {
             String uri = baseURI + "/organisation/" + mergingIds.get(i) + "/mergeInto/" + survivingIds.get(i);
             System.out.print(uri);
-            String res = getFromVertec(uri,String.class).getBody();
+            String res = getFromVertec(uri, String.class).getBody();
             System.out.println("============= " + res + " ===================");
         }
 
     }
 
-    @Test @Ignore("Already ran, all mentioned ids deleted")
-    public void deleteOrganisationsFromVertecBasedOnMerger(){
+    @Test
+    @Ignore("Already ran, all mentioned ids deleted")
+    public void deleteOrganisationsFromVertecBasedOnMerger() {
         List<Long> idsToDel = new ArrayList<>();
         idsToDel.add(9469332L);
         idsToDel.add(26062339L);
@@ -186,7 +373,7 @@ public class OrganisationControllerTests extends ControllerTests {
         idsToDel.add(710253L);
         idsToDel.add(22639820L);
 
-        for(Long id : idsToDel){
+        for (Long id : idsToDel) {
             String uri = baseURI + "/organisation/" + id;
 
             Long recId = deleteFromVertec(uri, Long.class).getBody();
@@ -208,47 +395,47 @@ public class OrganisationControllerTests extends ControllerTests {
 
         uri = baseURI + "/organisation/" + TESTVertecOrganisation1;
 
-        Organisation org = getFromVertec(uri,Organisation.class).getBody();
+        Organisation org = getFromVertec(uri, Organisation.class).getBody();
 
-        assertTrue("Organisation did not get set to active",org.getActive());
+        assertTrue("Organisation did not get set to active", org.getActive());
 
         id = 0L;
 
-        id =  deleteFromVertec(uri, Long.class).getBody();
+        id = deleteFromVertec(uri, Long.class).getBody();
 
         assertEquals("Could not deactivate Organisation", TESTVertecOrganisation1, id);
 
-        org = getFromVertec(uri,Organisation.class).getBody();
+        org = getFromVertec(uri, Organisation.class).getBody();
 
-       assertFalse("Organisation did not get set to inactive",org.getActive());
+        assertFalse("Organisation did not get set to inactive", org.getActive());
 
     }
 
     @Test
-    public void cannotSetRandomIdToActive(){
+    public void cannotSetRandomIdToActive() {
         Long id = TESTRandomID;
         String uri = baseURI + "/organisation/" + id + "/activate";
 
-        try{
+        try {
 
             id = putToVertec(uri, Long.class).getBody();
-            assertTrue("Found organisation with random id",false);
-        } catch (HttpStatusCodeException e){
+            assertTrue("Found organisation with random id", false);
+        } catch (HttpStatusCodeException e) {
             assertEquals(e.getStatusCode(), HttpStatus.NOT_FOUND);
         }
 
     }
 
     @Test
-    public void cannotSetRandomIdToInactive(){
+    public void cannotSetRandomIdToInactive() {
         Long id = TESTRandomID;
         String uri = baseURI + "/organisation/" + id;
 
-        try{
+        try {
 
             id = deleteFromVertec(uri, Long.class).getBody();
-            assertTrue("Found organisation with random id",false);
-        } catch (HttpStatusCodeException e){
+            assertTrue("Found organisation with random id", false);
+        } catch (HttpStatusCodeException e) {
             assertEquals(e.getStatusCode(), HttpStatus.NOT_FOUND);
         }
 
@@ -269,10 +456,10 @@ public class OrganisationControllerTests extends ControllerTests {
     @Test
     public void canGetProjectsForOrganisation() {
         Long orgID = 709814L; //existing vertec Organisation
-        String uri =  baseURI + "/organisation/" + orgID + "/projects";
+        String uri = baseURI + "/organisation/" + orgID + "/projects";
 
-        ProjectsForAddressEntry pfo = getFromVertec(uri,ProjectsForAddressEntry.class).getBody();
-        assertEquals("Got wrong organisation",orgID, pfo.getOrganisationId());
+        ProjectsForAddressEntry pfo = getFromVertec(uri, ProjectsForAddressEntry.class).getBody();
+        assertEquals("Got wrong organisation", orgID, pfo.getOrganisationId());
         assertTrue("Deutsche Telekom".equals(pfo.getOrganisationName()));
 
         assertTrue(2 <= pfo.getProjects().size());
@@ -282,8 +469,8 @@ public class OrganisationControllerTests extends ControllerTests {
         List<JSONPhase> phasesForProj1 = pfo.getProjects().get(0).getPhases();
         List<JSONPhase> phasesForProj2 = pfo.getProjects().get(1).getPhases();
 
-        assertEquals("Wrong phases gotten", phasesForProj1.size() , 2); //project inactve so should not change in the future,
-        assertEquals("Wrong phases gotten", phasesForProj2.size() , 3); //but if these assertions fail check on vertec how many phases the project has
+        assertEquals("Wrong phases gotten", phasesForProj1.size(), 2); //project inactve so should not change in the future,
+        assertEquals("Wrong phases gotten", phasesForProj2.size(), 3); //but if these assertions fail check on vertec how many phases the project has
 
 
         assertEquals(2073433L, phasesForProj1.get(0).getV_id().longValue());
@@ -332,7 +519,7 @@ public class OrganisationControllerTests extends ControllerTests {
     @Test
     public void canGetActivitiesForOrganisation() {
         Long orgID = 9206250L; //existing Vertec organisation
-        String uri =  baseURI + "/organisation/" + orgID + "/activities";
+        String uri = baseURI + "/organisation/" + orgID + "/activities";
 
         ActivitiesForAddressEntry afo = getFromVertec(uri, ActivitiesForAddressEntry.class).getBody();
 
@@ -368,14 +555,14 @@ public class OrganisationControllerTests extends ControllerTests {
      * Tests construction of JSON Organisations, as well as of 'Entities.Organisation's
      */
     @Test
-    public void canGetListOfOrganisations(){
+    public void canGetListOfOrganisations() {
         Long orgid1 = 709814L;
         Long orgid2 = 9206250L;
         List<Long> orgids = new ArrayList<>();
         orgids.add(orgid1);
         orgids.add(orgid2);
 
-        String uri =  baseURI + "/organisations/" + idsAsString(orgids);
+        String uri = baseURI + "/organisations/" + idsAsString(orgids);
 
         OrganisationList organisationList = getFromVertec(uri, OrganisationList.class).getBody();
 
@@ -404,13 +591,13 @@ public class OrganisationControllerTests extends ControllerTests {
 
         assertEquals(orgids.get(1), secOrg.getVertecId());
     }
-   
+
     @Test
     public void canGetOrganisationByID() {
-        Long orgID= 709814L; //actually exists
+        Long orgID = 709814L; //actually exists
 
-        String uri =  baseURI + "/organisation/" + orgID;
-        
+        String uri = baseURI + "/organisation/" + orgID;
+
         Organisation organsiation = getFromVertec(uri, Organisation.class).getBody();
         assertEquals(orgID, organsiation.getVertecId());
         assertEquals(5295L, organsiation.getOwnerId().longValue());
@@ -484,26 +671,27 @@ public class OrganisationControllerTests extends ControllerTests {
     public void canSetOwnedOnVertecBy() {
         Long salesTeamOwnedOrgId = 709814L;
         Long nonZUKOrg = 1359817L; //actually exists
+        Long subTeamOrg = 15158065L; //actually exists
         List<Long> orgids = new ArrayList<>();
 
         orgids.add(salesTeamOwnedOrgId);
-        orgids.add(TESTVertecOrganisation1);
+        orgids.add(subTeamOrg);
         orgids.add(TESTVertecOrganisation2);
         orgids.add(nonZUKOrg);
 
         String idsAsString = "";
-        for(int i = 0; i < orgids.size(); i++) {
-            if (i < orgids.size() -1) {
+        for (int i = 0; i < orgids.size(); i++) {
+            if (i < orgids.size() - 1) {
                 idsAsString += orgids.get(i) + ",";
             } else {
                 idsAsString += orgids.get(i);
             }
         }
 
-        String uri =  baseURI + "/organisations/" + idsAsString;
+        String uri = baseURI + "/organisations/" + idsAsString;
 
         OrganisationList organisationList = getFromVertec(uri, OrganisationList.class).getBody();
-        List<Organisation> orgs  = organisationList.getOrganisations();
+        List<Organisation> orgs = organisationList.getOrganisations();
 
         System.out.println(orgs.get(0).getOwnedOnVertecBy());
         System.out.println(orgs.get(1).getOwnedOnVertecBy());
@@ -524,7 +712,6 @@ public class OrganisationControllerTests extends ControllerTests {
      */
 
 
-
 //
 
 
@@ -536,13 +723,16 @@ public class OrganisationControllerTests extends ControllerTests {
      */
 
 
-    @Test //@Ignore
-    public void canGetAllOrganisationsInCommonRepresentation() {
+    @Test @Ignore
+    public void canGetAllOrganisationsInCommonRepresentation() throws IOException {
 
         String uri = baseURI + "/organisations/all";
         ResponseEntity<OrganisationList> res = getFromVertec(uri, OrganisationList.class);
-
-
+        System.out.println(res.getBody());
+        new File("/Users/gebo/IdeaProjects/VRAPI/src/test/resources/ZUKOrganisation").createNewFile();
+        FileWriter file = new FileWriter("/Users/gebo/IdeaProjects/VRAPI/src/test/resources/ZUKOrganisation");
+        file.write(res.getBody().toString());
+        file.close();
 
     }
 //

@@ -1,5 +1,6 @@
 package VRAPI.Util;
 
+import VRAPI.Entities.Organisation;
 import VRAPI.XMLClasses.FromContainer.GenericLinkContainer;
 
 import java.util.Collection;
@@ -246,6 +247,55 @@ public class QueryBuilder {
                 "</Envelope>";
 
         return header + bodyStart + bodyEnd;
+    }
+
+    @SuppressWarnings("all")
+    public String updateOrgansiation(Organisation org) throws NoIdSuppliedException {
+
+        if (org.getVertecId() == null)
+            throw new NoIdSuppliedException("Cannot update organisation that has not got an ID");
+
+        String bodyStart = "<Body>\n" +
+                "   <Update>\n" +
+                "       <Firma>\n";
+        String body =
+                "           <objref>" + org.getVertecId() + "</objref>\n" +
+                        "           <name>" + (org.getName() == null ? "" : org.getName()) + "</name>\n" +
+                        "           <betreuer>\n<objref>" + (org.getOwnerId() == null ? "" : org.getOwnerId()) + "</objref>\n</betreuer>\n" +
+                        "           <standardAdresse>" + ((org.getStreet_no() + ", " + org.getStreet()) == ", " ? "" : (org.getStreet_no() + ", " + org.getStreet())) + "</standardAdresse>\n" +
+                        "           <standardLand>" + (org.getCountry() == null ? "" : org.getCountry()) + "</standardLand>\n" +
+                        "           <standardOrt>" + (org.getCity() == null ? "" : org.getCity()) + "</standardOrt>\n" +
+                        "           <standardPLZ>" + (org.getZip() == null ? "" : org.getZip()) + "</standardPLZ>\n" +
+                        "           <zusatz>" + (org.getBuildingName() == null ? "" : org.getBuildingName()) + "</zusatz>\n" +
+                        "           <aktiv>" + (org.getActive() == null ? "0" : (org.getActive() ? "1" : "0")) + "</aktiv>\n" +
+                        "           <mutterfirma><objref>" +
+                                        (org.getParentOrganisation() == null ? 0 : org.getParentOrganisation()) +
+                        "           </objref></mutterfirma>\n" +
+//                "           <tochterfirmen>" + (org.getActive() == null ? 0 : org.getActive()) + "<tochterfirmen>\n" +
+                        "           <standardHomepage>" + (org.getWebsite() == null ? "" : org.getWebsite()) + "</standardHomepage>\n" +
+                        //TODO Figure out what to do with category , business domain and org relationships
+                        "       </Firma>\n" +
+                        "   </Update>\n" +
+                        "   </Body>\n" +
+                        "</Envelope>\n";
+
+        return header + bodyStart + body;
+
+    }
+
+    public String createOrgansiation(Organisation organisation) {
+        String bodyStart = "<Body>\n" +
+                "   <Create>\n" +
+                "       <Firma>\n";
+        String bodyEnd =
+                        "           <name>" + organisation.getName() + "</name>\n" +
+                        "       </Firma>\n" +
+                        "   </Create>\n" +
+                        "   </Body>\n" +
+                        "</Envelope>\n";
+
+        return header + bodyStart + bodyEnd;
+
     }
 
     public String getProjectDetails(Collection<Long> ids) {
@@ -745,7 +795,7 @@ public class QueryBuilder {
 
             }
 
-            if (! didFindMergeId) {
+            if (!didFindMergeId) {
                 System.out.print("Could not find mergeId in list for mergeId: " + mergingId + ", survivorId: " + survivorId + ", glcId: " + glc.getObjid());
             }
             bodyEnd += "</objlist>  </links>" +
@@ -760,6 +810,7 @@ public class QueryBuilder {
         return header + bodyBegin + bodyEnd;
 
     }
+
 
 
 }
