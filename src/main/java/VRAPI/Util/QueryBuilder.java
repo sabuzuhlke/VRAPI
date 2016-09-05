@@ -241,6 +241,7 @@ public class QueryBuilder {
                 "        <member>tochterfirmen</member>\n" +
                 "        <member>kontakte</member>\n" +
                 "        <member>standardHomepage</member>\n" +
+                "        <member>modifier</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
                 "  </Body>\n" +

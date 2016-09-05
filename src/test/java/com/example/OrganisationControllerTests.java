@@ -616,6 +616,7 @@ public class OrganisationControllerTests extends ControllerTests {
         assertTrue("AL10 9BW".equals(organsiation.getZip()));
         assertTrue("2002-01-18T15:47:03".equals(organsiation.getCreated()));
         assertTrue(organsiation.getActive());
+        assertEquals(13497634L, organsiation.getModifier().longValue());
     }
 
     /*
@@ -723,7 +724,7 @@ public class OrganisationControllerTests extends ControllerTests {
      */
 
 
-    @Test @Ignore
+    @Test //@Ignore
     public void canGetAllOrganisationsInCommonRepresentation() throws IOException {
 
         String uri = baseURI + "/organisations/all";

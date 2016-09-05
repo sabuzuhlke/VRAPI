@@ -10,6 +10,7 @@ public class Organisation {
 
 
     private Long ownerId;
+    private Long modifier;
 
     private String name;
     private String website;
@@ -56,7 +57,10 @@ public class Organisation {
         country = setString(vo.getCountry());
         zip = setString(vo.getZip());
 
+        System.out.println(vo.getModifier());
         parentOrganisation = vo.getParentFirm() == null ? null : vo.getParentFirm().getObjref();
+
+        modifier = vo.getModifier() == null ? 0L : (vo.getModifier().getObjref() == null ? 0L : vo.getModifier().getObjref());
 
         modified = vo.getModified();
         created = vo.getCreationTime(); //TODO: change to common format
@@ -248,6 +252,14 @@ public class Organisation {
 
     public void setCreated(String created) {
         this.created = created;
+    }
+
+    public Long getModifier() {
+        return modifier;
+    }
+
+    public void setModifier(Long modifier) {
+        this.modifier = modifier;
     }
 
     public String toJsonString() {

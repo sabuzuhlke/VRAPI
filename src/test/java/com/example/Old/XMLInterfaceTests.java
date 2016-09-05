@@ -9,6 +9,7 @@ import VRAPI.XMLClasses.ContainerDetailedContact.PersonResponsible;
 import VRAPI.XMLClasses.ContainerDetailedOrganisation.DaughterFirms;
 import VRAPI.XMLClasses.ContainerDetailedOrganisation.Objlist;
 import VRAPI.XMLClasses.ContainerDetailedOrganisation.ParentFirm;
+import VRAPI.XMLClasses.ContainerDetailedOrganisation.ProjektBearbeiter;
 import VRAPI.XMLClasses.ContainerDetailedProjects.Project;
 import VRAPI.JSONClasses.JSONContainerOrganisation.ZUKOrganisationResponse;
 import VRAPI.Util.MapBuilder;
@@ -515,8 +516,8 @@ public class XMLInterfaceTests {
         o1.setZip("666");
         o2.setZip("777");
 
-        o1.setPersonResponsible(new VRAPI.XMLClasses.ContainerDetailedOrganisation.PersonResponsible());
-        o2.setPersonResponsible(new VRAPI.XMLClasses.ContainerDetailedOrganisation.PersonResponsible());
+        o1.setPersonResponsible(new ProjektBearbeiter());
+        o2.setPersonResponsible(new ProjektBearbeiter());
 
         o1.getPersonResponsible().setObjref(1L);
         o2.getPersonResponsible().setObjref(1L);

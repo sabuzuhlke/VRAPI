@@ -79,9 +79,15 @@ public class ControllerTests {
     <RES> ResponseEntity<RES> putToVertec(String uri, Class<RES> responseType) {
         MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
         headers.add("Authorization", username + ':' + password);
+        try{
+
         return rt.exchange(
                 new RequestEntity<>(headers, HttpMethod.PUT, URI.create(uri)),
                 responseType);
+        } catch (Exception e){
+            System.out.println(e);
+            throw e;
+        }
     }
 
     <RES, REQ> ResponseEntity<RES> putToVertec(REQ payload, String uri,  Class<RES> responseType){

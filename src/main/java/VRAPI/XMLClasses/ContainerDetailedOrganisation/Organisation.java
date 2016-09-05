@@ -10,7 +10,7 @@ import javax.xml.bind.annotation.XmlElement;
 public class Organisation {
 
     private Long objId;
-    private PersonResponsible personResponsible;
+    private ProjektBearbeiter personResponsible;
     private String name;
     private String streetAddress;
     private String country;
@@ -24,6 +24,7 @@ public class Organisation {
     private DaughterFirms daughterFirm;
     private Contacts contacts;
     private String website;
+    private ProjektBearbeiter modifier;
 
     @XmlElement(name = "mutterfirma")
     public ParentFirm getParentFirm() {
@@ -65,12 +66,12 @@ public class Organisation {
     }
 
     @XmlElement(name = "betreuer")
-    public PersonResponsible getPersonResponsible() {
+    public ProjektBearbeiter getPersonResponsible() {
         return personResponsible;
     }
 
-    public void setPersonResponsible(PersonResponsible personResponsible) {
-        this.personResponsible = personResponsible;
+    public void setPersonResponsible(ProjektBearbeiter projektBearbeiter) {
+        this.personResponsible = projektBearbeiter;
     }
 
     @XmlElement(name = "name")
@@ -161,6 +162,15 @@ public class Organisation {
 
     public void setWebsite(String website) {
         this.website = website;
+    }
+
+    @XmlElement(name = "modifier")
+    public ProjektBearbeiter getModifier() {
+        return modifier;
+    }
+
+    public void setModifier(ProjektBearbeiter modifier) {
+        this.modifier = modifier;
     }
 
     @Override
