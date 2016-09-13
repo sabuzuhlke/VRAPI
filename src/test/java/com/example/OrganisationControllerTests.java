@@ -10,7 +10,6 @@ import VRAPI.MergeClasses.ProjectsForAddressEntry;
 import VRAPI.ResourceControllers.OrganisationController;
 import VRAPI.Util.NoIdSuppliedException;
 import VRAPI.Util.QueryBuilder;
-import org.junit.Assert;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
@@ -101,11 +100,12 @@ public class OrganisationControllerTests extends ControllerTests {
 
             ResponseEntity<String> res = putToVertec(org, uri, String.class);
             assertTrue("No exception thrown", false);
-        } catch (HttpClientErrorException e){
+        } catch (HttpClientErrorException e) {
             assertEquals("Wrong error message returned", HttpStatus.UNPROCESSABLE_ENTITY, e.getStatusCode());
         }
         assertTrue(true);
     }
+
     @Test
     public void canNotUpdateNonExistingOrganisation() {
 
@@ -130,7 +130,7 @@ public class OrganisationControllerTests extends ControllerTests {
 
             ResponseEntity<String> res = putToVertec(org, uri, String.class);
             assertTrue("No exception thrown", false);
-        } catch (HttpClientErrorException e){
+        } catch (HttpClientErrorException e) {
             assertEquals("Wrong error message returned", HttpStatus.NOT_FOUND, e.getStatusCode());
         }
         assertTrue(true);
@@ -704,27 +704,9 @@ public class OrganisationControllerTests extends ControllerTests {
         assertTrue(orgs.get(3).getOwnedOnVertecBy().equals("No Owner"));
     }
 
-    /*
-    AUTHENTICATION AND INVALID IDS TESTS
 
-        - Should test ifUnauthorisedThrowErrorReponse()
-        - For each endpoint, should make sure querying with invalid id returns NOT_FOUND
-
-     */
-
-
-//
-
-
-
-
-
-    /*
-    OLD TESTS, NEED CONVERTING TO COMMON REPRESENTATION I BELIEVE
-     */
-
-
-    @Test //@Ignore
+    @Test
+    @Ignore
     public void canGetAllOrganisationsInCommonRepresentation() throws IOException {
 
         String uri = baseURI + "/organisations/all";
@@ -736,184 +718,75 @@ public class OrganisationControllerTests extends ControllerTests {
         file.close();
 
     }
-//
-//
-//    @Test
-//    public void postingOrganisationPostsToVertecAndReturnsPostedObject() {
-//        MultiValueMap<String, String> headers = new LinkedMultiValueMap<>();
-//        headers.add("Authorization", username + ':' + password);
-//
-//        JSONOrganisation org = new JSONOrganisation();
-//        org.setName("Will's company");
-//        org.setOwner("justin.cowling@zuhlke.com");
-//        org.setCountry("England");
-//
-//        ResponseEntity<JSONOrganisation> recOrg
-//                = rt.exchange(
-//                new RequestEntity<Object>(
-//                        org,
-//                        HttpMethod.POST,
-//                        URI.create(baseURI + "/org")), JSONOrganisation.class);
-//    }
-//
-////---------------------------------------------------------------------------------------------------------------------- GET /{ids}
 
-//    @Test
-//    public void queryingForOrganisationsListWithValidListReturnsOrganisations() {
-//        String idsAsString = "";
-//        for(int i = 0; i < organisationIdsPresentInVertec.size(); i++) {
-//            if (i < organisationIdsPresentInVertec.size() -1) {
-//                idsAsString += organisationIdsPresentInVertec.get(i) + ",";
-//            } else {
-//                idsAsString += organisationIdsPresentInVertec.get(i);
-//            }
-//        }
-//
-//        String uri = baseURI + "/organisation/" + idsAsString;
-//        ResponseEntity<JSONOrganisationList> res = getFromVertec(uri, JSONOrganisationList.class);
-//
-//        assertNotNull(res);
-//        assertNotNull(res.getBody());
-//        assertNotNull(res.getBody().getOrganisations());
-//        res.getBody().getOrganisations().stream()
-//                .forEach(org -> {
-//                    assertNotNull(org.getName());
-//                    assertNotNull(org.getActive());
-//                    assertNotNull(org.getCreationTime());
-//                    assertNotNull(org.getModified());
-//                    assertNotNull(org.getCity());
-//                    assertNotNull(org.getStreetAddress());
-//                    assertNotNull(org.getAdditionalAdress());
-//                    assertNotNull(org.getZip());
-//                    assertNotNull(org.getCountry());
-//                    assertNotNull(org.getContacts());
-//                    org.getContacts().stream()
-//                            .forEach(contact -> {
-//                                assertNotNull(contact.getObjid());
-//                                assertNotNull(contact.getOrganisation());
-//                                assertNotNull(contact.getFirstName());
-//                                assertNotNull(contact.getSurname());
-//                                assertNotNull(contact.getOwner());
-//                            });
-//                    assertNotNull(org.getOwner());
-//                });
-//    }
-//
-//    @Test
-//    public void queryingForOrganisationsWithInvalidIdsThrowsNOTFOUND() {
-//
-//        List<Long> organisationIdsNotPresentInVertec = new ArrayList<>(Arrays.asList(28055041L, 28055044L, 280L, 2805510234L));
-//        String idsAsString = "";
-//        for(int i = 0; i < organisationIdsNotPresentInVertec.size(); i++) {
-//            if (i < organisationIdsNotPresentInVertec.size() -1) {
-//                idsAsString += organisationIdsNotPresentInVertec.get(i) + ",";
-//            } else {
-//                idsAsString += organisationIdsNotPresentInVertec.get(i);
-//            }
-//        }
-//
-//        String uri = baseURI + "/org/" + idsAsString;
-//        try {
-//            ResponseEntity<JSONOrganisationList> res = getFromVertec(uri, JSONOrganisationList.class);
-//        } catch (HttpClientErrorException e) {
-//            assertEquals("Incorrect status code returned for organisation not found",
-//                    HttpStatus.NOT_FOUND,
-//                    e.getStatusCode());
-//        }
-//    }
-//
-//    @Test
-//    public void queryingForOrganisationsWithMixtureIdsThrowsNOTFOUND() {
-//
-//        List<Long> organisationIdsNotPresentInVertec = new ArrayList<>(Arrays.asList(28055041L, 28055044L, 280L, 2805510234L, 28055047L, 28055033L));
-//        String idsAsString = "";
-//        for(int i = 0; i < organisationIdsNotPresentInVertec.size(); i++) {
-//            if (i < organisationIdsNotPresentInVertec.size() -1) {
-//                idsAsString += organisationIdsNotPresentInVertec.get(i) + ",";
-//            } else {
-//                idsAsString += organisationIdsNotPresentInVertec.get(i);
-//            }
-//        }
-//
-//        String uri = baseURI + "/org/" + idsAsString;
-//        try {
-//            ResponseEntity<JSONOrganisationList> res = getFromVertec(uri, JSONOrganisationList.class);
-//        } catch (HttpClientErrorException e) {
-//            assertEquals("Incorrect status code returned for organisation not found",
-//                    HttpStatus.NOT_FOUND,
-//                    e.getStatusCode());
-//        }
-//    }
-//
-//
-////---------------------------------------------------------------------------------------------------------------------- GET /{id}
-//
-//    @Test
-//    public void queryingForOrganisationByPresentIdReturnsOrganisation() {
-//        //Get organisation we know to be present in test database
-//        String uri = baseURI + "/organisation/" + TESTVertecOrganisation1;
-//        ResponseEntity<JSONOrganisation> res = getFromVertec(uri, JSONOrganisation.class);
-//        assertNotNull("Response is null", res);
-//        assertNotNull("Response body is null", res.getBody());
-//        //check organisation we recieve has same id as requested
-//        assertEquals("Incorrect organisation returned", TESTVertecOrganisation1, res.getBody().getObjid());
-//        JSONOrganisation org = res.getBody();
-//        //check various fields arent null
-//        assertNotNull(org.getName());
-//        assertNotNull(org.getActive());
-//        assertNotNull(org.getCreationTime());
-//        assertNotNull(org.getModified());
-//        assertNotNull(org.getCity());
-//        assertNotNull(org.getStreetAddress());
-//        assertNotNull(org.getAdditionalAdress());
-//        assertNotNull(org.getZip());
-//        assertNotNull(org.getCountry());
-//        assertNotNull(org.getContacts());
-//        org.getContacts().stream()
-//                .forEach(contact -> {
-//                    assertNotNull(contact.getObjid());
-//                    assertNotNull(contact.getOrganisation());
-//                    assertNotNull(contact.getFirstName());
-//                    assertNotNull(contact.getSurname());
-//                    assertNotNull(contact.getOwner());
-//                });
-//        assertNotNull(org.getOwner());
-//        assertTrue(! org.getContacts().isEmpty());
-//        //TODO: find and add fields for category and business domain
-//    }
-//
-//    @Test
-//    public void queryingForOrganisationsWithInvalidIdThrowsHTTPNOTFOUND() {
-//        String uri = baseURI + "/organisation/" + 2323235L;
-//        try {
-//            ResponseEntity<JSONOrganisation> res = getFromVertec(uri, JSONOrganisation.class);
-//        } catch (HttpClientErrorException e) {
-//            assertEquals("Incorrect status code returned for organisation not found",
-//                    HttpStatus.NOT_FOUND,
-//                    e.getStatusCode());
-//        }
-//
-//    }
-//
-//
-//
+    @Test
+    public void readsAddressCorrectly() {
+        VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation o = new VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation();
+        o.setName("Hubba");
+        o.setAdditionalAddressName("");
+        o.setStreetAddress("16, Street, City, ZIP, Country");
+        o.setZip("ZIP");
 
-//
-//    @Test @Ignore
-//    public void getActivitiesForOrganisationReturnsCorrectly() {
-//        String uri = baseURI + "/organisation/" + 17334035 + "/activities";
-//        ResponseEntity<ActivitiesForAddressEntry> res = getFromVertec(uri, ActivitiesForAddressEntry.class);
-//
-//        System.out.println(res.getBody().toJSONString());
-//
-//    }
-//
-//    @Test @Ignore
-//    public void getProjectsForOrganisationReturnsCorrectly() {
-//        String uri = baseURI + "/organisation/" + 17927493 + "/projects";
-//        ResponseEntity<ProjectsForAddressEntry> res = getFromVertec(uri, ProjectsForAddressEntry.class);
-//
-//        System.out.println(res.getBody().toJSONString());
-//    }
+        assertEquals(o.getStreetAddress(), o.getfullAddress());
+
+        o = new VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation();
+        o.setName("org");
+        o.setAdditionalAddressName("Building");
+        o.setStreetAddress("16 Street, City, ZIP, Country");
+        o.setZip("ZIP");
+
+        assertEquals("Building, " + o.getStreetAddress(), o.getfullAddress());
+
+        o = new VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation();
+        o.setName("Bubba");
+        o.setAdditionalAddressName("Building");
+        o.setStreetAddress("Street_no Street");
+        o.setCity("City");
+        o.setZip("ZIP");
+        o.setCountry("Country");
+
+        assertEquals("Building, Street_no Street, City, ZIP, Country", o.getfullAddress());
+    }
+
+    @Test
+    public void organisationEqualsWorks() {
+        Organisation organisation = new Organisation();
+        organisation.setName("Name");
+        organisation.setVertecId(1L);
+        organisation.setFullAddress("Building, Street_no Street, City, ZIP, Country");
+        organisation.setActive(true);
+        organisation.setWebsite("website.net");
+        organisation.setOwnerId(2L);
+
+
+        Organisation org2 = new Organisation();
+        org2.setName("Name");
+        org2.setVertecId(1L);
+        org2.setBuildingName("Building");
+        org2.setStreet_no("Street_no");
+        org2.setStreet("Street");
+        org2.setCity("City");
+        org2.setZip("ZIP");
+        org2.setCountry("Country");
+        org2.setActive(true);
+        org2.setWebsite("website.net");
+        org2.setOwnerId(2L);
+
+        System.out.println(organisation.toJsonString());
+        System.out.println(org2.toJsonString());
+
+        assertTrue(organisation.equalsForUpdateAssertion(org2));
+    }
+
+    @Test
+    public void canReplaceSpecialCharacter() {
+
+        String s = "blah&amp;blah&amp;blah&amp;&amp;";
+        String r = Organisation.rectifySpecialCharacters(s);
+        assertEquals("blah&blah&blah&&", r);
+
+    }
+
+
 
 }

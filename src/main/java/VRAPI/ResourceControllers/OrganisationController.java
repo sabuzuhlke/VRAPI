@@ -16,11 +16,9 @@ import VRAPI.Util.QueryBuilder;
 import VRAPI.Util.StaticMaps;
 import VRAPI.VertecServerInfo;
 import VRAPI.XMLClasses.ContainerDetailedProjects.Project;
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
-import org.apache.tomcat.util.log.SystemLogHandler;
 import org.springframework.context.annotation.Scope;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
@@ -544,10 +542,15 @@ public class OrganisationController extends Controller {
 
     private ResponseEntity<String> update(Long id, Organisation organisation) throws NoIdSuppliedException {
 
+
         String query = queryBuilder.updateOrgansiation(organisation);
+        //Temporary logging
+        System.out.println(query);
+
+        System.out.println("===========================================");
+
 
         String putResponse = callVertec(query,String.class);
-
         //need to assert Updates persist, as Vertec does not provide correct responses
         String assertionQuery = queryBuilder.getOrganisationDetails(Collections.singletonList(id));
         VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation xmlOrg = callVertec(assertionQuery,
@@ -555,9 +558,13 @@ public class OrganisationController extends Controller {
                 .getBody().getQueryResponse().getOrganisationList().get(0);
         Organisation assertOrganisation = new Organisation(xmlOrg);
 
-        if(assertOrganisation.equals(organisation)) return new ResponseEntity<>("Success", HttpStatus.OK);
 
-       else throw new HttpInternalServerError("Update failed");
+        if(assertOrganisation.equalsForUpdateAssertion(organisation))
+            return new ResponseEntity<>("Success", HttpStatus.OK);
+
+       else return new ResponseEntity<>("Not all updates have been applied\n"
+                + organisation.toJsonString() + "\nResulted in:\n" + assertOrganisation.toJsonString()
+        , HttpStatus.ACCEPTED);
     }
 
     private ResponseEntity<Long> createOrganisation(Organisation organisation) {
@@ -576,9 +583,12 @@ public class OrganisationController extends Controller {
             Long vId = Long.parseLong(doc.getElementsByTagName("objid").item(0).getTextContent());
             try {
                 organisation.setVertecId(vId);
-                String updateSuccess = update(vId, organisation).getBody();
-                if(updateSuccess.contains("Success")) return new ResponseEntity<>(vId, HttpStatus.CREATED); //All fields were created
-                else return new ResponseEntity<>(vId, HttpStatus.ACCEPTED); //For some reason update failed,
+                ResponseEntity<String> updateSuccess = update(vId, organisation);
+                if(updateSuccess.getStatusCode().equals(HttpStatus.OK)) return new ResponseEntity<>(vId, HttpStatus.CREATED); //All fields were created
+                else if(updateSuccess.getStatusCode().equals(HttpStatus.ACCEPTED)) {
+                    System.out.println("ERROR:\n" + updateSuccess.getBody());
+                }
+                return new ResponseEntity<>(vId, HttpStatus.ACCEPTED); //For some reason update failed,
                 // object has been created, but only name field is set
             } catch (NoIdSuppliedException e) {
                 throw new HttpInternalServerError("Something went wrong during creation");

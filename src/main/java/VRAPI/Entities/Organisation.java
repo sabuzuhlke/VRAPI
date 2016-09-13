@@ -22,6 +22,7 @@ public class Organisation {
     private String city;
     private String country;
     private String zip;
+    private String fullAddress; //only used when gotten from VPI atm
 
     private Long parentOrganisation;
 
@@ -39,23 +40,26 @@ public class Organisation {
         active = vo.getActive();
         ownerId = vo.getPersonResponsible().getObjref();
 
-        name = setString(vo.getName());
+        name = rectifySpecialCharacters(setString(vo.getName()));
         website = setString(vo.getWebsite());
-        category = "CATEGORY PLACEHOLDER";//TODO: replace with actual value
-        businessDomain = "BUSINESS DOMAIN PLACEHOLDER";
-        buildingName = setString(vo.getAdditionalAddressName());
-        String[] addressParts = vo.getStreetAddress().split(",");
-        if (addressParts.length == 2) {
-            street_no = setString(addressParts[0]);
-            street = setString(addressParts[1]);
-            if (street.charAt(0) == ' ') street = street.substring(1, street.length());
-        } else {
-            street_no = "";
-            street = setString(vo.getStreetAddress());
-        }
-        city = setString(vo.getCity());
-        country = setString(vo.getCountry());
-        zip = setString(vo.getZip());
+        category =  "";//"CATEGORY PLACEHOLDER";//TODO: replace with actual value
+        businessDomain = "";//"BUSINESS DOMAIN PLACEHOLDER";
+        //TODO Make synchroniser only compare on full address
+//        buildingName = setString(vo.getAdditionalAddressName());
+//        String[] addressParts = vo.getStreetAddress().split(",");
+//        if (addressParts.length == 2) {
+//            street_no = setString(addressParts[0]);
+//            street = setString(addressParts[1]);
+//            if (street.charAt(0) == ' ') street = street.substring(1, street.length());
+//        } else {
+//            street_no = "";
+//            street = setString(vo.getStreetAddress());
+//        }
+//        city = setString(vo.getCity());
+//        country = setString(vo.getCountry());
+//        zip = setString(vo.getZip());
+
+        this.fullAddress = rectifySpecialCharacters(vo.getfullAddress());
 
         System.out.println(vo.getModifier());
         parentOrganisation = vo.getParentFirm() == null ? null : vo.getParentFirm().getObjref();
@@ -66,6 +70,10 @@ public class Organisation {
         created = vo.getCreationTime(); //TODO: change to common format
     }
 
+    public static String rectifySpecialCharacters(String s) {
+        return s.replaceAll("&amp;", "&");
+    }
+
     private String setString(String string) {
         if (string == null) return "";
         else return string;
@@ -74,7 +82,7 @@ public class Organisation {
     public Organisation() {
     }
 
-    public boolean equals(Organisation org) {
+    public boolean equalsForUpdateAssertion(Organisation org) {
         boolean retval = true;
         if(org == null) return false;
         if(vertecId == null || org.getVertecId() == null) return false;
@@ -89,26 +97,29 @@ public class Organisation {
         if(website == null ^ org.getWebsite() == null) return false;
         else if(website != null && org.getWebsite() != null) retval = retval && website.equals(org.getWebsite());
 
-         if(parentOrganisation == null ^ org.getParentOrganisation() == null) return false;
-        else if(parentOrganisation != null && org.getParentOrganisation() != null) retval = retval && parentOrganisation.equals(org.getParentOrganisation());
+//         if(parentOrganisation == null ^ org.getParentOrganisation() == null) return false;
+//        else if(parentOrganisation != null && org.getParentOrganisation() != null) retval = retval && parentOrganisation.equals(org.getParentOrganisation());
+//
+//         if(buildingName == null ^ org.getBuildingName() == null) return false;
+//        else if(buildingName != null && org.getBuildingName() != null) retval = retval && buildingName.equals(org.getBuildingName());
+//
+//         if(street_no == null ^ org.getStreet_no() == null) return false;
+//        else if(street_no != null && org.getStreet_no() != null) retval = retval && (street_no.contains(org.getStreet_no()) || org.getStreet_no().contains(street_no));
+//
+//         if(street == null ^ org.getStreet() == null) return false;
+//        else if(street != null && org.getStreet() != null) retval = retval && (street.contains(org.getStreet()) || org.getStreet().contains(street));
+//
+//         if(city == null ^ org.getCity() == null) return false;
+//        else if(city != null && org.getCity() != null) retval = retval && city.equals(org.getCity());
+//
+//         if(country == null ^ org.getCountry() == null) return false;
+//        else if(country != null && org.getCountry() != null) retval = retval && country.equals(org.getCountry());
+//
+//         if(zip == null ^ org.getZip() == null) return false;
+//        else if(zip != null && org.getZip() != null) retval = retval && zip.equals(org.getZip());
 
-         if(buildingName == null ^ org.getBuildingName() == null) return false;
-        else if(buildingName != null && org.getBuildingName() != null) retval = retval && buildingName.equals(org.getBuildingName());
-
-         if(street_no == null ^ org.getStreet_no() == null) return false;
-        else if(street_no != null && org.getStreet_no() != null) retval = retval && street_no.equals(org.getStreet_no());
-
-         if(street == null ^ org.getStreet() == null) return false;
-        else if(street != null && org.getStreet() != null) retval = retval && street.equals(org.getStreet());
-
-         if(city == null ^ org.getCity() == null) return false;
-        else if(city != null && org.getCity() != null) retval = retval && city.equals(org.getCity());
-
-         if(country == null ^ org.getCountry() == null) return false;
-        else if(country != null && org.getCountry() != null) retval = retval && country.equals(org.getCountry());
-
-         if(zip == null ^ org.getZip() == null) return false;
-        else if(zip != null && org.getZip() != null) retval = retval && zip.equals(org.getZip());
+        if(fullAddress == null ^ org.getFullAddress() == null) return false;
+        else if(fullAddress != null && org.getFullAddress() != null) retval = retval && fullAddress.replaceAll(" ","").equals(org.getFullAddress().replaceAll(" ",""));
 
          if(ownerId == null ^ org.getOwnerId() == null) return false;
         else if(ownerId != null && org.getOwnerId() != null) retval = retval && ownerId.equals(org.getOwnerId());
@@ -260,6 +271,39 @@ public class Organisation {
 
     public void setModifier(Long modifier) {
         this.modifier = modifier;
+    }
+
+    public String getFullAddress() {
+        if(fullAddress!= null && !fullAddress.isEmpty())
+        return fullAddress;
+        else {
+            String address = "";
+            if(this.getBuildingName() != null && !this.getBuildingName().isEmpty()){
+                address += this.getBuildingName() + ", ";
+            }
+
+            if (this.getStreet_no() != null && !this.getStreet_no().isEmpty()) {
+                address += this.getStreet_no() + " ";
+            }
+            if (this.getStreet() != null && !this.getStreet().isEmpty()) {
+                address += this.getStreet() + ", ";
+            }
+
+            if (this.getCity() != null && !this.getCity().isEmpty()) {
+                address += this.getCity() + ", ";
+            }
+            if (this.getZip() != null && !this.getZip().isEmpty()) {
+                address += this.getZip() + ", ";
+            }
+            if (this.getCountry() != null && !this.getCountry().isEmpty()) {
+                address += this.getCountry();
+            }
+            return address;
+        }
+    }
+
+    public void setFullAddress(String fullAddress) {
+        this.fullAddress = fullAddress;
     }
 
     public String toJsonString() {

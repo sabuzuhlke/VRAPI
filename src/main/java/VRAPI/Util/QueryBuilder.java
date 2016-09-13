@@ -261,24 +261,27 @@ public class QueryBuilder {
                 "       <Firma>\n";
         String body =
                 "           <objref>" + org.getVertecId() + "</objref>\n" +
-                        "           <name>" + (org.getName() == null ? "" : org.getName()) + "</name>\n" +
-                        "           <betreuer>\n<objref>" + (org.getOwnerId() == null ? "" : org.getOwnerId()) + "</objref>\n</betreuer>\n" +
-                        "           <standardAdresse>" + ((org.getStreet_no() + ", " + org.getStreet()) == ", " ? "" : (org.getStreet_no() + ", " + org.getStreet())) + "</standardAdresse>\n" +
-                        "           <standardLand>" + (org.getCountry() == null ? "" : org.getCountry()) + "</standardLand>\n" +
-                        "           <standardOrt>" + (org.getCity() == null ? "" : org.getCity()) + "</standardOrt>\n" +
-                        "           <standardPLZ>" + (org.getZip() == null ? "" : org.getZip()) + "</standardPLZ>\n" +
-                        "           <zusatz>" + (org.getBuildingName() == null ? "" : org.getBuildingName()) + "</zusatz>\n" +
-                        "           <aktiv>" + (org.getActive() == null ? "0" : (org.getActive() ? "1" : "0")) + "</aktiv>\n" +
-                        "           <mutterfirma><objref>" +
-                                        (org.getParentOrganisation() == null ? 0 : org.getParentOrganisation()) +
-                        "           </objref></mutterfirma>\n" +
-//                "           <tochterfirmen>" + (org.getActive() == null ? 0 : org.getActive()) + "<tochterfirmen>\n" +
-                        "           <standardHomepage>" + (org.getWebsite() == null ? "" : org.getWebsite()) + "</standardHomepage>\n" +
-                        //TODO Figure out what to do with category , business domain and org relationships
-                        "       </Firma>\n" +
-                        "   </Update>\n" +
-                        "   </Body>\n" +
-                        "</Envelope>\n";
+                        "           <name>" + "<![CDATA[" + (org.getName() == null ? "" : org.getName()) + "]]></name>\n" +
+                        "           <betreuer>\n<objref>" + (org.getOwnerId() == null ? "" : org.getOwnerId()) + "</objref>\n</betreuer>\n";
+
+        //Full address will be stored in the standardAddresse field as we would need to contact the google api, to break down the address for us otherwise
+        body += "           <standardAdresse><![CDATA[" + org.getFullAddress() + "]]></standardAdresse>\n";
+
+
+        body += "           <standardLand>" + "<![CDATA[" + (org.getCountry() == null ? "" : org.getCountry()) + "]]>" + "</standardLand>\n" +
+                "           <standardOrt>" + "<![CDATA[" + (org.getCity() == null ? "" : org.getCity()) + "]]>" +"</standardOrt>\n" +
+                "           <standardPLZ>" + (org.getZip() == null ? "" : org.getZip()) + "</standardPLZ>\n" +
+                "           <zusatz>" + "<![CDATA[" + (org.getBuildingName() == null ? "" : org.getBuildingName()) + "]]>" + "</zusatz>\n" +
+                "           <aktiv>" + (org.getActive() == null ? "0" : (org.getActive() ? "1" : "0")) + "</aktiv>\n" +
+                // "           <mutterfirma><objref>" +
+                //(org.getParentOrganisation() == null ? 0 : org.getParentOrganisation()) +
+                //    "           </objref></mutterfirma>\n" +
+                "           <standardHomepage>" + (org.getWebsite() == null ? "" : org.getWebsite()) + "</standardHomepage>\n" +
+                //TODO Figure out what to do with category , business domain and org relationships
+                "       </Firma>\n" +
+                "   </Update>\n" +
+                "   </Body>\n" +
+                "</Envelope>\n";
 
         return header + bodyStart + body;
 
@@ -289,12 +292,13 @@ public class QueryBuilder {
                 "   <Create>\n" +
                 "       <Firma>\n";
         String bodyEnd =
-                        "           <name>" + organisation.getName() + "</name>\n" +
+                "           <name><![CDATA[" + organisation.getName() + "]]></name>\n" +
                         "       </Firma>\n" +
                         "   </Create>\n" +
                         "   </Body>\n" +
                         "</Envelope>\n";
 
+        System.out.println(header+bodyStart+bodyEnd);
         return header + bodyStart + bodyEnd;
 
     }
@@ -811,7 +815,6 @@ public class QueryBuilder {
         return header + bodyBegin + bodyEnd;
 
     }
-
 
 
 }

@@ -177,13 +177,69 @@ public class Organisation {
     public String toString() {
         String retStr = null;
         ObjectMapper m = new ObjectMapper();
-        try{
+        try {
 
             retStr = m.writeValueAsString(this);
-        }
-        catch(Exception e){
+        } catch (Exception e) {
             System.out.println("Could not convert XML Envelope to JSON: " + e.toString());
         }
         return retStr;
     }
+
+    //This function returns the full address of an Organisation, taking into account, that sometimes the
+    // complete address is stored in streetAddress(standardAdresse)
+    public String getfullAddress() {
+
+        if (streetAddressFormedFromSubParts()) {
+
+            return streetAddress;
+        } else return formatVertecAddress(this);
+    }
+
+    private boolean streetAddressFormedFromSubParts() {
+        if (this.getAdditionalAddressName() != null && !this.getAdditionalAddressName().equals("")) {
+            if (!this.getStreetAddress().contains(this.getAdditionalAddressName())) {
+                return false;
+            }
+        }
+        if (this.getCity() != null && !this.getCity().equals("")) {
+            if (!this.getStreetAddress().contains(this.getCity())) {
+                return false;
+            }
+        }
+        if (this.getZip() != null && !this.getZip().equals("")) {
+            if (!this.getStreetAddress().contains(this.getZip())) {
+                return false;
+            }
+        }
+        if (this.getCountry() != null && !this.getCountry().equals("")) {
+            if (!this.getStreetAddress().contains(this.getCountry())) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    static public String formatVertecAddress(Organisation org) {
+        String address = "";
+        if (org.getAdditionalAddressName() != null && !org.getAdditionalAddressName().isEmpty()) {
+            address += org.getAdditionalAddressName() + ", ";
+        }
+
+        if (org.getStreetAddress() != null && !org.getStreetAddress().isEmpty()) {
+            address += org.getStreetAddress() + ", ";
+        }
+
+        if (org.getCity() != null && !org.getCity().isEmpty()) {
+            address += org.getCity() + ", ";
+        }
+        if (org.getZip() != null && !org.getZip().isEmpty()) {
+            address += org.getZip() + ", ";
+        }
+        if (org.getCountry() != null && !org.getCountry().isEmpty()) {
+            address += org.getCountry();
+        }
+        return address;
+    }
+
 }

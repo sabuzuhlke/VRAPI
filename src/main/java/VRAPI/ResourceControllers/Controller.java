@@ -100,6 +100,7 @@ public class Controller {
     Document responseFor(RequestEntity<String> req) throws HttpInternalServerError {
         try {
             final ResponseEntity<String> res = this.rest.exchange(req, String.class);
+            System.out.println(res);
             return documentBuilder.parse(new ByteArrayInputStream(res.getBody().getBytes(UTF_8)));
         } catch (SAXException | IOException e) {
             throw new HttpInternalServerError(e);
