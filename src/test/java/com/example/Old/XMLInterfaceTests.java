@@ -543,20 +543,6 @@ public class XMLInterfaceTests {
         return orgs;
     }
 
-//    @Test
-//    public void testthiasandthat(){
-//        List<Long> teamids = rc.getZUKTeamMemberIds();
-//        List<Long> addrids = rc.getAddressIdsSupervisedBy(teamids);
-//        List<List<Long>> CO = rc.getSimpleContactsandOrgs(addrids);
-//        List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> orgs = rc.getOrganisations(CO.get(1));
-//
-//
-//        System.out.println("Nr contacts: " + CO.get(0).size());
-//        System.out.println("Nr orgs: " + CO.get(1).size());
-//        System.out.println("Active out of these: " + orgs.size());
-//
-//    }
-
 //=============================================================================================================FOLLOWERS
     @Test @Ignore
     public void GivenTeamListCanBuildMapOfFollowedObjects() throws Exception {

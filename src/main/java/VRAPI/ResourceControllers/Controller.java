@@ -75,6 +75,7 @@ public class Controller {
         }
     }
 
+    //Constructot used in testing to avoid having to make a request to the server each time with credentials in header
     public Controller(QueryBuilder queryBuilder) {
         vertecURI = URI.create("http://" + DEFAULT_VERTEC_SERVER_HOST + ":" + DEFAULT_VERTEC_SERVER_PORT + "/xml");
 
@@ -97,6 +98,7 @@ public class Controller {
         this.queryBuilder = queryBuilder;
     }
 
+    //parses response from vertec into document
     Document responseFor(RequestEntity<String> req) throws HttpInternalServerError {
         try {
             final ResponseEntity<String> res = this.rest.exchange(req, String.class);
@@ -118,16 +120,19 @@ public class Controller {
         return activityObjrefs == null ? new ArrayList<>() : asIdList(activityObjrefs);
     }
 
+    //given nodelist containing ids, returns them as list
     static public List<Long> asIdList(NodeList nodeList) {
         return asStream(nodeList).map(Long::parseLong).collect(toList());
     }
 
+    //returns stream of text content of nodes in nodelist
     static Stream<String> asStream(NodeList nodeList) {
         return IntStream.range(0, nodeList.getLength())
                 .mapToObj(nodeList::item)
                 .map(Node::getTextContent);
     }
 
+    //generic method for passing a query to vertec and recieving response in POJO form
     <T> T callVertec(String query, Class<T> responseType) {
         return rest.exchange(
                 new RequestEntity<>(query, HttpMethod.POST, vertecURI),
@@ -184,6 +189,7 @@ public class Controller {
         }
     }
 
+    //given list of contact ids returns list of Entities.Contacts
     List<Contact> getDetailedContacts(List<Long> contactIdsForOrg) {
         if (contactIdsForOrg.isEmpty()) return new ArrayList<>();
         return getContacts(contactIdsForOrg).stream()
@@ -191,6 +197,7 @@ public class Controller {
                 .collect(toList());
     }
 
+    //converts XML contact in Entities.Contact
     Contact asContact(VRAPI.XMLClasses.ContainerDetailedContact.Contact contact) {
         Contact c = new Contact(contact);
         setOwnedOnVertecByForContact(c, contact);
@@ -199,17 +206,20 @@ public class Controller {
         return c;
     }
 
+    //given list of contact ids returns list of XML Contacts
     public List<VRAPI.XMLClasses.ContainerDetailedContact.Contact> getContacts(List<Long> contactIdsForOrg) {
         return callVertec(
                 queryBuilder.getDetailedContact(contactIdsForOrg),
                 VRAPI.XMLClasses.ContainerDetailedContact.Envelope.class).getBody().getQueryResponse().getContactList();
     }
 
+    //sets owned on vertec by for contact
     private void setOwnedOnVertecByForContact(Contact c, VRAPI.XMLClasses.ContainerDetailedContact.Contact vc) {
         Long responsibleId = vc.getPersonResponsible().getObjref();
         c.setOwnedOnVertecBy(getOwnedOnVertecByStringForOwnerId(responsibleId));
     }
 
+    //for a given ownder id, will check supervisor map for that id, if not present then its owned by somebody outside ZUK
     String getOwnedOnVertecByStringForOwnerId(Long ownerId) {
         Long supervisorId = supervisorIdMap.get(ownerId);
         Long SALES_TEAM_IDENTIFIER = -5L; //members of the top sales team, including wolfgang have their 'supervisorId' set to -5 within the map;
@@ -224,6 +234,7 @@ public class Controller {
         }
     }
 
+    //gets all activites for a given addressEntry id
     public ResponseEntity<ActivitiesForAddressEntry> getActivitiesForAddressEntry(Long id) {
         String xmlQuery = queryBuilder.getActivitiesForAddressEntry(id);
 
@@ -252,7 +263,7 @@ public class Controller {
         return node == null ? "" : node.getTextContent();
     }
 
-
+    //given list of activity ids, returns details
     private List<Activity> getActivityDetails(List<Long> activityIdsForOrg) {
         if (activityIdsForOrg.isEmpty()) return new ArrayList<>();
         activityTypeMap = StaticMaps.INSTANCE.getActivityTypeMap();
@@ -261,6 +272,7 @@ public class Controller {
 
     }
 
+    //converts XML activity to Entities.Activity
     private Activity getJsonActivity(VRAPI.XMLClasses.ContainerActivity.Activity activity) {
         Activity a = new Activity(activity);
         a.setvType(activityTypeMap.get(activity.getType() != null ? activity.getType().getObjref() : null));
@@ -269,6 +281,7 @@ public class Controller {
         return a;
     }
 
+    //gets XML activites for given ids
     private List<VRAPI.XMLClasses.ContainerActivity.Activity> getActivities(List<Long> ids) {
         try {
             return callVertec(queryBuilder.getActivities(ids), VRAPI.XMLClasses.ContainerActivity.Envelope.class)
@@ -280,6 +293,7 @@ public class Controller {
         }
     }
 
+    //gets list of generic link containers for given ids
     public List<GenericLinkContainer> getGenericLinkContainers(List<Long> ids) {
         try {
             return callVertec(queryBuilder.getGenericLinkContainers(ids), VRAPI.XMLClasses.FromContainer.Envelope.class)
@@ -291,6 +305,7 @@ public class Controller {
         }
     }
 
+    //sets link container to point to a new owner
     public ResponseEntity<Long> setFromContainerOfGLC(Long survivorId, List<Long> glcids) {
         Document res = responseFor(new RequestEntity<>(queryBuilder.setFromContainerOfGLC(glcids
                 , survivorId), HttpMethod.POST, vertecURI));
@@ -298,6 +313,7 @@ public class Controller {
         return returnResponseEntityOrThrowError(res, survivorId, glcids);
     }
 
+    //replaces generic links of merging id to point to surviving id
     public ResponseEntity<Long> replaceLinks(Long survivorId, Long mergingId, List<GenericLinkContainer> glcs) {
         Document res = responseFor(new RequestEntity<>(
                 queryBuilder.setLinksListToReplaceMergeIdWithSurvivorId(glcs, survivorId, mergingId),
@@ -309,6 +325,7 @@ public class Controller {
 
     }
 
+    //reads response from vertec and throws error if something went wrong or returns response entity if all went fine
     public ResponseEntity<Long> returnResponseEntityOrThrowError(Document res, Long survivorId, List<?> glcs) {
         if (getTextField(res).contains("Updated " + glcs.size())) {
 

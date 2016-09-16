@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * POJO for returning details of a particular organisation, returned as part of ZUKOrganisationResponse
+ */
 public class JSONOrganisation {
 
     @JsonProperty("name")
@@ -66,6 +69,7 @@ public class JSONOrganisation {
     }
 
     /**
+     * Constructor for building object from XML POJO recieved from vertec
      * set contacts outside
      * set owner outside
      * @param o

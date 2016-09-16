@@ -11,7 +11,7 @@ import VRAPI.JSONClasses.JSONContainerProject.JSONProject;
 import VRAPI.MergeClasses.ActivitiesForAddressEntry;
 import VRAPI.MergeClasses.ContactsForOrganisation;
 import VRAPI.MergeClasses.ProjectsForAddressEntry;
-import VRAPI.Util.NoIdSuppliedException;
+import VRAPI.Exceptions.NoIdSuppliedException;
 import VRAPI.Util.QueryBuilder;
 import VRAPI.Util.StaticMaps;
 import VRAPI.VertecServerInfo;
@@ -129,7 +129,7 @@ public class OrganisationController extends Controller {
     }
 
     //====================================================================================================================
-    // MERGE /organisations
+    // MERGE /organisations This function repoints everything (Contacts, projects, activities and generic link containers) that points to mergingId to survivingId, replicating the merge functionality of pipedrive
 //======================================================================================================================
     @ApiOperation(value = "Merge two vertec organisations", nickname = "merge")
     @ApiImplicitParams({
@@ -189,6 +189,7 @@ public class OrganisationController extends Controller {
     }
 
 
+    //Given list of project ids will return list of JSONprojects
     private List<JSONProject> getDetailedProjects(List<Long> projectIdsForOrg) {
         if (projectIdsForOrg.isEmpty()) return new ArrayList<>();
         return getProjects(projectIdsForOrg).stream()
@@ -197,6 +198,7 @@ public class OrganisationController extends Controller {
     }
 
     //TODO: add support for projectType and currency map
+    //Given a XML Project POJO will return in JSONProject form
     private JSONProject asJSONProject(Project project) {
         String accountManager = "";
         if (project.getAccountManager() != null && project.getAccountManager().getObjref() != null) {
@@ -213,6 +215,7 @@ public class OrganisationController extends Controller {
         return proj;
     }
 
+    //Given project XML Pojo will extract phase ids, get details from vertec and return them as JSONphases
     private List<JSONPhase> phasesFor(Project project) {
         return getPhasesForProject(project.getPhases().getObjlist().getObjrefs()).stream()
                 .map(phase -> {
@@ -225,12 +228,14 @@ public class OrganisationController extends Controller {
                 .collect(toList());
     }
 
+    //Helper for phasesFor, gets phases by id from vertec
     private List<VRAPI.XMLClasses.ContainerPhases.ProjectPhase> getPhasesForProject(List<Long> phaseIds) {
         return callVertec(
                 queryBuilder.getProjectPhases(phaseIds),
                 VRAPI.XMLClasses.ContainerPhases.Envelope.class).getBody().getQueryResponse().getPhases();
     }
 
+    //Given list of project ids will return them from vertec
     private List<VRAPI.XMLClasses.ContainerDetailedProjects.Project> getProjects(Collection<Long> projectIds) {
         return callVertec(
                 queryBuilder.getProjectDetails(projectIds),
@@ -278,6 +283,7 @@ public class OrganisationController extends Controller {
         return res;
     }
 
+    //Given list of organisation ids will return list of them in XML pojo form
     private List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> getOrganisations(List<Long> ids) {
         try {
             return callVertec(queryBuilder.getOrganisationDetails(ids), VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class).getBody().getQueryResponse().getOrganisationList().stream()
@@ -288,6 +294,7 @@ public class OrganisationController extends Controller {
         }
     }
 
+    //Given assorted list of contact and organisation ids will return list of lists where first list in list is list of contacts and second list in list is list of organisations.
     private List<List<Long>> getSimpleContactsandOrgs(Collection<Long> addressIds) {
         List<Long> cIds = new ArrayList<>();
         List<Long> oIds = new ArrayList<>();
@@ -308,6 +315,7 @@ public class OrganisationController extends Controller {
         return rIds;
     }
 
+    //Given list of employee ids will return list of ids of addresses (organisations and contacts) owned by them
     private Set<Long> getAddressIdsSupervisedBy(Set<Long> employeeIds) {
         Set<Long> addressIds = new HashSet<>();
         callVertec(queryBuilder.getSupervisedAddresses(employeeIds), VRAPI.XMLClasses.ContainerAddresses.Envelope.class)
@@ -351,31 +359,9 @@ public class OrganisationController extends Controller {
         return getOrganisation(id);
     }
 
-
-//======================================================================================================================
-// POST /organisations/
-//======================================================================================================================
-
-    //---------------------------------------------------------------------------------------------------------------------- POST /{id}
-    @ApiOperation(value = "Post organisation to vertec", nickname = "post")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "Authorization",
-                    value = "username:password",
-                    required = true,
-                    dataType = "string",
-                    paramType = "header")
-    })
-    @RequestMapping(value = "/org", method = RequestMethod.POST)
-    public ResponseEntity<Organisation> postOrganisation(@RequestBody Organisation orgToPost) {
-
-        System.out.println(orgToPost.toJsonString());
-
-        //TODO: Finish this - wow!?
-
-        return new ResponseEntity<>(new Organisation(), HttpStatus.OK);
-    }
     //=======================================METHODS========================================================================
 
+    //Gets an organisation from vertec by id
     public ResponseEntity<Organisation> getOrganisation(Long id) {
         this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
 
@@ -395,6 +381,7 @@ public class OrganisationController extends Controller {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
+    //gets list of organisations from vertec by ids list
     public ResponseEntity<OrganisationList> getOrganisationList(List<Long> ids) {
         this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
 
@@ -414,6 +401,7 @@ public class OrganisationController extends Controller {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
+    //gets all organisations owned by employees of ZUK
     public ResponseEntity<OrganisationList> getAllOrganisations() {
         this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
         Set<Long> allEmployeeIds = supervisorIdMap.keySet();
@@ -427,6 +415,7 @@ public class OrganisationController extends Controller {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
+    //Gets all projects linked to a given organisation
     public ResponseEntity<ProjectsForAddressEntry> getProjectsForOrganisation(Long id) {
         String xmlQuery = queryBuilder.getProjectsForOrganisation(id);
         final Document response = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
@@ -441,6 +430,7 @@ public class OrganisationController extends Controller {
         //TODO: include type and currency if we need them
     }
 
+    //gets all contacts linked to a given organisation
     public ResponseEntity<ContactsForOrganisation> getContactsForOrganisation(Long id) {
         this.supervisorIdMap = StaticMaps.INSTANCE.getSupervisorMap();
 
@@ -456,6 +446,7 @@ public class OrganisationController extends Controller {
         return new ResponseEntity<>(res, HttpStatus.OK);
     }
 
+    //sets an organisation to active on vertec
     public ResponseEntity<Long> setActiveField(Long id, Boolean active) {
         if (!isIdOfType(id, "Firma")) {
             throw new HttpNotFoundException("Organisation with id: " + id + " does not exist");
@@ -476,6 +467,7 @@ public class OrganisationController extends Controller {
 
     }
 
+    //Given two org ids will point all contacts, projects, activities and generic link containers to point to surviving org id
     public ResponseEntity<String> mergeOrganisations(Long mergingId, Long survivingId) throws IOException {
         VertecServerInfo.log.info("=============================== START MERGE FOR ID: " + mergingId + " INTO ID: " + survivingId + "===============================");
 
@@ -540,6 +532,7 @@ public class OrganisationController extends Controller {
         return new ResponseEntity<>("Recieved call to merge organisation with id: " + mergingId + " into organisation with id: " + survivingId, HttpStatus.OK);
     }
 
+    //Updates organisation with id {id} to contain all information in {organisation}
     private ResponseEntity<String> update(Long id, Organisation organisation) throws NoIdSuppliedException {
 
 
@@ -567,6 +560,7 @@ public class OrganisationController extends Controller {
         , HttpStatus.ACCEPTED);
     }
 
+    //creates an organisation and returns the id of the org created
     private ResponseEntity<Long> createOrganisation(Organisation organisation) {
 //get creation query
         String query = queryBuilder.createOrgansiation(organisation);
@@ -602,17 +596,20 @@ public class OrganisationController extends Controller {
 // Helper Methods
 //======================================================================================================================
 
+    //builds list of Entities.Organisation from list of XML organisations
     private List<Organisation> createOrganisationList(List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> organisations) {
         return organisations.stream()
                 .map(this::xml2json).collect(toList());
     }
 
+    //Converts XML organisation to Entities.organisation
     private Organisation xml2json(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation vo) {
         Organisation o = new Organisation(vo);
         setOwnedOnVertecByForOrganisation(o, vo);
         return o;
     }
 
+    //sets owned on vertec by field for o, using information from vo
     private void setOwnedOnVertecByForOrganisation(Organisation o, VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation vo) {
         Long responsibleId = vo.getPersonResponsible().getObjref();
         o.setOwnedOnVertecBy(getOwnedOnVertecByStringForOwnerId(responsibleId));

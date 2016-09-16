@@ -65,6 +65,7 @@ public class Authenticator {
         }
     }
 
+    //given document recieved from vertec will check for error and return integer denoting access level
     private Integer failureFrom(Document document) {
         return elementIn(document, "Fault")
                 .map(fault -> fault.getElementsByTagName("detailitem"))
@@ -73,6 +74,7 @@ public class Authenticator {
     }
 
     @SuppressWarnings("all")
+    //returns authorisation level based on document recieved containing a fault, see VertecServerInfo
     private Integer asFailure(Optional<String> maybeItem) {
         final Integer[] authLevel = new Integer[1];
         maybeItem
@@ -98,6 +100,7 @@ public class Authenticator {
                 : Optional.empty();
     }
 
+    //sends request and returns response parsed into document
     Document responseFor(RequestEntity<String> req) throws HttpInternalServerError {
         RestTemplate rest = new RestTemplate();
         try {
@@ -114,12 +117,14 @@ public class Authenticator {
 
         }
     }
+    //returns stream of text content found withing nodelist
     static Stream<String> asStream(NodeList nodeList) {
         return IntStream.range(0, nodeList.getLength())
                 .mapToObj(nodeList::item)
                 .map(Node::getTextContent);
     }
 
+    //given nodeList containing numbers only returns list of long
     static public List<Long> asIdList(NodeList nodeList) {
         return asStream(nodeList).map(Long::parseLong).collect(toList());
     }

@@ -1,4 +1,4 @@
-package VRAPI.Util;
+package VRAPI.Exceptions;
 
 
 

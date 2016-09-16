@@ -64,6 +64,10 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.w3c.dom.Node.ELEMENT_NODE;
 
+
+/**
+ * This class provides all the endpoints we used to do an initial import from vertec into pipedrive, stopped using it after that though
+ */
 @SuppressWarnings("WeakerAccess")
 @RestController
 @Scope("prototype")
@@ -122,10 +126,11 @@ public class ImportController {
     }
 
     //------------------------------------------------------------------------------------------------------------Paths
-    @Autowired
+    @Autowired //used to intercept any incoming requests
     private HttpServletRequest request;
 
 
+    //returns list of empoyee in ZUK team
     @ApiOperation(value = "Get Team details", nickname = "team")
     @RequestMapping(value = "/ZUKTeam", method = RequestMethod.GET, produces = "application/json")
     public ResponseEntity<ZUKTeam> createTeamResponse()  {
@@ -160,10 +165,12 @@ public class ImportController {
         return new ResponseEntity<>(team, HttpStatus.OK);
     }
 
+    //Convertes 0 or 1 string into boolean
     private Boolean toBoolean(String s) {
         return s.equals("1");
     }
 
+    //used in testing to check that api is running
     @ApiOperation(value = "Test access", nickname = "notping")
     @RequestMapping(value = "/ping", method = RequestMethod.GET, produces = "text/plain")
     @ApiImplicitParams({
@@ -177,6 +184,7 @@ public class ImportController {
         return "Success!";
     }
 
+    //used to get all organisations related to ZUK
     @ApiOperation(value = "Get organisations and nested contacts")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
@@ -206,9 +214,6 @@ public class ImportController {
        //System.out.println(res.toPrettyString());
         return res;
     }
-
-    //TODO Write get OrgnisationList
-    //TODO write getContactList
 
     @ApiOperation(value = "Get an organisation by id")
     @ApiImplicitParams({
@@ -331,6 +336,7 @@ public class ImportController {
         }
     }
 
+    //given project id returns project in JSONProject form
     private JSONProject getProjectById(Long id) {
         Set<Long> ids = new HashSet<>();
         ids.add(id);
@@ -347,6 +353,7 @@ public class ImportController {
         return asJsonProject((fromProject(project)));
     }
 
+    //given project code return that project in JSONProject form
     public JSONProject getProjectByCode(String code) {
         VRAPI.XMLClasses.ContainerDetailedProjects.Project project = null;
 
@@ -364,6 +371,7 @@ public class ImportController {
 
     }
 
+    //returns all activities assigned to ZUK team members, some activity types filtered out as requested by wolfgang
     @ApiOperation(value = "Get Activities")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
@@ -389,6 +397,7 @@ public class ImportController {
 
     }
 
+    //returns specific activity
     @ApiOperation(value = "Get Activity by ID")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
@@ -406,6 +415,7 @@ public class ImportController {
         return res;
     }
 
+    //returns all activities regardless of type
     @ApiOperation(value = "Get Activity by ID, do not filter anything")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "Authorization", value = "username:password", required = true, dataType = "string", paramType = "header")
@@ -424,6 +434,7 @@ public class ImportController {
     }
 
 
+    //given team member ids, will return all projects that they work on
     private List<JSONProject> projectsForTeam(List<Long> teamMemberIDs) {
         List<ProjectWithType> projectsBeforePhasesAssigned = getDetailedProjects(getProjectsTeamAreWorkingOn(teamMemberIDs)).stream()
                 .map(this::fromProject)
@@ -451,6 +462,7 @@ public class ImportController {
 //        return callVertec(queryBuilder.getProjectPhases(allPhaseIds), VRAPI.XMLClasses.ContainerPhases.Envelope.class).getBody().getQueryResponse().getPhases();
 //    }
 
+    //utitlty class to add project type
     private class ProjectWithType {
         private final Project project;
         private final ProjectType projectType;
@@ -497,6 +509,7 @@ public class ImportController {
 //        return proj;
 //    }
 
+    //convertes pwt to JSONProject
     private JSONProject asJsonProject(ProjectWithType pwt) {
         String aManagerEmail = null;
 
@@ -513,6 +526,7 @@ public class ImportController {
         return proj;
     }
 
+    //given project returned from vertec will return projectwithtype
     public ProjectWithType fromProject(VRAPI.XMLClasses.ContainerDetailedProjects.Project project) {
         return new ProjectWithType(project, getProjectType(project.getType().getObjref()));
     }
@@ -536,6 +550,7 @@ public class ImportController {
 ////                .collect(toList());
 //    }
 
+    //returns list of JSOMPhases linked to project
     private List<JSONPhase> phasesFor(Project project) {
         return getPhasesForProject(project.getPhases().getObjlist().getObjrefs()).stream()
                 .filter(phase -> !phase.getCode().contains("00_INTERN"))
@@ -547,6 +562,7 @@ public class ImportController {
                 .collect(toList());
     }
 
+    //extracts username and password from retuwest and builds query builder to use credentials provided
     private void checkUserAndPW() {
         final String[] nameAndPassword = request.getHeader("Authorization").split(":");
         if (nameAndPassword.length != 2) {
@@ -559,6 +575,7 @@ public class ImportController {
 
     //------------------------------------------------------------------------------------------------------------Helper Methods
 
+    //given organisation recieved from vertec will extract contacts ids and return as JSONContact list
     private List<JSONContact> getContactsAsJSONContact(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation org) {
        try {
            if (org.getContacts() == null )
@@ -589,6 +606,7 @@ public class ImportController {
         return new ArrayList<>();
     }
 
+    //given employee id will return their email
     public String getUserEmail(Long id){
         try {
             return callVertec(queryBuilder.getUserEmail(id),
@@ -600,18 +618,21 @@ public class ImportController {
         }
     }
 
+    //given list of project ids will return their detailed POJOs
     public List<VRAPI.XMLClasses.ContainerDetailedProjects.Project> getDetailedProjects(Set<Long> projectIds) {
         return callVertec(
                 queryBuilder.getProjectDetails(projectIds),
                 VRAPI.XMLClasses.ContainerDetailedProjects.Envelope.class).getBody().getQueryResponse().getProjects();
     }
 
+    //given list of phases will return their detailed POJOs
     public List<VRAPI.XMLClasses.ContainerPhases.ProjectPhase> getPhasesForProject(List<Long> phaseIds) {
         return callVertec(
                 queryBuilder.getProjectPhases(phaseIds),
                 VRAPI.XMLClasses.ContainerPhases.Envelope.class).getBody().getQueryResponse().getPhases();
     }
 
+    //given project id will return type of project
     public ProjectType getProjectType(Long projectID) {
         return callVertec(
                 queryBuilder.getProjectTypes(singletonList(projectID)),
@@ -619,6 +640,7 @@ public class ImportController {
 
     }
 
+    //given currency id will return currency POJO
     public VRAPI.XMLClasses.ContainerCurrency.Currency getCurrency(Long id) {
         return callVertec(
                 queryBuilder.getCurrency(id),
@@ -626,6 +648,7 @@ public class ImportController {
 
     }
 
+    //given list of employee ids will return set of project ids
     public Set<Long> getProjectsTeamAreWorkingOn(Collection<Long> teamIds) {
         return callVertec(queryBuilder.getProjectIds(Lists.newArrayList(teamIds)),
                 VRAPI.XMLClasses.ContainerProjects.Envelope.class)
@@ -642,6 +665,7 @@ public class ImportController {
     }
 
 
+    //returns list of employee ids directly supervised by wolfgang, including wolfgang
     public List<Long> getZUKTeamMemberIds() {
 
         String xmlQuery = queryBuilder.getLeadersTeam();
@@ -657,6 +681,7 @@ public class ImportController {
         return list;
     }
 
+    //if error returned by server will check for error detail, if present throws appropriate error otherwise internal server error
     private void failureFrom(Document document) {
         elementIn(document, "Fault")
                 .map(fault -> fault.getElementsByTagName("detailitem"))
@@ -668,6 +693,7 @@ public class ImportController {
     }
 
     @SuppressWarnings("all")
+    //given error detail item throws appropriate exception
     private void asFailure(Optional<String> maybeItem) {
          maybeItem
                 .map(item -> {
@@ -682,16 +708,19 @@ public class ImportController {
                 ).orElseThrow(() ->  new HttpInternalServerError("missing fault"));
     }
 
+    //given nodelist return list of ids contained within it
     private static List<Long> asIdList(NodeList nodeList) {
         return asStream(nodeList).map(Long::parseLong).collect(toList());
     }
 
+    //returns node list as stream of text content contained within them
     private static Stream<String> asStream(NodeList nodeList) {
         return IntStream.range(0, nodeList.getLength())
                 .mapToObj(nodeList::item)
                 .map(Node::getTextContent);
     }
 
+    //finds element named tagname and returns it (wil return first element of name found)
     private static Optional<Element> elementIn(Document document, String tagname) {
         final NodeList queryResponses = document.getElementsByTagName(tagname);
         return queryResponses.getLength() == 1 && queryResponses.item(0).getNodeType() == ELEMENT_NODE
@@ -699,6 +728,7 @@ public class ImportController {
                 : Optional.empty();
     }
 
+    //builds document for response recieved from vertec
     private Document responseFor(RequestEntity<String> req) throws HttpInternalServerError {
         try {
             final ResponseEntity<String> res = this.rest.exchange(req, String.class);
@@ -708,6 +738,7 @@ public class ImportController {
         }
     }
 
+    //returns ids of organisaitons and contacts supervised by ids provided
     public List<Long> getAddressIdsSupervisedBy(List<Long> supervisorIds) {
         List<Long> ids = new ArrayList<>();
         Set<Long> uniqueIds = new HashSet<>();
@@ -724,6 +755,7 @@ public class ImportController {
         return ids;
     }
 
+    //Given assorted list of contact and organisation ids will return list of lists where first list in list is list of contacts and second list in list is list of organisations.
     public List<List<Long>> getSimpleContactsandOrgs(List<Long> contactIds) {
         List<Long> cIds = new ArrayList<>();
         List<Long> oIds = new ArrayList<>();
@@ -744,12 +776,14 @@ public class ImportController {
         return rIds;
     }
 
+    //gets details of contact ids supplied, filters out inactive contacts
     public List<VRAPI.XMLClasses.ContainerDetailedContact.Contact> getActiveDetailedContacts(List<Long> ids){
         return getDetailedContacts(ids).stream()
                 .filter(VRAPI.XMLClasses.ContainerDetailedContact.Contact::getActive)
                 .collect(toList());
     }
 
+    //gets details of contact ids supplied
     public List<VRAPI.XMLClasses.ContainerDetailedContact.Contact> getDetailedContacts(List<Long> ids) {
     try {
         return callVertec(queryBuilder.getDetailedContact(ids), VRAPI.XMLClasses.ContainerDetailedContact.Envelope.class)
@@ -762,6 +796,7 @@ public class ImportController {
 
     }
 
+    //gets details of organisations with ids supplied, filters out inactive organisations
     public List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> getOrganisations(List<Long> ids) {
         try{
             return callVertec(queryBuilder.getOrganisationDetails(ids), VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class).getBody().getQueryResponse().getOrganisationList().stream()
@@ -772,6 +807,7 @@ public class ImportController {
         }
     }
 
+    //gets details of organisations with ids supplied
     public List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> getOrganisationsWithInactive(List<Long> ids) {
         try{
             return callVertec(queryBuilder.getOrganisationDetails(ids), VRAPI.XMLClasses.ContainerDetailedOrganisation.Envelope.class).getBody().getQueryResponse().getOrganisationList().stream()
@@ -781,6 +817,7 @@ public class ImportController {
         }
     }
 
+    //given list of contacts and list of organisations will build ZUK response, matches organisaiton contact is linked to and then leaves unlinked contacts at the bottom of response
     public ZUKOrganisationResponse buildZUKOrganisationsResponse(List<VRAPI.XMLClasses.ContainerDetailedContact.Contact> contacts, List<VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation> orgs) {
         ZUKOrganisationResponse res = new ZUKOrganisationResponse();
         List<JSONContact> dangle = new ArrayList<>();
@@ -832,6 +869,7 @@ public class ImportController {
         return res;
     }
 
+    //gets all activity ids assigned to teamIDs
     public List<Long> getActivityIds(List<Long> teamIds) {
         return callVertec(queryBuilder.getActivityIds(teamIds), VRAPI.XMLClasses.ContainerAddresses.Envelope.class)
                 .getBody().getQueryResponse().getWorkers().stream()
@@ -843,6 +881,7 @@ public class ImportController {
                 .collect(toList());
     }
 
+    //gets details of activities
     public List<VRAPI.XMLClasses.ContainerActivity.Activity> getActivities(List<Long> ids) {
         try{
             return callVertec(queryBuilder.getActivities(ids), VRAPI.XMLClasses.ContainerActivity.Envelope.class)
@@ -854,6 +893,7 @@ public class ImportController {
         }
     }
 
+    //gets list of all activity types whose ids are present in list of activites supplied
     public List<ActivityType> getActivityTypes(List<Activity> activities) {
         Set<Long> typeSet = activities.stream()
                 .filter(a -> a.getType() != null)
@@ -871,6 +911,7 @@ public class ImportController {
 
     }
 
+    //builds JSONActivites response, replaces activity type ids with text content of type, filters some activity types
     public JSONActivitiesResponse buildJSONActivitiesResponse(List<Activity> activities, List<ActivityType> types) {
         Map<Long, String> typeMap = new HashMap<>();
 
@@ -905,6 +946,8 @@ public class ImportController {
                                 .orElse(true))
                         .collect(toList()));
     }
+
+    //builds JSONActivites response, replaces activity type ids with text content of type
     public JSONActivitiesResponse buildJSONActivitiesResponseNoFilter(List<Activity> activities, List<ActivityType> types) {
         Map<Long, String> typeMap = new HashMap<>();
 
@@ -928,6 +971,7 @@ public class ImportController {
                         .collect(toList()));
     }
 
+    //generic method used to pass a query to vertec and recieve response in POJO form
     public <T> T callVertec(String query, Class<T> responseType) {
         System.out.println("Calling vertec, querying for: " + responseType.getName());
         return rest.exchange(
@@ -939,6 +983,7 @@ public class ImportController {
 //------------------------------------------------------------------------------------------------------------Comparator
 
     @SuppressWarnings("WeakerAccess")
+    //dont think this used any more, orders contacts by organisation id
     public class ContactComparator implements Comparator<VRAPI.XMLClasses.ContainerDetailedContact.Contact> {
 
         @Override
@@ -956,6 +1001,7 @@ public class ImportController {
     }
 
 
+    //orders activities by type id
     public class ActivityComparator implements Comparator<VRAPI.XMLClasses.ContainerActivity.Activity> {
 
         @Override

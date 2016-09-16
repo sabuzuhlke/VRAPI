@@ -6,6 +6,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * POJO for returning the team members for ZUK
+ */
 public class ZUKTeam {
 
     @JsonProperty("teamMembers")

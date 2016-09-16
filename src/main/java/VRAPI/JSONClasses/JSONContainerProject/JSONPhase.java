@@ -4,7 +4,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Created by sabu on 13/05/2016.
+ * POJO for returning the details of a project phase, returned as part of JSONProject
  */
 public class JSONPhase {
 
@@ -49,6 +49,7 @@ public class JSONPhase {
     public JSONPhase() {
     }
 
+    //Constructor for creating phase from XML POJO recieved from vertec, personResponseEmail is the email of the team member who mis responsible for this phase (this may just be the project leader)
     public JSONPhase (VRAPI.XMLClasses.ContainerPhases.ProjectPhase ph, String personResponsibleEmail){
         this.v_id = ph.getObjid();
         this.active = ph.getActive();

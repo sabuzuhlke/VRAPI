@@ -8,7 +8,7 @@ import VRAPI.JSONClasses.JSONContainerProject.JSONPhase;
 import VRAPI.MergeClasses.ActivitiesForAddressEntry;
 import VRAPI.MergeClasses.ProjectsForAddressEntry;
 import VRAPI.ResourceControllers.OrganisationController;
-import VRAPI.Util.NoIdSuppliedException;
+import VRAPI.Exceptions.NoIdSuppliedException;
 import VRAPI.Util.QueryBuilder;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -30,7 +30,7 @@ import static org.junit.Assert.*;
 
 public class OrganisationControllerTests extends ControllerTests {
 
-    @Test
+    @Test @Ignore("Only to run on test vertec instance")
     public void canUpdateOrganisation() {
 
         Organisation org = new Organisation();
@@ -137,29 +137,6 @@ public class OrganisationControllerTests extends ControllerTests {
     }
 
     @Test
-    public void canCreateUpdateQuery() throws NoIdSuppliedException {
-        QueryBuilder qb = new QueryBuilder("hab", "babbalab");
-
-        Organisation org = new Organisation();
-        org.setVertecId(TESTVertecOrganisation1);
-        org.setActive(true);
-        org.setBuildingName("building name");
-        org.setBusinessDomain("business domain");
-        org.setCategory("category");
-        org.setCity("city");
-        org.setCountry("country");
-        org.setName("GEBO test org");
-        org.setOwnedOnVertecBy("Sales Team");
-        org.setOwnerId(5295L);
-        org.setStreet("street");
-        org.setStreet_no("street_no");
-        org.setWebsite("website");
-        org.setZip("zip");
-
-        System.out.println(qb.updateOrgansiation(org));
-    }
-
-    @Test
     public void canNotCreateUpdateQueryWithoutID() {
         QueryBuilder qb = new QueryBuilder("hab", "babbalab");
 
@@ -190,7 +167,7 @@ public class OrganisationControllerTests extends ControllerTests {
     /**
      * CAREFUL!! do not run on real vertec instance
      */
-    @Test
+    @Test @Ignore("Only to run on test vertec instance")
     public void canCreateOrganisation() {
         Organisation org = new Organisation();
         org.setActive(true);
@@ -261,6 +238,10 @@ public class OrganisationControllerTests extends ControllerTests {
 
     }
 
+    /**
+     * We used this test as a convenient way to run our merging of organisations on vertec, that had been merged on pipedrive.
+     * Can probably be deleted but provides a record of which organisations have been merged into eachother
+     */
     @Test
     @Ignore("Already ran, organisations merged")
     public void mergeOrganisations() {
@@ -360,6 +341,10 @@ public class OrganisationControllerTests extends ControllerTests {
 
     }
 
+    /**
+     * This test was used as a convenient way of setting many organisations to inactive
+     * Could probably be removed but is record of whats been marked inactivee
+     */
     @Test
     @Ignore("Already ran, all mentioned ids deleted")
     public void deleteOrganisationsFromVertecBasedOnMerger() {
@@ -384,7 +369,7 @@ public class OrganisationControllerTests extends ControllerTests {
 
     }
 
-    @Test
+    @Test @Ignore("Only to run on test vertec instance")
     public void canSetOrgToActiveAndInactive() {
 
         String uri = baseURI + "/organisation/" + TESTVertecOrganisation1 + "/activate";
@@ -411,7 +396,7 @@ public class OrganisationControllerTests extends ControllerTests {
 
     }
 
-    @Test
+    @Test @Ignore("Only to run on test vertec instance")
     public void cannotSetRandomIdToActive() {
         Long id = TESTRandomID;
         String uri = baseURI + "/organisation/" + id + "/activate";
@@ -426,7 +411,7 @@ public class OrganisationControllerTests extends ControllerTests {
 
     }
 
-    @Test
+    @Test @Ignore("Only to run on test vertec instance")
     public void cannotSetRandomIdToInactive() {
         Long id = TESTRandomID;
         String uri = baseURI + "/organisation/" + id;
@@ -452,6 +437,8 @@ public class OrganisationControllerTests extends ControllerTests {
      * Assert values match known values
      * Assert org details returned match known values
      * tests whether project and its phases are built correctly
+     *
+     * Known values aquired by using http tester/ looking directly on vertec
      */
     @Test
     public void canGetProjectsForOrganisation() {
@@ -515,6 +502,8 @@ public class OrganisationControllerTests extends ControllerTests {
      * Given id of org, correctly returns activities for org
      * Assert value match known values
      * also tests construction of JSON activities and their conversion to 'Entity.Activity's
+     *
+     *known values aquired by using https tester/ checking vertec directly
      */
     @Test
     public void canGetActivitiesForOrganisation() {
@@ -706,7 +695,7 @@ public class OrganisationControllerTests extends ControllerTests {
 
 
     @Test
-    @Ignore
+    @Ignore("Test used to get mock output for testing VPI")
     public void canGetAllOrganisationsInCommonRepresentation() throws IOException {
 
         String uri = baseURI + "/organisations/all";
@@ -748,6 +737,9 @@ public class OrganisationControllerTests extends ControllerTests {
         assertEquals("Building, Street_no Street, City, ZIP, Country", o.getfullAddress());
     }
 
+    /**
+     * Used to test equals check are creating organisations on vertec
+     */
     @Test
     public void organisationEqualsWorks() {
         Organisation organisation = new Organisation();

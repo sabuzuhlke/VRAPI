@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 
 /**
- * Created by sabu on 13/05/2016.
+ * POJO for returning All the projects worked on by ZUK team members
  */
 public class ZUKProjectsResponse {
 

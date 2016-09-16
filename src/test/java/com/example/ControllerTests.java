@@ -148,6 +148,9 @@ public class ControllerTests {
         return idMap;
     }
 
+    /**
+     * Use http tester to access the information to test against
+     */
     @Test
     public void canGetGenericLinkContainersForValidId() {
 

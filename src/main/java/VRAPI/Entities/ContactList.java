@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 
 /**
- * Created by sabu on 01/08/2016.
+ * POJO for returning list of contacts
  */
 public class ContactList {
 

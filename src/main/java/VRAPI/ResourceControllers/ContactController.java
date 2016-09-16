@@ -73,7 +73,7 @@ public class ContactController extends Controller {
                     paramType = "header")
     })
     @RequestMapping(value = "/contact/{id}/activities", method = RequestMethod.GET) //TODO: write test for this function
-    public ResponseEntity<ActivitiesForAddressEntry> getActivitiesForActivityEndpoint(@PathVariable Long id)
+    public ResponseEntity<ActivitiesForAddressEntry> getActivitiesForContactEndpoint(@PathVariable Long id)
             throws ParserConfigurationException {
         queryBuilder = AuthenticateThenReturnQueryBuilder();
 
@@ -159,7 +159,7 @@ public class ContactController extends Controller {
 
 //======================================================================================================================
 
-    //TODO merge Organisation pointed out in tomerge.txt
+    //This functions will take all activities, projects and generic link containers that link to contact survivingId and re-point them to contact mergingId
     public ResponseEntity<String> mergeContacts(Long mergingId, Long survivingId) throws IOException {
 
         if (!isIdOfType(mergingId, "Kontakt")) {
@@ -252,6 +252,7 @@ public class ContactController extends Controller {
         return null;
     }
 
+    //This will set set a contact id provided to active on vertec
     public ResponseEntity<Long> setActiveField(Long contId, boolean active) {
         if (!isIdOfType(contId, "Kontakt")) {
             throw new HttpNotFoundException("Contact with id: " + contId + " does not exist");
@@ -268,6 +269,7 @@ public class ContactController extends Controller {
         }
     }
 
+    //sets contact to be linked organisation
     public ResponseEntity<Long> setOrgLink(Long id, Long orgID) {
         VertecServerInfo.log.info("--------------- Setting Organisation Link of Contact ---------------------------->");
 
@@ -322,7 +324,7 @@ public class ContactController extends Controller {
 
     }
 
-
+    //given ids of contact mediums, will return their details
     public ContactDetails getContactDetails(List<Long> kommMittel) {
 
         String query = queryBuilder.getContactMediumDetails(kommMittel);
@@ -356,6 +358,7 @@ public class ContactController extends Controller {
         return details;
     }
 
+    //given list of contact ids will retrieve their details
     public ContactList getContactList(List<Long> ids) {
 
         VRAPI.XMLClasses.ContainerDetailedContact.Envelope contactEnvelope
@@ -390,6 +393,7 @@ public class ContactController extends Controller {
         return setFromContainerOfGLC(survivor.getVertecId(), glcids);
     }
 
+    //this is the other half dealing with generic link containers
     public ResponseEntity<Long> repointFromLinksOfGenericLinkContainers(Contact merging, Contact survivor) {
         //get fromLinks of merging contact
         List<GenericLinkContainer> mergingContainers = getGenericLinkContainers(merging.getGenericContainers());

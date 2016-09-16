@@ -1,5 +1,8 @@
 package VRAPI.JSONClasses.JSONTeam;
 
+/**
+ * POJO for returning an individual team member
+ */
 public class TeamMember {
 
     private String email;

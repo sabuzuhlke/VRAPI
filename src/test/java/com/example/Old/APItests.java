@@ -490,11 +490,10 @@ public class APItests {
         try{
 
             res = rt.exchange(req, ZUKTeam.class);
-            res.getBody().getMembers().stream()
-                    .forEach(tm -> {
-                        assertNotNull(tm.getEmail());
-                        assertNotNull(tm.getId());
-                    });
+            res.getBody().getMembers().forEach(tm -> {
+                assertNotNull(tm.getEmail());
+                assertNotNull(tm.getId());
+            });
 
             System.out.println(res.getBody().toJSONString());
 

@@ -3,6 +3,9 @@ package VRAPI;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * Class to provide some global variables
+ */
 public class VertecServerInfo {
     public static final String VERTEC_SERVER_HOST = "172.18.120.78";
     public static final String VERTEC_SERVER_PORT = "8095";

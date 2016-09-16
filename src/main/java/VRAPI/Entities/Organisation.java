@@ -2,6 +2,9 @@ package VRAPI.Entities;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+/**
+ * POJO for returning organisations
+ */
 public class Organisation {
 
     private Long vertecId;
@@ -59,9 +62,9 @@ public class Organisation {
 //        country = setString(vo.getCountry());
 //        zip = setString(vo.getZip());
 
+        //Vertec cannot handle '&', it may fail on other special characters but we haent come across those
         this.fullAddress = rectifySpecialCharacters(vo.getfullAddress());
 
-        System.out.println(vo.getModifier());
         parentOrganisation = vo.getParentFirm() == null ? null : vo.getParentFirm().getObjref();
 
         modifier = vo.getModifier() == null ? 0L : (vo.getModifier().getObjref() == null ? 0L : vo.getModifier().getObjref());
@@ -82,6 +85,11 @@ public class Organisation {
     public Organisation() {
     }
 
+    /**
+     * When we create organisations on vertec, we have to create it with minimal information to recieve the id back,
+     * then update it with rest of the information,
+     * we then get it from vertec again and use this to check we have updated correctly
+     */
     public boolean equalsForUpdateAssertion(Organisation org) {
         boolean retval = true;
         if(org == null) return false;
@@ -273,6 +281,7 @@ public class Organisation {
         this.modifier = modifier;
     }
 
+    //Builds a string of the whole address from its constituent parts
     public String getFullAddress() {
         if(fullAddress!= null && !fullAddress.isEmpty())
         return fullAddress;

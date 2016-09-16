@@ -4,6 +4,9 @@ import VRAPI.Entities.Contact;
 
 import java.util.List;
 
+/**
+ * This class is the POJO for retrieving all the contact linked to a particular organisation, we return this from end point /organisation/{id}/contacts
+ */
 public class ContactsForOrganisation {
 
     private String organisationName;

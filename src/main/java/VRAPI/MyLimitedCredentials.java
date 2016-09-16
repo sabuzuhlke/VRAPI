@@ -1,7 +1,7 @@
 package VRAPI;
 
 /**
- * Created by sabu on 06/05/2016.
+ * This class is used in tests to show requests will fail if invalid vertec username and password is provided in request header
  */
 import java.io.BufferedReader;
 import java.io.File;

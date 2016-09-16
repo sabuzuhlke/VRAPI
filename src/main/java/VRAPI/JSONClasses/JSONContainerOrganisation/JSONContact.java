@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 
 /**
- * Created by sabu on 27/04/2016.
+ * POJO for returning details of a particular contact
  */
 public class JSONContact {
 
@@ -60,6 +60,10 @@ public class JSONContact {
     public JSONContact() {
     }
 
+    /**
+     * Constructor used to build object from XML POJO recieved from vertec
+     * @param c
+     */
     public JSONContact(VRAPI.XMLClasses.ContainerDetailedContact.Contact c){
         this.setObjid(c.getObjId());
         this.setEmail(c.getEmail().toLowerCase());

@@ -4,11 +4,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 
+/**
+ * This class provides a way of accessing confidential credentials used for building Static Maps, and for testing.
+ */
 public class MyAccessCredentials {
 
     private String pass = "";
     private String userName = "";
-    private String apiKey = "";
 
     public MyAccessCredentials() {
         String line;
@@ -37,9 +39,5 @@ public class MyAccessCredentials {
 
     public String getUserName() {
         return userName;
-    }
-
-    public String getApiKey() {
-        return apiKey;
     }
 }

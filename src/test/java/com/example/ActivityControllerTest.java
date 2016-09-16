@@ -2,6 +2,7 @@ package com.example;
 
 import VRAPI.JSONClasses.JSONContainerActivities.JSONActivitiesResponse;
 import VRAPI.JSONClasses.JSONContainerActivities.JSONActivity;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.client.HttpClientErrorException;
@@ -11,7 +12,7 @@ import static junit.framework.TestCase.assertTrue;
 
 public class ActivityControllerTest extends ControllerTests {
 
-    @Test
+    @Test @Ignore("Only to run on test vertec instance")
     public void canUpdateActivityOrgLink(){
         Long activityID = 1085719L; //Actually exists-- careful
 
@@ -35,7 +36,7 @@ public class ActivityControllerTest extends ControllerTests {
         assertEquals("Did not set organisationLink back to original", orgId, activity.getCustomer_link()); //assert organisationLink set back to original -- so as to kkep sate of activity unmodified
 
     }
-    @Test
+    @Test @Ignore("Only to run on test vertec instance")
     public void doesNotSetOrganisationLinksOfNonActivity(){
         try{
             String uri = baseURI + "/activity/" + TESTRandomID + "/setOrganisationLink/" + TESTVertecOrganisation1;
@@ -47,7 +48,7 @@ public class ActivityControllerTest extends ControllerTests {
 
     }
 
-    @Test
+    @Test @Ignore("Only to run on test vertec instance")
     public  void setOrganisationLinksDoesNotSetNonOrgLink(){
         Long activityID = 1085719L; //Actually exists-- careful
         try{
@@ -57,11 +58,6 @@ public class ActivityControllerTest extends ControllerTests {
         } catch (HttpClientErrorException exception){
             assertEquals(exception.getStatusCode(), HttpStatus.NOT_FOUND);
         }
-
-    }
-
-    @Test
-    public void canGetAllActivitiesForContact(){
 
     }
 }

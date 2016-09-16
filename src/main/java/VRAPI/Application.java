@@ -16,6 +16,9 @@ import springfox.documentation.spring.web.plugins.Docket;
 import springfox.documentation.swagger.web.UiConfiguration;
 import springfox.documentation.swagger2.annotations.EnableSwagger2;
 
+/**
+ * Entry point of program, configures some Swagger UI features, including removing the error endpoints, sets up the controllers that will listen for incoming requests.
+ */
 @SpringBootApplication
 @ComponentScan(basePackageClasses = {ImportController.class, OrganisationController.class, EmployeeController.class,
 		ContactController.class, ProjectController.class, ActivityController.class})
@@ -24,7 +27,6 @@ import springfox.documentation.swagger2.annotations.EnableSwagger2;
 public class Application {
 
 	public static void main(String[] args) {
-		VertecServerInfo.log.info("testmessage, we got it");
 		SpringApplication.run(Application.class, args);
 	}
 

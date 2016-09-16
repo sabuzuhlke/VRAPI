@@ -40,7 +40,7 @@ public class ProjectController extends Controller {
     }
 
     //======================================================================================================================//
-    // PUT /project                                                                                                         //
+    // PUT /project   endpoint to set the organisation link of a project to a differnece organsation                                                                                                      //
 //======================================================================================================================//
     @ApiOperation(value = "Re-Link Project (id) to an organisation (orgID)", nickname = "setOrgLink")
     @ApiImplicitParams({
@@ -67,6 +67,8 @@ public class ProjectController extends Controller {
 //======================================================================================================================
 
     ResponseEntity<Long> setOrgLink(Long id, Long orgID) {
+
+        //checks to make sure the ids provided represent that correct entity types
         VertecServerInfo.log.info("--------------- Setting Organisation Link of Project ---------------------------->");
         if (!isIdOfType(id, "Projekt")) {
             VertecServerInfo.log.info("--------------- Project with id: " + id + " does not exist ------------------>");

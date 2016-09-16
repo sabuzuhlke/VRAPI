@@ -54,6 +54,7 @@ public class EmployeeController extends Controller {
         return getSalesTeamDetails();
     }
 
+    //returns response entity containing list of employees directly supervised by wolfgang, including wolfgang
     public ResponseEntity<EmployeeList> getSalesTeamDetails() {
         String xmlQuery = queryBuilder.getLeadersTeam();
         final Document teamIdsResponse = responseFor(new RequestEntity<>(xmlQuery, HttpMethod.POST, vertecURI));
@@ -64,18 +65,21 @@ public class EmployeeController extends Controller {
         return new ResponseEntity<>(employees, HttpStatus.OK);
     }
 
+    //returns list of employees directly supervised by wolfgang, including wolfgang
     private EmployeeList getEmployees(List<Long> teamIds) {
         EmployeeList employees = new EmployeeList();
         employees.setEmployees(employeesFromIds(teamIds));
         return employees;
     }
 
+    //returns list of employees directly supervised by wolfgang, including wolfgang
     private List<Employee> employeesFromIds(List<Long> teamIds) {
         return getEmployessFromVertec(teamIds).stream()
                 .map(Employee::new)
                 .collect(toList());
     }
 
+    //gets list of project workers from vertec by ids
     private List<ProjectWorker> getEmployessFromVertec(List<Long> teamIds) {
         List<ProjectWorker> employees = callVertec(queryBuilder.getTeamDetails(teamIds), Envelope.class).getBody().getQueryResponse().getWorkers();
         for(ProjectWorker pw : employees){

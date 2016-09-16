@@ -1,5 +1,9 @@
 package VRAPI.Entities;
 
+
+/**
+ * POJO for returning details of an activity
+ */
 public class Activity {
     private Long vertecId;
     private Boolean done;

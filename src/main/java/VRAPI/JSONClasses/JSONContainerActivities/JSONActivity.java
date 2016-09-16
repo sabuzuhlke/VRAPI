@@ -5,7 +5,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 /**
- * Created by gebo on 24/05/2016.
+ * POJO for returning details of a particular activity
  */
 public class JSONActivity {
     private Long id;
@@ -24,6 +24,10 @@ public class JSONActivity {
     public JSONActivity() {
     }
 
+    /**
+     * Constructor used to build object from XML POJO recieved from vertec
+     * @param a
+     */
     public JSONActivity(VRAPI.XMLClasses.ContainerActivity.Activity a){
         this.id = a.getObjid();
         this.title = a.getTitle();

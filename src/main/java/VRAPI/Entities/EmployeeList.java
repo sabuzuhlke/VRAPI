@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
+/**
+ * POJO for returning list of zuhlke employees
+ */
 public class EmployeeList {
 
     protected List<Employee> employees;

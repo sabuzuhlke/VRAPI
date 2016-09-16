@@ -1,18 +1,20 @@
 package VRAPI.Util;
 
 import VRAPI.Entities.Organisation;
+import VRAPI.Exceptions.NoIdSuppliedException;
 import VRAPI.XMLClasses.FromContainer.GenericLinkContainer;
 
 import java.util.Collection;
 import java.util.List;
 
 /**
- * Created by gebo on 02/06/2016.
+ * This class provides acccess to the XML queries we pass to vertec for various requests
  */
 public class QueryBuilder {
 
     private final String header;
 
+    //Constructed using a vertec user name and password (usually provided by incoming request)
     public QueryBuilder(String username, String password) {
         this.header = "<Envelope>\n" +
                 "  <Header>\n" +
@@ -25,6 +27,7 @@ public class QueryBuilder {
 
 //---------------------------------------------------------------------------------------------------------------------- GET TEAM and SUBTEAM
 
+    //Asks for the list of employees whose supervisor has id {id}
     String getSubTeamOfMember(Long id) {
         return header +
                 "\n" +
@@ -42,6 +45,7 @@ public class QueryBuilder {
                 "</Envelope>";
     }
 
+    ////asks for list of employee ids whose supervisor had id {id}
     public String getXMLQuery_TeamIdsAndSubTeam(Long id) {
 
         String bodyStart = "<Body>\n" +
@@ -62,6 +66,7 @@ public class QueryBuilder {
     }
 
     //---------------------------------------------------------------------------------------------------------------------- POST
+    //Builds XML query for posting a new organistion on vertec from organisation POJO
     String postOrganisation(VRAPI.XMLClasses.ContainerDetailedOrganisation.Organisation organisation) {
 
         String body = "<Body>\n" +
@@ -118,6 +123,7 @@ public class QueryBuilder {
                 "</Envelope>";
     }
 
+    //Asks for the details of each employee id provided in the collection
     public String getTeamDetails(Collection<Long> teamIDs) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -141,6 +147,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //Asks for a list of Adresses (Contacts and Organisations) that are owned on vertec by the owner ids supplied, as well as whether that owner is active and their email.
     public String getSupervisedAddresses(Collection<Long> memberIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -164,6 +171,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //Asks for a list of ids of both contacts and organisations, used to seperate the two into their own lists
     public String getContactAndOrganisationIds(Collection<Long> contactIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -183,6 +191,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //ASks for detailed information on the contacts ids provided
     public String getDetailedContact(List<Long> contactIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -216,6 +225,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //Ask for details of the organisaitons ids provided
     public String getOrganisationDetails(List<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -251,6 +261,7 @@ public class QueryBuilder {
     }
 
     @SuppressWarnings("all")
+    //creates XML to update a organisation with new information (WARNING: empty fields will be set to empty if nothing is provided in field)
     public String updateOrgansiation(Organisation org) throws NoIdSuppliedException {
 
         if (org.getVertecId() == null)
@@ -287,6 +298,8 @@ public class QueryBuilder {
 
     }
 
+    //Creates and organisation of given name (WARNING: attempting to provide extra details will result in write access denied being retured, but the write will have succeeded)
+    //use this function to create an organisation as this successfully return the id of the organisation, then use this id to update the rest of the information
     public String createOrgansiation(Organisation organisation) {
         String bodyStart = "<Body>\n" +
                 "   <Create>\n" +
@@ -303,6 +316,7 @@ public class QueryBuilder {
 
     }
 
+    //Asks for details for a project of given id.
     public String getProjectDetails(Collection<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -314,7 +328,7 @@ public class QueryBuilder {
 
         String bodyEnd = "</Selection>\n" +
                 "      <Resultdef>\n" +
-                "        <member>Kunde</member>\n" + //will return list of obj ref for each company
+                "        <member>Kunde</member>\n" +
                 "        <member>Aktiv</member>\n" +
                 "        <member>Phasen</member>\n" +
                 "        <member>projektnummer</member>\n" +
@@ -334,6 +348,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //asks for the projects that are lead by users with the given ids
     public String getProjectIds(List<Long> memberIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -346,7 +361,7 @@ public class QueryBuilder {
 
         String bodyEnd = "</Selection>\n" +
                 "      <Resultdef>\n" +
-                "        <member>bearbProjekte</member>\n" + //will return list of obj ref for each company
+                "        <member>bearbProjekte</member>\n" +
                 "        <member>Aktiv</member>\n" +
                 "      </Resultdef>\n" +
                 "    </Query>\n" +
@@ -356,6 +371,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //asks for project phase details by id
     public String getProjectPhases(List<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -391,6 +407,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //asks for the text description of project types by id
     public String getProjectTypes(List<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -412,6 +429,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //asks for the text description of currencies by id e.g. 'GBP'
     public String getCurrency(Long id) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -430,6 +448,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //asks for the activites assigned to the members whose ids you provide
     public String getActivityIds(List<Long> memberIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -452,6 +471,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //asks for details of activities by id
     public String getActivities(List<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -482,6 +502,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //asks for the text description of activities
     public String getActivityTypes(List<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -501,6 +522,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //asks for the email of an employee by id
     public String getUserEmail(Long id) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -519,6 +541,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //asks for a list of projects with a given code
     public String getProjectByCode(String code) {
         String body = "<Body>\n" +
                 "    <Query>\n" +
@@ -546,6 +569,7 @@ public class QueryBuilder {
         return header + body;
     }
 
+    //asks for all the activites that have been assigned to a particular addressEntry (organisation/contact)
     public String getActivitiesForAddressEntry(Long id) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -566,6 +590,7 @@ public class QueryBuilder {
 
     }
 
+    //asks for all projects linked to an organisation
     public String getProjectsForOrganisation(Long id) {
 
         String bodyStart = "<Body>\n" +
@@ -586,6 +611,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //asks for the contacts that are part of a given organisation
     public String getContactsForOrganisation(Long id) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -605,6 +631,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //given an organisation id, will set that organisation to active/inactive
     public String setOrganisationActive(Boolean active, Long id) {
         String body = "<Body>\n" +
                 "  <Update>\n" +
@@ -619,6 +646,7 @@ public class QueryBuilder {
         return header + body;
     }
 
+    //given a contact id, will set that contact to active/inactive
     public String setContactActive(Boolean active, Long id) {
         String body = "<Body>\n" +
                 "  <Update>\n" +
@@ -633,6 +661,7 @@ public class QueryBuilder {
         return header + body;
     }
 
+    //given an id of some entitiy will retrieve the type of that entity (WARNING: if recieving response into entity, expected type must be known otherwise unmarshalling will fail)
     public String getTypeOfId(Long id) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -650,6 +679,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //given a contact id and an organisation id, will set that contact to be part of that organisation (used for organisation merging)
     public String setContactOrganisationLink(Long id, Long orgId) {
         String body = "<Body>\n" +
                 "  <Update>\n" +
@@ -666,6 +696,7 @@ public class QueryBuilder {
         return header + body;
     }
 
+    //given a project id and an organisation id, will set that project to be linked to that organisaiton (used for organisation merging)
     public String setProjectOrgLink(Long projId, Long orgId) {
         String body = "<Body>\n" +
                 "  <Update>\n" +
@@ -682,6 +713,7 @@ public class QueryBuilder {
         return header + body;
     }
 
+    //given activity id and organisation id will set activity to be linked to that organisaiton (used for organisation merging)
     public String setActivityOrgLink(Long activityID, Long orgID) {
         String body = "<Body>\n" +
                 "  <Update>\n" +
@@ -698,6 +730,7 @@ public class QueryBuilder {
         return header + body;
     }
 
+    //given an activity id and a contact id will set that activity to be linked to that contact (used for contact merging)
     public String setActivityContactLink(Long activityId, Long contactId) {
         String body = "<Body>\n" +
                 "  <Update>\n" +
@@ -715,6 +748,7 @@ public class QueryBuilder {
 
     }
 
+    //given some contact details ids e.g. phone numbers/email addresses will retrieve the details of such
     public String getContactMediumDetails(List<Long> kommMittelIds) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -736,6 +770,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //given ids of generic link containers will return the ids of entitiies which point to it and what entities it points to
     public String getGenericLinkContainers(List<Long> ids) {
         String bodyStart = "<Body>\n" +
                 "    <Query>\n" +
@@ -755,6 +790,7 @@ public class QueryBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //given ids of some generic link containers will set the entity that points to them/ or they point to (use http tester and vertec test instance to figure out which way round this works) to the newId
     public String setFromContainerOfGLC(List<Long> glcids, Long newId) {
         String bodyBegin = "<Body>\n" +
                 "  <Update>\n";
@@ -774,7 +810,7 @@ public class QueryBuilder {
 
         return header + bodyBegin + bodyEnd;
     }
-
+    //given ids of some generic link containers will set the entity that points to them/ or they point to (use http tester and vertec test instance to figure out which way round this works) to the newId
     public String setLinksListToReplaceMergeIdWithSurvivorId(List<GenericLinkContainer> glcs, Long survivorId, Long mergingId) {
 
         String bodyBegin = "<Body>\n" +

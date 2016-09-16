@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
+/**
+ * Class used to return list of all activities related to ZUK
+ */
 public class JSONActivitiesResponse {
     private List<JSONActivity> activities;
 

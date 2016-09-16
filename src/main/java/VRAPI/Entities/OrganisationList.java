@@ -4,6 +4,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
+/**
+ *POJO for returning list of organisations in Entities.Organisation format
+ */
 public class OrganisationList {
 
     private List<Organisation> organisations;

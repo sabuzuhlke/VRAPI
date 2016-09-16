@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.List;
 
 /**
- * Created by sabu on 13/05/2016.
+ * POJO for returning details of a particular project, forms part of ZUKProjectsResponse
  */
 public class JSONProject {
 
@@ -43,6 +43,8 @@ public class JSONProject {
     public JSONProject() {
     }
 
+    //Constructor for creating object from XML POJO recieved from vertec, phases, type and currency must be aquired and set outside of this constructor
+    //leaderEmail is the email of the project leader, aManagerEmail is the email of the acccount manager for that project
     public JSONProject(VRAPI.XMLClasses.ContainerDetailedProjects.Project pr, String leaderEmail, String aManagerEmail) {
         this.title = pr.getTitle();
         this.v_id = pr.getId();

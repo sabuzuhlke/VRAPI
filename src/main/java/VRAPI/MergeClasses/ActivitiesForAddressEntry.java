@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
+/**
+ * This class is the POJO for retrieving all the activities linked to a particular organisation, we return this from end point /organisation/{id}/activities
+ */
 public class ActivitiesForAddressEntry {
 
     private Long organisationId;

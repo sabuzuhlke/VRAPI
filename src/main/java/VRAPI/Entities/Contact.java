@@ -4,6 +4,9 @@ package VRAPI.Entities;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * POJO for returning details of a contact
+ */
 public class Contact {
 
     private Long vertecId;

@@ -2,6 +2,9 @@ package VRAPI.Entities;
 
 import VRAPI.XMLClasses.ContainerEmployees.ProjectWorker;
 
+/**
+ * POJO for returning emplyee details
+ */
 public class Employee {
 
     private Long id;

@@ -40,15 +40,19 @@ public class MapBuilder {
     private static final String DEFAULT_VERTEC_SERVER_HOST = VertecServerInfo.VERTEC_SERVER_HOST;
     private static final String DEFAULT_VERTEC_SERVER_PORT = VertecServerInfo.VERTEC_SERVER_PORT;
 
+    //in the supervisor map this is what members of the top sales team will point to (including wolfgang) use this to identify you are at the top of the hierarchy
     private final Long SALES_TEAM_IDENTIFIER = -5L;
 
     private final URI vertecURI;
 
+    //document builder used for parsing xml responses
     private DocumentBuilder documentBuilder;
 
+    //Vertec username and password
     private String username;
     private String password;
 
+    //rest template used to set/recieve http requests
     private RestTemplate rest;
 
     //map of worker_id to their superior
@@ -59,6 +63,7 @@ public class MapBuilder {
         this.rest = new RestTemplate();
         vertecURI = URI.create("http://" + DEFAULT_VERTEC_SERVER_HOST + ":" + DEFAULT_VERTEC_SERVER_PORT + "/xml");
 
+        //following lines set up the marshaller/unmarhsaller to accept XML
         List<HttpMessageConverter<?>> converters = new ArrayList<>();
         Jaxb2RootElementHttpMessageConverter jaxbMC = new Jaxb2RootElementHttpMessageConverter();
         List<MediaType> mediaTypes = new ArrayList<>();
@@ -79,6 +84,7 @@ public class MapBuilder {
     }
 
 
+    //creates an activity type map as described in StaticMaps.class
     public Map<Long,String> createActivityTypeMap() {
         List<ActivityType> types = getActivityTypes();
 
@@ -89,6 +95,7 @@ public class MapBuilder {
         return activityTypeMap;
     }
 
+    //asks vertec for a list of activity types
     private List<ActivityType> getActivityTypes() {
 
         return callVertec(getActivityTypesQuery(), VRAPI.XMLClasses.ContainerActivityType.Envelope.class)
@@ -138,6 +145,7 @@ public class MapBuilder {
         return teamMap;
     }
 
+    //called to build supervisor map as described within StaticMaps
     public void createSupervisorMap() {
         List<Long> ids = getZUKTeamMemberIds();
         String xmlQuery = getXMLQuery_TeamIdsAndEmails(ids);
@@ -188,6 +196,7 @@ public class MapBuilder {
 
     }
 
+    //helper function for building supervisor map
     private void handleSubTeamMembers(List<Long> ids) {
 
         ids.forEach(id -> {
@@ -212,6 +221,7 @@ public class MapBuilder {
 
     }
 
+    //queires for employee ids team (we dont use query builder here as we have the username and password in this class already)
     public String getXMLQuery_TeamIdsAndSubTeam(Long id) {
 
         String header = "<Envelope>\n" +
@@ -239,10 +249,12 @@ public class MapBuilder {
         return header + bodyStart + bodyEnd;
     }
 
+    //convertec string representing 1 or 0 into boolean
     private Boolean toBoolean(String s) {
         return s.equals("1");
     }
 
+    //queries for team ids emails and subteams
     public String getXMLQuery_TeamIdsAndEmails(List<Long> ids) {
 
         String header = "<Envelope>\n" +
@@ -276,6 +288,7 @@ public class MapBuilder {
     }
 
 
+    //asked for ZUK top level team members (users of pipedrive)
     public List<Long> getZUKTeamMemberIds() {
 
         String xmlQuery = getXMLQuery_LeadersTeam();
@@ -291,6 +304,7 @@ public class MapBuilder {
         return list;
     }
 
+    //if error response returned by server, this checks if there are any details given and then passes those details onto asFailure, else throws exception
     private void failureFrom(Document document) {
         elementIn(document, "Fault")
                 .map(fault -> fault.getElementsByTagName("detailitem"))
@@ -302,6 +316,7 @@ public class MapBuilder {
     }
 
     @SuppressWarnings("all")
+    //used error detail item to throw appropriate error response
     private void asFailure(Optional<String> maybeItem) {
         maybeItem
                 .map(item -> {
@@ -316,16 +331,19 @@ public class MapBuilder {
                 ).orElseThrow(() ->  new HttpInternalServerError("missing fault"));
     }
 
+    //given a list of nodes parsed by document builder, will extract list of ids (<objref> or <objid>) from it
     private static List<Long> asIdList(NodeList nodeList) {
         return asStream(nodeList).map(Long::parseLong).collect(toList());
     }
 
+    //hack to convert nodelist into stream of nodes
     private static Stream<String> asStream(NodeList nodeList) {
         return IntStream.range(0, nodeList.getLength())
                 .mapToObj(nodeList::item)
                 .map(Node::getTextContent);
     }
 
+    //used to ask document for an element named tagname (if more than one will return first)
     private static Optional<Element> elementIn(Document document, String tagname) {
         final NodeList queryResponses = document.getElementsByTagName(tagname);
         return queryResponses.getLength() == 1 && queryResponses.item(0).getNodeType() == ELEMENT_NODE
@@ -333,6 +351,7 @@ public class MapBuilder {
                 : Optional.empty();
     }
 
+    //sends request and  parses response into document
     private Document responseFor(RequestEntity<String> req) throws HttpInternalServerError {
         try {
             final ResponseEntity<String> res = this.rest.exchange(req, String.class);
@@ -342,6 +361,7 @@ public class MapBuilder {
         }
     }
 
+    //builds follower map as described in StaticMaps.class
     public Map<Long, List<String>> createFollowerMap() {
         Map<Long, List<String>> map = new HashMap<>();
         VRAPI.XMLClasses.ContainerFollower.Envelope leader;

@@ -7,7 +7,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Created by sabu on 27/04/2016.
+ * POJO for returning all the organisations and contacts owned by ZUK team members
+ * Each organisation has its own nested contacts
+ * Many contacts are not part of an organisation and are returned as dangling contacts
  */
 public class ZUKOrganisationResponse {
 
